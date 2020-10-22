@@ -1,0 +1,21 @@
+/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
+   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
+
+package service
+
+import "github.com/dmalix/financelime-rest-api/packages/authorization/domain"
+
+type Service struct {
+	accountRepo        domain.AccountRepo
+	inviteCodeRequired bool
+}
+
+func NewAuthorizationService(
+	accountRepo domain.AccountRepo,
+	inviteCodeRequired bool) *Service {
+	return &Service{
+		accountRepo:        accountRepo,
+		inviteCodeRequired: inviteCodeRequired,
+	}
+}
