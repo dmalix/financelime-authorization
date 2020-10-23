@@ -48,7 +48,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbAuthMain, err = authorizationRepo.NewPostgresDB(authorizationRepo.Config{
+	dbAuthMain, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
 		Host:     config.DB.AuthMain.Connect.Host,
 		Port:     config.DB.AuthMain.Connect.Port,
 		SSLMode:  config.DB.AuthMain.Connect.SSLMode,
@@ -64,7 +64,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbAuthRead, err = authorizationRepo.NewPostgresDB(authorizationRepo.Config{
+	dbAuthRead, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
 		Host:     config.DB.AuthRead.Connect.Host,
 		Port:     config.DB.AuthRead.Connect.Port,
 		SSLMode:  config.DB.AuthRead.Connect.SSLMode,
@@ -80,7 +80,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbBlade, err = authorizationRepo.NewPostgresDB(authorizationRepo.Config{
+	dbBlade, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
 		Host:     config.DB.Blade.Connect.Host,
 		Port:     config.DB.Blade.Connect.Port,
 		SSLMode:  config.DB.Blade.Connect.SSLMode,

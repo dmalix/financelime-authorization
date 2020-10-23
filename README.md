@@ -41,13 +41,13 @@ DB_BLADE_MIGRATE_CREATEFILE |
 <a name="2-0"></a>
 ## 2. Identification at the device and request level
 <a name="2-1"></a> 
-### 2.1. Header 'Request-ID'
-API requests must contain a `Request-ID` header. Its content must be generated immediately before the request, according to a certain algorithm. API service validates the header before processing some requests. The `Request-ID` header allows you to identify the request and, together with the` Authorization` header, quickly track the chain of events, for example, filter events in the logs by device and request.  
-If a request requires a `Request-ID` header but is missing or failed validation, the request is rejected and a `400 Bad Request` response is returned. Since the algorithm changes slightly with each version, the `Request-ID` header effectively filters out inappropriate requests from bots, being a CAPTCHA for them.
+### 2.1. Header 'request-id'
+API requests must contain a `request-id` header. Its content must be generated immediately before the request, according to a certain algorithm. API service validates the header before processing some requests. The `request-id` header allows you to identify the request and, together with the` Authorization` header, quickly track the chain of events, for example, filter events in the logs by device and request.  
+If a request requires a `request-id` header but is missing or failed validation, the request is rejected and a `400 Bad Request` response is returned. Since the algorithm changes slightly with each version, the `request-id` header effectively filters out inappropriate requests from bots, being a CAPTCHA for them.
  
 Checks can be disabled in the API configuration for all or some requests.
 
-#### Algorithm for generating the 'Request-ID' header:
+#### Algorithm for generating the 'request-id' header:
 
 ```
         +------------------------- | 4 random character sets 
