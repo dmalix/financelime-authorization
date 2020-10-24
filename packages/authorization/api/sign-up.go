@@ -32,30 +32,43 @@ func (h *Handler) SignUp() http.Handler {
 			statusCode   int
 			contentType  string
 			remoteAdrr   string
+			label        string
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			log.Printf("ERROR [%s: %s]", "26Pi82rl",
+			label = "26Pi82rl"
+			log.Printf("ERROR [%s: %s]", label,
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
-			http.Error(w, "400 Bad Request", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", label), http.StatusBadRequest)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Printf("ERROR [%s: %s [%s]]", "w5a7C38O",
+			label = "w5a7C38O"
+			log.Printf("ERROR [%s: %s [%s]]", label,
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
-			http.Error(w, "400 Bad Request", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", label), http.StatusBadRequest)
+			return
+		}
+		err = r.Body.Close()
+		if err != nil {
+			label = "8w5a7C3O"
+			log.Printf("ERROR [%s: %s [%s]]", label,
+				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
+				err)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", label), http.StatusBadRequest)
 			return
 		}
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			log.Printf("ERROR [%s: %s [%s]]", "jlgeF0it",
+			label = "jlgeF0it"
+			log.Printf("ERROR [%s: %s [%s]]", label,
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
-			http.Error(w, "400 Bad Request", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", label), http.StatusBadRequest)
 			return
 		}
 
@@ -66,8 +79,9 @@ func (h *Handler) SignUp() http.Handler {
 
 		err = h.service.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 		if err != nil {
-			log.Printf("FATAL [%s: Failed to Sign Up: [%s]]", "G0bFFCuq", err)
-			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
+			label = "G0bFFCuq"
+			log.Printf("FATAL [%s: Failed to Sign Up: [%s]]", label, err)
+			http.Error(w, fmt.Sprintf("500 Server Internal Error [%s]", label), http.StatusInternalServerError)
 			return
 		}
 

@@ -6,14 +6,24 @@ package api
 
 import (
 	"github.com/dmalix/financelime-rest-api/packages/authorization/domain"
-	"github.com/dmalix/financelime-rest-api/utils/middleware"
+
 	"net/http"
 )
 
-func AddRoutes(mux *http.ServeMux, service domain.AccountService) {
+func AddRoutes(mux *http.ServeMux, service domain.AccountService, middleware ...func(http.Handler) http.Handler) {
 
 	handler := NewHandler(service)
 
-	mux.Handle("/authorization/signup", middleware.RequestID(handler.SignUp()))
+	mux.Handle("/authorization/signup", Middleware(
+		handler.SignUp(),
+		middleware,
+	))
 
+}
+
+func Middleware(h http.Handler, middleware []func(http.Handler) http.Handler) http.Handler {
+	for _, mw := range middleware {
+		h = mw(h)
+	}
+	return h
 }

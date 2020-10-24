@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	authorizationAPI "github.com/dmalix/financelime-rest-api/packages/authorization/api"
+	authorizationMiddleware "github.com/dmalix/financelime-rest-api/packages/authorization/api/middleware"
 	authorizationDomain "github.com/dmalix/financelime-rest-api/packages/authorization/domain"
 	authorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repo"
 	authorizationService "github.com/dmalix/financelime-rest-api/packages/authorization/service"
@@ -135,7 +136,7 @@ func (a *App) Run() error {
 
 	mux := http.NewServeMux()
 
-	authorizationAPI.AddRoutes(mux, a.authService)
+	authorizationAPI.AddRoutes(mux, a.authService, authorizationMiddleware.RequestID)
 
 	a.httpServer = &http.Server{
 		Addr:           ":" + a.config.Http.Port,

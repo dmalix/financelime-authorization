@@ -6,7 +6,6 @@ package responder
 
 import (
 	"fmt"
-	"html"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,10 +17,10 @@ func Response(w http.ResponseWriter, r *http.Request, responseBody []byte, statu
 		errorDetails error
 		errorCode    int
 	)
-	message := fmt.Sprintf("%s %s %s",
-		html.EscapeString(r.Method),
-		html.EscapeString(r.URL.Path),
-		html.EscapeString(r.Header.Get("request-id")))
+	message := "" /*fmt.Sprintf("%s %s %s",
+	html.EscapeString(r.Method),
+	html.EscapeString(r.URL.Path),
+	html.EscapeString(r.Header.Get("request-id")))*/
 	additionalInformation := fmt.Sprintf(
 		"%s",
 		strconv.Itoa(statusCode))

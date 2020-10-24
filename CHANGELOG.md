@@ -1,3 +1,8 @@
+## v0.1.2-alpha
+
+**Changes:**
+- Make some router improvements
+
 ## v0.1.1-alpha
 
 **New Features:**
