@@ -136,7 +136,7 @@ func (a *App) Run() error {
 
 	mux := http.NewServeMux()
 
-	authorizationAPI.AddRoutes(mux, a.authService, authorizationMiddleware.RequestID)
+	authorizationAPI.Router(mux, a.authService, authorizationMiddleware.RequestID)
 
 	a.httpServer = &http.Server{
 		Addr:           ":" + a.config.Http.Port,

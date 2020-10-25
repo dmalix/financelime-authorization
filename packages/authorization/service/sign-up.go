@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-rest-api/models"
 	"github.com/dmalix/financelime-rest-api/utils/random"
+	"strings"
 )
 
 func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
@@ -29,10 +30,19 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	_, err = a.accountRepo.CreateAccount(account, remoteAddr, linkKey, a.inviteCodeRequired)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%s: %s [%s]",
-			"4PtDRMCQ",
-			"Failed to create a new account",
-			err.Error()))
+		customError := strings.Split(err.Error(), ":")[0]
+		switch {
+		case customError == "FL100":
+			return errors.New(fmt.Sprintf("%s: %s [%s]",
+				"lKJ1Qzfk",
+				"Failed to create a new user",
+				err.Error()))
+		default:
+			return errors.New(fmt.Sprintf("%s: %s [%s]",
+				"4PtDRMCQ",
+				"Failed to create a new user",
+				err.Error()))
+		}
 	}
 
 	return nil

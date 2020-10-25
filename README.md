@@ -165,7 +165,7 @@ After confirmation, the service will send a password for authorization.
 curl -i -X POST \
 -H "content-type:application/json;charset=utf-8" \
 -H "request-id:K7800-H7625-Z5852-N1693-K1972" \
--d '{"email":"testuser@financelime.com, "inviteCode":"testInviteCode", "language":"en"}' \
+-d '{"email":"testuser@financelime.com", "inviteCode":"testInviteCode", "language":"en"}' \
 "https://api.dev.financelime.com/authorization/signup"
 ```
 #### Request Headers
