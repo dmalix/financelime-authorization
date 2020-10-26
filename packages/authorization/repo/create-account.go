@@ -118,14 +118,16 @@ func (r *Repo) CreateAccount(account *models.Account,
 
 	dbTransactionAuthMain, err = r.dbAuthMain.Begin()
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "W0wfephh", err))
+		errLabel = "W0wfephh"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 	//noinspection GoUnhandledErrorResult
 	defer dbTransactionAuthMain.Rollback()
 
 	dbTransactionBlade, err = r.dbBlade.Begin()
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "FSvBG7Dr", err))
+		errLabel = "FSvBG7Dr"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 	//noinspection GoUnhandledErrorResult
 	defer dbTransactionBlade.Rollback()
@@ -137,14 +139,16 @@ func (r *Repo) CreateAccount(account *models.Account,
 		invite_code,
 		invite_code_issued IN SHARE ROW EXCLUSIVE MODE`)
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "AA21lFGV", err))
+		errLabel = "AA21lFGV"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	_, err = dbTransactionBlade.Exec(`
 		LOCK TABLE confirmation_create_new_account,
 		invite_code_reserved IN SHARE ROW EXCLUSIVE MODE`)
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "KThpwB0c", err))
+		errLabel = "KThpwB0c"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	if len(props.inviteCode) > 0 {
@@ -168,13 +172,15 @@ func (r *Repo) CreateAccount(account *models.Account,
 				LIMIT 1`,
 				props.inviteCode)
 		if err != nil {
-			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "Chl5xLDp", err))
+			errLabel = "Chl5xLDp"
+			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 		}
 
 		for dbRowsAuthMaster.Next() {
 			err = dbRowsAuthMaster.Scan(&inviteCode.ID, &inviteCode.NumberLimit, &inviteCode.AccountID)
 			if err != nil {
-				return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "cWqgt3VB", err))
+				errLabel = "cWqgt3VB"
+				return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 			}
 		}
 
@@ -200,13 +206,15 @@ func (r *Repo) CreateAccount(account *models.Account,
 				AND invite_code.expires_at > NOW( )`,
 				inviteCode.ID)
 		if err != nil {
-			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "P4BJAxNp", err))
+			errLabel = "P4BJAxNp"
+			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 		}
 
 		for dbRowsAuthMaster.Next() {
 			err = dbRowsAuthMaster.Scan(&countInviteCodeIssued)
 			if err != nil {
-				return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "qooV4YZa", err))
+				errLabel = "qooV4YZa"
+				return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 			}
 		}
 
@@ -225,13 +233,15 @@ func (r *Repo) CreateAccount(account *models.Account,
 				AND confirmation_create_new_account.expires_at > NOW( )`,
 				inviteCode.ID)
 		if err != nil {
-			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "K8bddqeW", err))
+			errLabel = "K8bddqeW"
+			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 		}
 
 		for dbRowsBlade.Next() {
 			err = dbRowsBlade.Scan(&countInviteCodeReserved)
+			errLabel = "exm38bTK"
 			if err != nil {
-				return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "exm38bTK", err))
+				return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 			}
 		}
 
@@ -263,13 +273,15 @@ func (r *Repo) CreateAccount(account *models.Account,
 			LIMIT 1`,
 			props.email)
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "sKc1YXnv", err))
+		errLabel = "sKc1YXnv"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	for dbRowsAuthMaster.Next() {
 		err = dbRowsAuthMaster.Scan(&accountID)
+		errLabel = "ygw0wRNX"
 		if err != nil {
-			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "ygw0wRNX", err))
+			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 		}
 	}
 
@@ -286,13 +298,15 @@ func (r *Repo) CreateAccount(account *models.Account,
 		LIMIT 1`,
 			props.email)
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "JJkxUbO7", err))
+		errLabel = "JJkxUbO7"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	for dbRowsBlade.Next() {
 		err = dbRowsBlade.Scan(&confirmationID)
 		if err != nil {
-			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "f8GLmoWc", err))
+			errLabel = "f8GLmoWc"
+			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 		}
 	}
 
@@ -315,7 +329,8 @@ func (r *Repo) CreateAccount(account *models.Account,
 				( NOW( ), $1, $2, $3, $4, NOW( ) + INTERVAL '1440 minute' ) RETURNING "id"`,
 			props.email, props.language, props.linkKey, remoteAddrResult).Scan(&confirmationID)
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "tC7ftRAS", err))
+		errLabel = "tC7ftRAS"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	if len(props.inviteCode) > 0 && !inviteCodesIsRunOut {
@@ -329,7 +344,8 @@ func (r *Repo) CreateAccount(account *models.Account,
 					( NOW( ), $1, $2, $3 ) RETURNING "id"`,
 				inviteCode.ID, props.email, confirmationID).Scan(&inviteCodeReservedID)
 		if err != nil {
-			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "MANT4no8", err))
+			errLabel = "MANT4no8"
+			return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 		}
 	}
 
@@ -337,12 +353,14 @@ func (r *Repo) CreateAccount(account *models.Account,
 
 	err = dbTransactionAuthMain.Commit()
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "dnG1foyV", err))
+		errLabel = "dnG1foyV"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	err = dbTransactionBlade.Commit()
 	if err != nil {
-		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", "Dv3qdcSW", err))
+		errLabel = "Dv3qdcSW"
+		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 	}
 
 	return confirmationID, nil

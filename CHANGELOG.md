@@ -1,12 +1,9 @@
-## v0.1.6-alpha
-
-**Changes:**
-- Add error labels.
-
-## v0.1.5-alpha
+## Pre-Release v0.1.5-alpha
 
 **Changes:**
 - Write a unit test for the utils/random.StringRand function.
+- Add error labels.
+- Write a unit test for the Router function.
 
 ## Pre-Release v0.1.4-alpha
 
