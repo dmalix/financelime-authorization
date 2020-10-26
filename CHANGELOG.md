@@ -1,3 +1,8 @@
+## v0.1.4-alpha
+
+**Changes:**
+- Transfer some functions from the router to utilities.
+
 ## v0.1.3-alpha
 
 **Changes:**
