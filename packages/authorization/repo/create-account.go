@@ -67,6 +67,7 @@ func (r *Repo) CreateAccount(account *models.Account,
 		remoteAddrSource        net.IP
 		remoteAddrResult        string
 		err                     error
+		errLabel                string
 	)
 
 	// Check props
@@ -76,7 +77,8 @@ func (r *Repo) CreateAccount(account *models.Account,
 	props.email = html.EscapeString(account.Email)
 	if len(props.email) <= 2 || len(props.email) > 255 {
 		return confirmationID,
-			errors.New(fmt.Sprintf("FL%s:[account.Email=%s]", "100", props.email))
+			errors.New(fmt.Sprintf("FL%s: Param account.Email is not valid [account.Email=%s]",
+				"100", props.email))
 	}
 
 	props.inviteCode = html.EscapeString(account.InviteCode)
@@ -84,7 +86,8 @@ func (r *Repo) CreateAccount(account *models.Account,
 	if !paramValueRegexp.MatchString(props.inviteCode) {
 		if props.inviteCodeRequired {
 			return confirmationID,
-				errors.New(fmt.Sprintf("FL%s:[account.InviteCode=%s]", "101", props.inviteCode))
+				errors.New(fmt.Sprintf("FL%s: Parap account.InviteCode is not valid[account.InviteCode=%s]",
+					"101", props.inviteCode))
 		}
 	}
 
@@ -92,7 +95,8 @@ func (r *Repo) CreateAccount(account *models.Account,
 	paramValueRegexp = regexp.MustCompile(`^[ru|en]{2}$`)
 	if !paramValueRegexp.MatchString(props.language) {
 		return confirmationID,
-			errors.New(fmt.Sprintf("FL%s:[account.Language=%s]", "102", props.language))
+			errors.New(fmt.Sprintf("FL%s: Param account.Language is not valid[account.Language=%s]",
+				"102", props.language))
 	}
 
 	props.remoteAddr = html.EscapeString(remoteAddr)

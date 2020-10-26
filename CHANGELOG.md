@@ -1,3 +1,8 @@
+## v0.1.6-alpha
+
+**Changes:**
+- Add error labels.
+
 ## v0.1.5-alpha
 
 **Changes:**

@@ -32,43 +32,47 @@ func (h *Handler) SignUp() http.Handler {
 			statusCode   int
 			contentType  string
 			remoteAdrr   string
-			label        string
+			errLabel     string
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			label = "26Pi82rl"
-			log.Printf("ERROR [%s: %s]", label,
+			errLabel = "26Pi82rl"
+			log.Printf("ERROR [%s: %s]", errLabel,
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", label), http.StatusBadRequest)
+			w.Header().Add("error-label", errLabel)
+			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			label = "w5a7C38O"
-			log.Printf("ERROR [%s: %s [%s]]", label,
+			errLabel = "w5a7C38O"
+			log.Printf("ERROR [%s: %s [%s]]", errLabel,
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", label), http.StatusBadRequest)
+			w.Header().Add("error-label", errLabel)
+			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
 			return
 		}
 		err = r.Body.Close()
 		if err != nil {
-			label = "8w5a7C3O"
-			log.Printf("ERROR [%s: %s [%s]]", label,
+			errLabel = "8w5a7C3O"
+			log.Printf("ERROR [%s: %s [%s]]", errLabel,
 				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
 				err)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", label), http.StatusBadRequest)
+			w.Header().Add("error-label", errLabel)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
 			return
 		}
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			label = "jlgeF0it"
-			log.Printf("ERROR [%s: %s [%s]]", label,
+			errLabel = "jlgeF0it"
+			log.Printf("ERROR [%s: %s [%s]]", errLabel,
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", label), http.StatusBadRequest)
+			w.Header().Add("error-label", errLabel)
+			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
 			return
 		}
 
@@ -79,9 +83,10 @@ func (h *Handler) SignUp() http.Handler {
 
 		err = h.service.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 		if err != nil {
-			label = "G0bFFCuq"
-			log.Printf("FATAL [%s: Failed to Sign Up: [%s]]", label, err)
-			http.Error(w, fmt.Sprintf("500 Server Internal Error [%s]", label), http.StatusInternalServerError)
+			errLabel = "G0bFFCuq"
+			log.Printf("FATAL [%s: Failed to Sign Up: [%s]]", errLabel, err)
+			w.Header().Add("error-label", errLabel)
+			http.Error(w, fmt.Sprintf("500 Server Internal Error [%s]", errLabel), http.StatusInternalServerError)
 			return
 		}
 

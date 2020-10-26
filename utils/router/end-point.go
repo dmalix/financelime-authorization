@@ -33,10 +33,11 @@ func EndPoint(points ...Point) http.Handler {
 		}
 
 		if result != true {
-			label := "226Pi8rl"
-			log.Printf("ERROR [%s: %s]", label,
+			errLabel := "226Pi8rl"
+			log.Printf("ERROR [%s: %s]", errLabel,
 				fmt.Sprintf("Methods Not Allowed [%s]",
 					responder.Message(r)))
+			w.Header().Add("error-label", errLabel)
 			http.Error(w, "405 Methods Not Allowed", http.StatusMethodNotAllowed)
 			return
 		}
@@ -46,6 +47,7 @@ func EndPoint(points ...Point) http.Handler {
 			log.Printf("FATAL [%s: %s]", label,
 				fmt.Sprintf("Handler Not Found [%s]",
 					responder.Message(r)))
+			w.Header().Add("error-label", label)
 			http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 			return
 		}

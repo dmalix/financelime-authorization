@@ -15,9 +15,10 @@ import (
 func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	var (
-		account *models.Account
-		linkKey string
-		err     error
+		account  *models.Account
+		linkKey  string
+		err      error
+		errLabel string
 	)
 
 	account = &models.Account{
@@ -33,13 +34,15 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 		customError := strings.Split(err.Error(), ":")[0]
 		switch {
 		case customError == "FL100":
+			errLabel = "lKJ1Qzfk"
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"lKJ1Qzfk",
+				errLabel,
 				"Failed to create a new user",
 				err.Error()))
 		default:
+			errLabel = "4PtDRMCQ"
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"4PtDRMCQ",
+				errLabel,
 				"Failed to create a new user",
 				err.Error()))
 		}
