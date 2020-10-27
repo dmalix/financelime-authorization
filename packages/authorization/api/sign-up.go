@@ -15,7 +15,7 @@ import (
 )
 
 //	Create new account
-func (h *Handler) SignUp() http.Handler {
+func (handler *Handler) SignUp() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		type incomingProps struct {
@@ -25,14 +25,15 @@ func (h *Handler) SignUp() http.Handler {
 		}
 
 		var (
-			props        incomingProps
-			err          error
-			body         []byte
-			responseBody []byte
-			statusCode   int
-			contentType  string
-			remoteAdrr   string
-			errLabel     string
+			props         incomingProps
+			body          []byte
+			responseBody  []byte
+			statusCode    int
+			contentType   string
+			remoteAdrr    string
+			err           error
+			errLabel      string
+			customErrCode string
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
@@ -81,13 +82,37 @@ func (h *Handler) SignUp() http.Handler {
 			remoteAdrr = r.RemoteAddr
 		}
 
-		err = h.service.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
+		err = handler.service.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 		if err != nil {
-			errLabel = "G0bFFCuq"
-			log.Printf("FATAL [%s: Failed to Sign Up: [%s]]", errLabel, err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Server Internal Error [%s]", errLabel), http.StatusInternalServerError)
-			return
+			customErrCode = strings.Split(err.Error(), ":")[0]
+			switch customErrCode {
+			case "FL100", "FL101", "FL102", "FL106" :
+				errLabel = "jInpoLV5"
+				log.Printf("ERROR [%s: Failed to Sign Up: [%s]]", errLabel, err)
+				http.Error(w, "400 Bad Request", http.StatusBadRequest)
+				return
+			case "FL103": // User already exists
+				errLabel = "5Ig7X4Sv"
+				log.Printf("ERROR [%s: Failed to Sign Up: [%s]]", errLabel, err)
+				http.Error(w, "409 Conflict", http.StatusConflict)
+				return
+			case "FL104": // The invite code does not exist or is expired
+				errLabel = "61H2IR2f"
+				log.Printf("ERROR [%s: Failed to Sign Up: [%s]]", errLabel, err)
+				http.Error(w, "409 Conflict", http.StatusConflict)
+				return
+			case "FL105": // The limit for issuing the specified invite code has been exhausted
+				errLabel = "pZ4fgc9k"
+				log.Printf("ERROR [%s: Failed to Sign Up: [%s]]", errLabel, err)
+				http.Error(w, "409 Conflict", http.StatusConflict)
+				return
+			default:
+				errLabel = "e3YlkJHc"
+				log.Printf("FATAL [%s: Failed to Sign Up: [%s]]", errLabel, err)
+				w.Header().Add("error-label", errLabel)
+				http.Error(w, fmt.Sprintf("500 Server Internal Error [%s]", errLabel), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		statusCode = 202

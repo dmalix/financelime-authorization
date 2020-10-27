@@ -38,7 +38,7 @@ type inviteCode struct {
 			         FL106 - Param remoteAddr is not valid
 			         FL107 - Param linkKey is not valid
 */
-func (r *Repo) CreateAccount(account *models.Account,
+func (repo *Repo) CreateAccount(account *models.Account,
 	remoteAddr, linkKey string, inviteCodeRequired bool) (int64, error) {
 
 	type incomingProps struct {
@@ -116,7 +116,7 @@ func (r *Repo) CreateAccount(account *models.Account,
 
 	// Begin the transaction
 
-	dbTransactionAuthMain, err = r.dbAuthMain.Begin()
+	dbTransactionAuthMain, err = repo.dbAuthMain.Begin()
 	if err != nil {
 		errLabel = "W0wfephh"
 		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
@@ -124,7 +124,7 @@ func (r *Repo) CreateAccount(account *models.Account,
 	//noinspection GoUnhandledErrorResult
 	defer dbTransactionAuthMain.Rollback()
 
-	dbTransactionBlade, err = r.dbBlade.Begin()
+	dbTransactionBlade, err = repo.dbBlade.Begin()
 	if err != nil {
 		errLabel = "FSvBG7Dr"
 		return confirmationID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))

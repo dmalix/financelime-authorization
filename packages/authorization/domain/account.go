@@ -11,5 +11,20 @@ type AccountService interface {
 }
 
 type AccountRepo interface {
+	/*
+		Create a new account
+			----------------
+			Return:
+				confirmationID int64
+				error  - system or custom error (format FLNNN:[details]):
+				         ------------------------------------------------
+				         FL100 - Param account.Email is not valid
+				         FL101 - Parap account.InviteCode is not valid
+				         FL102 - Param account.Language is not valid
+				         FL103 - An account with the specified email already exists
+				         FL104 - The invite code does not exist or is expired
+				         FL105 - The limit for issuing this invite code has been exhausted
+				         FL106 - Param remoteAddr is not valid
+	*/
 	CreateAccount(account *models.Account, remoteAddr, linkKey string, inviteCodeRequired bool) (int64, error)
 }

@@ -1,9 +1,12 @@
 ## Pre-Release v0.1.5-alpha
 
 **Changes:**
-- Write a unit test for the utils/random.StringRand function.
 - Add error labels.
+
+**Tests:**
+- Write a unit test for the utils/random.StringRand function.
 - Write a unit test for the Router function.
+- Write a unit test for the api.SignUp function.
 
 ## Pre-Release v0.1.4-alpha
 
