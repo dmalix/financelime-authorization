@@ -4,9 +4,10 @@
 - Add error labels.
 
 **Tests:**
-- Write a unit test for the utils/random.StringRand function.
-- Write a unit test for the api.Router function.
-- Write a unit test for the api.SignUp function.
+- Write a unit-test for the utils/random.StringRand function.
+- Write a unit-test for the authorization/api.Router function.
+- Write a unit-test for the authorization/api.SignUp function.
+- Write a unit-test for the authorization/middleware.RequestID function.
 
 ## Pre-Release v0.1.4-alpha
 
