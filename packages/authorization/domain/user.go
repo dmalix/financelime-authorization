@@ -6,25 +6,37 @@ package domain
 
 import "github.com/dmalix/financelime-rest-api/models"
 
-type AccountService interface {
+type UserService interface {
+	/*
+	   	Create a new user
+	   		----------------
+	   		Return:
+	   			error  - system or domain error code (format domain_error_code:description[details]):
+					------------------------------------------------
+					a1: one or more of the input parameters are invalid
+					b1: a user with the email you specified already exists
+					b2: the invite code does not exist or is expired
+					b3: the limit for issuing this invite code has been exhausted
+	*/
 	SignUp(email, inviteCode, language, remoteAddr string) error
 }
 
-type AccountRepo interface {
+type UserRepo interface {
 	/*
-		Create a new account
+		Create a new user
 			----------------
 			Return:
 				confirmationID int64
-				error  - system or custom error (format FLNNN:[details]):
-				         ------------------------------------------------
-				         FL100 - Param account.Email is not valid
-				         FL101 - Parap account.InviteCode is not valid
-				         FL102 - Param account.Language is not valid
-				         FL103 - An account with the specified email already exists
-				         FL104 - The invite code does not exist or is expired
-				         FL105 - The limit for issuing this invite code has been exhausted
-				         FL106 - Param remoteAddr is not valid
+				error  - system or domain error code (format domain_error_code:description[details]):
+					------------------------------------------------
+					a1: param user.Email is not valid
+					a2: parap user.InviteCode is not valid
+					a3: param user.Language is not valid
+					a4: param remoteAddr is not valid
+					a5: param linkKey is not valid
+					b1: a user with the email you specified already exists
+					b2: the invite code does not exist or is expired
+					b3: the limit for issuing this invite code has been exhausted
 	*/
-	CreateAccount(account *models.Account, remoteAddr, linkKey string, inviteCodeRequired bool) (int64, error)
+	CreateUser(user *models.User, remoteAddr, linkKey string, inviteCodeRequired bool) (int64, error)
 }

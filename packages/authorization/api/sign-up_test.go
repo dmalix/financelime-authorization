@@ -80,9 +80,43 @@ func TestSignUp_400_InvalidHeaderContentType(t *testing.T) {
 	}
 }
 
-func TestSignUp_409_FL103_ServiceError(t *testing.T) {
+func TestSignUp_400_a1_ServiceError(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("FL%v:", 103))
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "a1"))
+
+	props := map[string]interface{}{}
+
+	bytesRepresentation, err := json.Marshal(props)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	request, err := http.NewRequest(
+		"POST",
+		"/authorization/signup",
+		bytes.NewBuffer(bytesRepresentation))
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Add("content-type", "application/json;charset=utf-8")
+
+	responseRecorder := httptest.NewRecorder()
+
+	authService := new(service.MockType)
+	newHandler := NewHandler(authService)
+	handler := newHandler.SignUp()
+
+	handler.ServeHTTP(responseRecorder, request)
+
+	if status := responseRecorder.Code; status != http.StatusBadRequest {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusBadRequest)
+	}
+}
+
+func TestSignUp_409_b1_ServiceError(t *testing.T) {
+
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "b1"))
 
 	props := map[string]interface{}{}
 
@@ -114,9 +148,9 @@ func TestSignUp_409_FL103_ServiceError(t *testing.T) {
 	}
 }
 
-func TestSignUp_409_FL104_ServiceError(t *testing.T) {
+func TestSignUp_409_b2_ServiceError(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("FL%v:", 104))
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "b2"))
 
 	props := map[string]interface{}{}
 
@@ -148,9 +182,9 @@ func TestSignUp_409_FL104_ServiceError(t *testing.T) {
 	}
 }
 
-func TestSignUp_409_FL105_ServiceError(t *testing.T) {
+func TestSignUp_409_b3_ServiceError(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("FL%v:", 105))
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "b3"))
 
 	props := map[string]interface{}{}
 
@@ -260,4 +294,3 @@ func TestSignUp_202(t *testing.T) {
 			status, http.StatusAccepted)
 	}
 }
-

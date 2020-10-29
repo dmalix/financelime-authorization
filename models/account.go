@@ -4,7 +4,7 @@
 
 package models
 
-type Account struct {
+type User struct {
 	ID         int64
 	Email      string
 	Password   string

@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-type MockType struct{
+type MockType struct {
 	Values struct {
 		SignUp struct {
 			Props struct {
@@ -27,7 +27,7 @@ var Mock MockType
 func (a *MockType) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	if Mock.Values.SignUp.ExpectedError != nil {
-		return  Mock.Values.SignUp.ExpectedError
+		return Mock.Values.SignUp.ExpectedError
 	}
 
 	if email != Mock.Values.SignUp.Props.Email && inviteCode != Mock.Values.SignUp.Props.InviteCode &&

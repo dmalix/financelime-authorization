@@ -26,7 +26,7 @@ import (
 type App struct {
 	config      serverConfig.Cfg
 	httpServer  *http.Server
-	authService authorizationDomain.AccountService
+	authService authorizationDomain.UserService
 }
 
 func NewApp() (*App, error) {
@@ -121,12 +121,12 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	accountRepo := authorizationRepo.NewAuthorizationRepo(dbAuthMain, dbAuthRead, dbBlade)
+	userRepo := authorizationRepo.NewAuthorizationRepo(dbAuthMain, dbAuthRead, dbBlade)
 
 	return &App{
 		config: config,
 		authService: authorizationService.NewAuthorizationService(
-			accountRepo,
+			userRepo,
 			config.Auth.InviteCodeRequired,
 		),
 	}, nil

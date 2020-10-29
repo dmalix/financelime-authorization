@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func Router(mux *http.ServeMux, service domain.AccountService, middleware ...func(http.Handler) http.Handler) {
+func Router(mux *http.ServeMux, service domain.UserService, middleware ...func(http.Handler) http.Handler) {
 
 	handler := NewHandler(service)
 

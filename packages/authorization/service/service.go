@@ -7,15 +7,15 @@ package service
 import "github.com/dmalix/financelime-rest-api/packages/authorization/domain"
 
 type Service struct {
-	accountRepo        domain.AccountRepo
+	userRepo           domain.UserRepo
 	inviteCodeRequired bool
 }
 
 func NewAuthorizationService(
-	accountRepo domain.AccountRepo,
+	accountRepo domain.UserRepo,
 	inviteCodeRequired bool) *Service {
 	return &Service{
-		accountRepo:        accountRepo,
+		userRepo:           accountRepo,
 		inviteCodeRequired: inviteCodeRequired,
 	}
 }
