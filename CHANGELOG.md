@@ -4,6 +4,7 @@
 - Add error labels.
 - Make some improvements to function and variable names.
 - Add human-readable errors (domain error code).
+- Fix minor inaccuracies in SQL-queries.
 
 **Tests:**
 - Write a unit-test for the utils/random.StringRand function.

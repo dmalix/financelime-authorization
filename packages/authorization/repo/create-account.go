@@ -121,7 +121,7 @@ func (repo *Repo) CreateUser(user *models.User,
 	// Lock tables
 
 	_, err = dbTransactionAuthMain.Exec(`
-		LOCK TABLE user,
+		LOCK TABLE "user",
 		invite_code,
 		invite_code_issued IN SHARE ROW EXCLUSIVE MODE`)
 	if err != nil {
@@ -146,13 +146,13 @@ func (repo *Repo) CreateUser(user *models.User,
 			SELECT
 				invite_code."id",
 				invite_code.number_limit,
-				user."id" AS user_id 
+				"user"."id" AS user_id 
 			FROM
 				invite_code
-				INNER JOIN user ON invite_code.user_id = user."id" 
+				INNER JOIN "user" ON invite_code.user_id = "user"."id" 
 			WHERE
 				invite_code."value" = $1 
-				AND user.deleted_at IS NULL 
+				AND "user".deleted_at IS NULL 
 				AND invite_code.deleted_at IS NULL 
 				AND invite_code.expires_at > NOW( ) 
 				LIMIT 1`,
@@ -172,8 +172,8 @@ func (repo *Repo) CreateUser(user *models.User,
 
 		if inviteCode.ID == 0 { // The invite code does not exist or is expired
 			return confirmationID,
-			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"INVITE_NOT_EXIST_EXPIRED","the invite code does not exist or is expired", props.inviteCode))
+				errors.New(fmt.Sprintf("%s:%s[%s]",
+					"INVITE_NOT_EXIST_EXPIRED", "the invite code does not exist or is expired", props.inviteCode))
 		}
 
 		// Check the limit for this invite code, including the reservation
@@ -184,11 +184,11 @@ func (repo *Repo) CreateUser(user *models.User,
 				( invite_code_issued."id" ) 
 			FROM
 				invite_code
-				INNER JOIN user ON invite_code.user_id = user."id"
+				INNER JOIN "user" ON invite_code.user_id = "user"."id"
 				INNER JOIN invite_code_issued ON invite_code."id" = invite_code_issued.invite_code_id 
 			WHERE
 				invite_code."id" = $1 
-				AND user.deleted_at IS NULL 
+				AND "user".deleted_at IS NULL 
 				AND invite_code_issued.deleted_at IS NULL 
 				AND invite_code.deleted_at IS NULL 
 				AND invite_code.expires_at > NOW( )`,
@@ -254,12 +254,12 @@ func (repo *Repo) CreateUser(user *models.User,
 	dbRowsAuthMaster, err =
 		dbTransactionAuthMain.Query(`
 		SELECT 
-			user."id" 
+			"user"."id" 
 		FROM 
-			user 
+			"user" 
 		WHERE 
-			user.email = $1 
-			AND user.deleted_at IS NULL 
+			"user".email = $1 
+			AND "user".deleted_at IS NULL 
 			LIMIT 1`,
 			props.email)
 	if err != nil {

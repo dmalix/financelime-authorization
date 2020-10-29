@@ -89,7 +89,7 @@ func (handler *Handler) SignUp() http.Handler {
 			errorMessage = "failed to Sign Up"
 			switch domainErrorCode {
 			case "PROPS": // one or more of the input parameters are invalid
-				errLabel = "jInpoLV5" 
+				errLabel = "jInpoLV5"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				http.Error(w, "400 Bad Request", http.StatusBadRequest)
@@ -119,7 +119,7 @@ func (handler *Handler) SignUp() http.Handler {
 				errLabel = "e3YlkJHc"
 				log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
-				http.Error(w, fmt.Sprintf("500 Server Internal Error [%s]", errLabel), http.StatusInternalServerError)
+				http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 				return
 			}
 		}

@@ -12,7 +12,6 @@ import (
 	"strings"
 )
 
-
 func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	var (
