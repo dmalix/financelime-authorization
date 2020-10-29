@@ -3,7 +3,7 @@
 **Changes:**
 - Add error labels.
 - Make some improvements to function and variable names.
-- Adding human-readable errors (domain error code).
+- Add human-readable errors (domain error code).
 
 **Tests:**
 - Write a unit-test for the utils/random.StringRand function.

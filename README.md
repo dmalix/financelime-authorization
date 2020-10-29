@@ -152,9 +152,9 @@ content-type:application/json;charset=utf-8
 #### Parameters:
 Name        | Type   | Description
 ------------|--------|------------
-email       | string | User Email
-invite_code | string | Invite Code
-language    | string | User Language 
+`email`       | `string` | User Email
+`invite_code` | `string` | Invite Code
+`language`    | `string` | User Language 
 
 #### Response:
 The service sends a confirmation link to the specified email.
@@ -178,19 +178,17 @@ request-id: REQUEST_ID
 
 STATUS_CODE        | Description
 -------------------|----------------
-202 Accepted       | The API has successfully processed the request and the service sends a confirmation link to the specified email
-400 Bad Request    | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
-409 Conflict       | An error occurred while processing the request (details in the section `Domain Error Code`, in the next paragraph)
-
-In the case of a 409 code, the request will return an `Error-Code` header containing the error code.
+`202 Accepted`    | The API has successfully processed the request and the service sends a confirmation link to the specified email
+`400 Bad Request` | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
+`409 Conflict`    | An error occurred while processing the request (details in the section `Domain Error Code`, in the next paragraph)
 
 ##### Domain Error Code:
 
-When the API returns a `409 Conflict` error status, the header `domain-error-code` contains an additional code that can help to determine the cause.
+When the API returns a `409 Conflict` error status, the header `domain-error-code` contains an additional human-readable code that can help to determine the cause.
 
 DOMAIN_ERROR_CODE | Description
 ---|-------------
-b1 | User already exists
-b2 | The invite code does not exist or is expired
-b3 | The limit for issuing the specified invite code has been exhausted
+`USER_ALREADY_EXIST` | User already exists
+`INVITE_NOT_EXIST_EXPIRED` | The invite code does not exist or is expired
+`INVITE_LIMIT` | The limit for issuing the specified invite code has been exhausted
 

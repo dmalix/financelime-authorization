@@ -34,24 +34,24 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
-		case "a1", "a2", "a3", "a4", "a5":
+		case "PROPS_EMAIL", "PROPS_INVITE_CODE", "PROPS_LANG", "PROPS_REMOTE_ADDR", "PROPS_LINK_KEY":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				"a1",
+				"PROPS",
 				"one or more of the input parameters are invalid",
 				err))
-		case "b1":
+		case "USER_ALREADY_EXIST":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				"b1",
+				domainErrorCode,
 				"a user with the email you specified already exists",
 				err))
-		case "b2":
+		case "INVITE_NOT_EXIST_EXPIRED":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				"b2",
+				domainErrorCode,
 				"the invite code does not exist or is expired",
 				err))
-		case "b3":
+		case "INVITE_LIMIT":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				"b3",
+				domainErrorCode,
 				"the limit for issuing this invite code has been exhausted",
 				err))
 

@@ -80,9 +80,9 @@ func TestSignUp_400_InvalidHeaderContentType(t *testing.T) {
 	}
 }
 
-func TestSignUp_400_a1_ServiceError(t *testing.T) {
+func TestSignUp_400_ServiceError__PROPS(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "a1"))
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "PROPS"))
 
 	props := map[string]interface{}{}
 
@@ -114,43 +114,9 @@ func TestSignUp_400_a1_ServiceError(t *testing.T) {
 	}
 }
 
-func TestSignUp_409_b1_ServiceError(t *testing.T) {
+func TestSignUp_409_ServiceError__USER_ALREADY_EXIST(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "b1"))
-
-	props := map[string]interface{}{}
-
-	bytesRepresentation, err := json.Marshal(props)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	request, err := http.NewRequest(
-		"POST",
-		"/authorization/signup",
-		bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		t.Fatal(err)
-	}
-	request.Header.Add("content-type", "application/json;charset=utf-8")
-
-	responseRecorder := httptest.NewRecorder()
-
-	authService := new(service.MockType)
-	newHandler := NewHandler(authService)
-	handler := newHandler.SignUp()
-
-	handler.ServeHTTP(responseRecorder, request)
-
-	if status := responseRecorder.Code; status != http.StatusConflict {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusConflict)
-	}
-}
-
-func TestSignUp_409_b2_ServiceError(t *testing.T) {
-
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "b2"))
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "USER_ALREADY_EXIST"))
 
 	props := map[string]interface{}{}
 
@@ -182,9 +148,9 @@ func TestSignUp_409_b2_ServiceError(t *testing.T) {
 	}
 }
 
-func TestSignUp_409_b3_ServiceError(t *testing.T) {
+func TestSignUp_409_ServiceError__INVITE_NOT_EXIST_EXPIRED(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "b3"))
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "INVITE_NOT_EXIST_EXPIRED"))
 
 	props := map[string]interface{}{}
 
@@ -216,9 +182,43 @@ func TestSignUp_409_b3_ServiceError(t *testing.T) {
 	}
 }
 
-func TestSignUp_500_DEFAULT_ServiceError(t *testing.T) {
+func TestSignUp_409_ServiceError__INVITE_LIMIT(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New("ServerError")
+	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "INVITE_LIMIT"))
+
+	props := map[string]interface{}{}
+
+	bytesRepresentation, err := json.Marshal(props)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	request, err := http.NewRequest(
+		"POST",
+		"/authorization/signup",
+		bytes.NewBuffer(bytesRepresentation))
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Add("content-type", "application/json;charset=utf-8")
+
+	responseRecorder := httptest.NewRecorder()
+
+	authService := new(service.MockType)
+	newHandler := NewHandler(authService)
+	handler := newHandler.SignUp()
+
+	handler.ServeHTTP(responseRecorder, request)
+
+	if status := responseRecorder.Code; status != http.StatusConflict {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusConflict)
+	}
+}
+
+func TestSignUp_500_ServiceError__SYSTEM(t *testing.T) {
+
+	service.Mock.Values.SignUp.ExpectedError = errors.New("ServiceError")
 
 	props := map[string]interface{}{}
 

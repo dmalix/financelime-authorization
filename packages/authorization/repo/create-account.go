@@ -62,7 +62,7 @@ func (repo *Repo) CreateUser(user *models.User,
 	if len(props.email) <= 2 || len(props.email) > 255 {
 		return confirmationID,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"a1", "param user.Email is not valid", props.email))
+				"PROPS_EMAIL", "param user.Email is not valid", props.email))
 	}
 
 	props.inviteCode = html.EscapeString(user.InviteCode)
@@ -71,7 +71,7 @@ func (repo *Repo) CreateUser(user *models.User,
 		if props.inviteCodeRequired {
 			return confirmationID,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
-					"a2", "param user.InviteCode is not valid", props.inviteCode))
+					"PROPS_INVITE", "param user.InviteCode is not valid", props.inviteCode))
 		}
 	}
 
@@ -80,7 +80,7 @@ func (repo *Repo) CreateUser(user *models.User,
 	if !paramValueRegexp.MatchString(props.language) {
 		return confirmationID,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"a3", "param user.Language is not valid", props.language))
+				"PROPS_LANG", "param user.Language is not valid", props.language))
 	}
 
 	props.remoteAddr = html.EscapeString(remoteAddr)
@@ -88,7 +88,7 @@ func (repo *Repo) CreateUser(user *models.User,
 	if remoteAddrSource == nil {
 		return confirmationID,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"a4", "param remoteAddr is not valid", props.remoteAddr))
+				"PROPS_REMOTE_ADDR", "param remoteAddr is not valid", props.remoteAddr))
 	}
 	props.remoteAddr = remoteAddrSource.String()
 
@@ -97,7 +97,7 @@ func (repo *Repo) CreateUser(user *models.User,
 	if !paramValueRegexp.MatchString(props.linkKey) {
 		return confirmationID,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"a5", "param linkKey is not valid", props.linkKey))
+				"PROPS_LINK_KEY", "param linkKey is not valid", props.linkKey))
 	}
 
 	// Begin the transaction
@@ -173,7 +173,7 @@ func (repo *Repo) CreateUser(user *models.User,
 		if inviteCode.ID == 0 { // The invite code does not exist or is expired
 			return confirmationID,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"b2","the invite code does not exist or is expired", props.inviteCode))
+				"INVITE_NOT_EXIST_EXPIRED","the invite code does not exist or is expired", props.inviteCode))
 		}
 
 		// Check the limit for this invite code, including the reservation
@@ -241,7 +241,7 @@ func (repo *Repo) CreateUser(user *models.User,
 					errors.New(
 						fmt.Sprintf(
 							"%s:%s[inviteCode.NumberLimit=%s, countInviteCodeIssued=%s, countInviteCodeReserved=%s]",
-							"b3", "the limit for issuing this invite code has been exhausted",
+							"INVITE_LIMIT", "the limit for issuing this invite code has been exhausted",
 							strconv.Itoa(inviteCode.NumberLimit),
 							strconv.Itoa(countInviteCodeIssued),
 							strconv.Itoa(countInviteCodeReserved)))
@@ -305,7 +305,7 @@ func (repo *Repo) CreateUser(user *models.User,
 			errors.New(
 				fmt.Sprintf(
 					"%s:%s[userID=%d, confirmationID=%d]",
-					"b1", "a user with the email you specified already exists",
+					"USER_ALREADY_EXIST", "a user with the email you specified already exists",
 					userID,
 					confirmationID))
 	}

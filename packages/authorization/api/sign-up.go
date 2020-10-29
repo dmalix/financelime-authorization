@@ -88,31 +88,31 @@ func (handler *Handler) SignUp() http.Handler {
 			domainErrorCode = strings.Split(err.Error(), ":")[0]
 			errorMessage = "failed to Sign Up"
 			switch domainErrorCode {
-			case "a1": // one or more of the input parameters are invalid
+			case "PROPS": // one or more of the input parameters are invalid
 				errLabel = "jInpoLV5" 
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				http.Error(w, "400 Bad Request", http.StatusBadRequest)
 				return
-			case "b1": // a user with the email you specified already exists
+			case "USER_ALREADY_EXIST": // a user with the email you specified already exists
 				errLabel = "5Ig7X4Sv"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
-				w.Header().Add("domain-error-code", "b1")
+				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
-			case "b2": // the invite code does not exist or is expired
+			case "INVITE_NOT_EXIST_EXPIRED": // the invite code does not exist or is expired
 				errLabel = "61H2IR2f"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
-				w.Header().Add("domain-error-code", "b2")
+				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
-			case "b3": // the limit for issuing this invite code has been exhausted
+			case "INVITE_LIMIT": // the limit for issuing this invite code has been exhausted
 				errLabel = "pZ4fgc9k"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
-				w.Header().Add("domain-error-code", "b3")
+				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
 			default:
@@ -124,7 +124,7 @@ func (handler *Handler) SignUp() http.Handler {
 			}
 		}
 
-		statusCode = 202
+		statusCode = http.StatusAccepted
 		responseBody = nil
 		contentType = ""
 
