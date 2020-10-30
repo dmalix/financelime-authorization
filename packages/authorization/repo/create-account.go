@@ -22,6 +22,24 @@ type inviteCode struct {
 	Value       string
 }
 
+/*
+	Create a new user
+		----------------
+		Return:
+			confirmationID int64
+			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
+				------------------------------------------------
+				PROPS_EMAIL:              param user.Email is not valid
+				PROPS_INVITE:             parap user.InviteCode is not valid
+				PROPS_LANG:               param user.Language is not valid
+				PROPS_REMOTE_ADDR:        param remoteAddr is not valid
+				PROPS_LINK_KEY:           param linkKey is not valid
+				USER_ALREADY_EXIST:       a user with the email you specified already exists
+				INVITE_NOT_EXIST_EXPIRED: the invite code does not exist or is expired
+				INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
+*/
+// Related interfaces:
+//	packages/authorization/domain/user.go
 func (repo *Repo) CreateUser(user *models.User,
 	remoteAddr, linkKey string, inviteCodeRequired bool) (int64, error) {
 

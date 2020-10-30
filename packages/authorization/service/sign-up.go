@@ -9,10 +9,24 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-rest-api/models"
 	"github.com/dmalix/financelime-rest-api/utils/random"
+	"net/mail"
 	"strings"
 )
 
-func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
+/*
+	   	Create a new user
+	   		----------------
+	   		Return:
+	   			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
+					------------------------------------------------
+					PROPS:                    one or more of the input parameters are invalid
+					USER_ALREADY_EXIST:       a user with the email you specified already exists
+					INVITE_NOT_EXIST_EXPIRED: the invite code does not exist or is expired
+					INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
+*/
+// Related interfaces:
+//	packages/authorization/domain/user.go
+func (a *Service) SignUp(userEmail, inviteCode, language, remoteAddr string) error {
 
 	var (
 		user     *models.User
@@ -22,7 +36,7 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 	)
 
 	user = &models.User{
-		Email:      email,
+		Email:      userEmail,
 		InviteCode: inviteCode,
 		Language:   language,
 	}
@@ -61,6 +75,20 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 				"a system error was returned",
 				err))
 		}
+	}
+
+	err = a.userSMTP.SendEmail(
+		mail.Address{Name: "USER_NAME", Address: "test.user@financelime.com"},
+		"MESSAGE SUBJECT",
+		"MESSAGE BODY",
+		"MESSAGE_ID")
+
+	if err != nil {
+		errLabel = "XfCCWkb2"
+		return errors.New(fmt.Sprintf("%s:%s[%s]",
+			errLabel,
+			"Failed to send message to the user",
+			err))
 	}
 
 	return nil

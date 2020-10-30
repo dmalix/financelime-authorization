@@ -14,7 +14,10 @@ type Repo struct {
 	dbBlade    *sql.DB
 }
 
-func NewAuthorizationRepo(dbAuthMain, dbAuthRead, dbBlade *sql.DB) *Repo {
+func NewRepo(
+	dbAuthMain,
+	dbAuthRead,
+	dbBlade *sql.DB) *Repo {
 	return &Repo{
 		dbAuthMain: dbAuthMain,
 		dbAuthRead: dbAuthRead,

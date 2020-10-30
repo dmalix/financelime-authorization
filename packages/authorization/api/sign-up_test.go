@@ -35,7 +35,7 @@ func TestSignUp_400_NoHeaderContentType(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -68,7 +68,7 @@ func TestSignUp_400_InvalidHeaderContentType(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -82,7 +82,7 @@ func TestSignUp_400_InvalidHeaderContentType(t *testing.T) {
 
 func TestSignUp_400_ServiceError__PROPS(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "PROPS"))
+	service.SignUp_MockData.ExpectedError = errors.New(fmt.Sprintf("%s:", "PROPS"))
 
 	props := map[string]interface{}{}
 
@@ -102,7 +102,7 @@ func TestSignUp_400_ServiceError__PROPS(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -116,7 +116,7 @@ func TestSignUp_400_ServiceError__PROPS(t *testing.T) {
 
 func TestSignUp_409_ServiceError__USER_ALREADY_EXIST(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "USER_ALREADY_EXIST"))
+	service.SignUp_MockData.ExpectedError = errors.New(fmt.Sprintf("%s:", "USER_ALREADY_EXIST"))
 
 	props := map[string]interface{}{}
 
@@ -136,7 +136,7 @@ func TestSignUp_409_ServiceError__USER_ALREADY_EXIST(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -150,7 +150,7 @@ func TestSignUp_409_ServiceError__USER_ALREADY_EXIST(t *testing.T) {
 
 func TestSignUp_409_ServiceError__INVITE_NOT_EXIST_EXPIRED(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "INVITE_NOT_EXIST_EXPIRED"))
+	service.SignUp_MockData.ExpectedError = errors.New(fmt.Sprintf("%s:", "INVITE_NOT_EXIST_EXPIRED"))
 
 	props := map[string]interface{}{}
 
@@ -170,7 +170,7 @@ func TestSignUp_409_ServiceError__INVITE_NOT_EXIST_EXPIRED(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -184,7 +184,7 @@ func TestSignUp_409_ServiceError__INVITE_NOT_EXIST_EXPIRED(t *testing.T) {
 
 func TestSignUp_409_ServiceError__INVITE_LIMIT(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New(fmt.Sprintf("%s:", "INVITE_LIMIT"))
+	service.SignUp_MockData.ExpectedError = errors.New(fmt.Sprintf("%s:", "INVITE_LIMIT"))
 
 	props := map[string]interface{}{}
 
@@ -204,7 +204,7 @@ func TestSignUp_409_ServiceError__INVITE_LIMIT(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -218,7 +218,7 @@ func TestSignUp_409_ServiceError__INVITE_LIMIT(t *testing.T) {
 
 func TestSignUp_500_ServiceError__SYSTEM(t *testing.T) {
 
-	service.Mock.Values.SignUp.ExpectedError = errors.New("ServiceError")
+	service.SignUp_MockData.ExpectedError = errors.New("ServiceError")
 
 	props := map[string]interface{}{}
 
@@ -238,7 +238,7 @@ func TestSignUp_500_ServiceError__SYSTEM(t *testing.T) {
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 
@@ -252,18 +252,18 @@ func TestSignUp_500_ServiceError__SYSTEM(t *testing.T) {
 
 func TestSignUp_202(t *testing.T) {
 
-	service.Mock.Values.SignUp.Props.Email = "testuser@financelime.com"
-	service.Mock.Values.SignUp.Props.InviteCode = "testInviteCode"
-	service.Mock.Values.SignUp.Props.Language = "en"
-	service.Mock.Values.SignUp.Props.RemoteAddr = "127.0.0.1"
+	service.SignUp_MockData.Props.Email = "testuser@financelime.com"
+	service.SignUp_MockData.Props.InviteCode = "testInviteCode"
+	service.SignUp_MockData.Props.Language = "en"
+	service.SignUp_MockData.Props.RemoteAddr = "127.0.0.1"
 
-	service.Mock.Values.SignUp.ExpectedError = nil
+	service.SignUp_MockData.ExpectedError = nil
 
 	props := map[string]interface{}{
-		"email":      service.Mock.Values.SignUp.Props.Email,
-		"inviteCode": service.Mock.Values.SignUp.Props.InviteCode,
-		"language":   service.Mock.Values.SignUp.Props.Language,
-		"remoteAddr": service.Mock.Values.SignUp.Props.RemoteAddr,
+		"email":      service.SignUp_MockData.Props.Email,
+		"inviteCode": service.SignUp_MockData.Props.InviteCode,
+		"language":   service.SignUp_MockData.Props.Language,
+		"remoteAddr": service.SignUp_MockData.Props.RemoteAddr,
 	}
 
 	bytesRepresentation, err := json.Marshal(props)
@@ -279,11 +279,11 @@ func TestSignUp_202(t *testing.T) {
 		t.Fatal(err)
 	}
 	request.Header.Add("content-type", "application/json;charset=utf-8")
-	request.Header.Add("X-Real-IP", service.Mock.Values.SignUp.Props.RemoteAddr)
+	request.Header.Add("X-Real-IP", service.SignUp_MockData.Props.RemoteAddr)
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	newHandler := NewHandler(authService)
 	handler := newHandler.SignUp()
 

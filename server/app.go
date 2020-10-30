@@ -15,6 +15,7 @@ import (
 	authorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repo"
 	authorizationService "github.com/dmalix/financelime-rest-api/packages/authorization/service"
 	serverConfig "github.com/dmalix/financelime-rest-api/server/config"
+	utilsEmail "github.com/dmalix/financelime-rest-api/utils/email"
 	"log"
 	"net/http"
 	"os"
@@ -121,13 +122,15 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	userRepo := authorizationRepo.NewAuthorizationRepo(dbAuthMain, dbAuthRead, dbBlade)
+	userRepo := authorizationRepo.NewRepo(dbAuthMain, dbAuthRead, dbBlade)
+	userSMTP := utilsEmail.NewAuthSMTP(config.SMTP.User, config.SMTP.Password, config.SMTP.Host, config.SMTP.Port)
 
 	return &App{
 		config: config,
-		authService: authorizationService.NewAuthorizationService(
-			userRepo,
+		authService: authorizationService.NewService(
 			config.Auth.InviteCodeRequired,
+			userRepo,
+			userSMTP,
 		),
 	}, nil
 }

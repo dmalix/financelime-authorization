@@ -22,7 +22,7 @@ func TestRouter(t *testing.T) {
 	)
 
 	mux := http.NewServeMux()
-	authService := new(service.MockType)
+	authService := new(service.SignUp_MockDescription)
 	Router(mux, authService)
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
@@ -51,18 +51,18 @@ func TestRouter(t *testing.T) {
 
 	// StatusAccepted
 
-	service.Mock.Values.SignUp.Props.Email = "testuser@financelime.com"
-	service.Mock.Values.SignUp.Props.InviteCode = "testInviteCode"
-	service.Mock.Values.SignUp.Props.Language = "en"
-	service.Mock.Values.SignUp.Props.RemoteAddr = "127.0.0.1"
+	service.SignUp_MockData.Props.Email = "testuser@financelime.com"
+	service.SignUp_MockData.Props.InviteCode = "testInviteCode"
+	service.SignUp_MockData.Props.Language = "en"
+	service.SignUp_MockData.Props.RemoteAddr = "127.0.0.1"
 
-	service.Mock.Values.SignUp.ExpectedError = nil
+	service.SignUp_MockData.ExpectedError = nil
 
 	props := map[string]interface{}{
-		"email":      service.Mock.Values.SignUp.Props.Email,
-		"inviteCode": service.Mock.Values.SignUp.Props.InviteCode,
-		"language":   service.Mock.Values.SignUp.Props.Language,
-		"remoteAddr": service.Mock.Values.SignUp.Props.RemoteAddr,
+		"email":      service.SignUp_MockData.Props.Email,
+		"inviteCode": service.SignUp_MockData.Props.InviteCode,
+		"language":   service.SignUp_MockData.Props.Language,
+		"remoteAddr": service.SignUp_MockData.Props.RemoteAddr,
 	}
 
 	bytesRepresentation, err := json.Marshal(props)

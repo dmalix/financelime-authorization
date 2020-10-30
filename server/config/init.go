@@ -23,6 +23,12 @@ type Cfg struct {
 		AuthRead CfgDB
 		Blade    CfgDB
 	}
+	SMTP struct {
+		User     string
+		Password string
+		Host     string
+		Port     string
+	}
 }
 
 type CfgDB struct {
@@ -46,12 +52,18 @@ func Init() (Cfg, error) {
 	var err error
 	var config Cfg
 
+	// HTTP
+	// ----
+
 	config.Http.Port = os.Getenv("HTTP_SERVER_PORT")
 	if len(config.Http.Port) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
 			"o8sdm1C0",
 			"The HTTP_SERVER_PORT environment variable has empty value"))
 	}
+
+	// AUTH
+	// ----
 
 	config.Auth.InviteCodeRequired, err = strconv.ParseBool(os.Getenv("AUTH_INVITE_CODE_REQUIRED"))
 	if err != nil {
@@ -60,6 +72,9 @@ func Init() (Cfg, error) {
 			"The AUTH_INVITE_CODE_REQUIRED environment variable has no boolean value",
 			err.Error()))
 	}
+
+	// DB AUTH
+	// -------
 
 	config.DB.AuthMain.Connect.Host = os.Getenv("DB_AUTH_MAIN_CONNECT_HOST")
 	config.DB.AuthMain.Connect.Port = os.Getenv("DB_AUTH_MAIN_CONNECT_PORT")
@@ -89,6 +104,13 @@ func Init() (Cfg, error) {
 			"One or more environment variables are null [DB_AUTH_READ_CONNECT_*]"))
 	}
 
+	config.DB.AuthMain.Migrate.DropFile = os.Getenv("DB_AUTH_MAIN_MIGRATE_DROPFILE")
+	config.DB.AuthMain.Migrate.CreateFile = os.Getenv("DB_AUTH_MAIN_MIGRATE_CREATEFILE")
+	config.DB.AuthMain.Migrate.InsertFile = os.Getenv("DB_AUTH_MAIN_MIGRATE_INSERTFILE")
+
+	// DB BLADE
+	// --------
+
 	config.DB.Blade.Connect.Host = os.Getenv("DB_BLADE_CONNECT_HOST")
 	config.DB.Blade.Connect.Port = os.Getenv("DB_BLADE_CONNECT_PORT")
 	config.DB.Blade.Connect.SSLMode = os.Getenv("DB_BLADE_CONNECT_SSLMODE")
@@ -103,12 +125,16 @@ func Init() (Cfg, error) {
 			"One or more environment variables are null [DB_AUTH_BLADE_CONNECT_*]"))
 	}
 
-	config.DB.AuthMain.Migrate.DropFile = os.Getenv("DB_AUTH_MAIN_MIGRATE_DROPFILE")
-	config.DB.AuthMain.Migrate.CreateFile = os.Getenv("DB_AUTH_MAIN_MIGRATE_CREATEFILE")
-	config.DB.AuthMain.Migrate.InsertFile = os.Getenv("DB_AUTH_MAIN_MIGRATE_INSERTFILE")
-
 	config.DB.Blade.Migrate.DropFile = os.Getenv("DB_BLADE_MIGRATE_DROPFILE")
 	config.DB.Blade.Migrate.CreateFile = os.Getenv("DB_BLADE_MIGRATE_CREATEFILE")
+
+	// AUTH SMTP
+	// ---------
+
+	config.SMTP.User = os.Getenv("SMTP_USER")
+	config.SMTP.Password = os.Getenv("SMTP_PASSWORD")
+	config.SMTP.Host = os.Getenv("SMTP_HOST")
+	config.SMTP.Port = os.Getenv("SMTP_PORT")
 
 	return config, nil
 }

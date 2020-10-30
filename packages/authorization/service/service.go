@@ -4,18 +4,23 @@
 
 package service
 
-import "github.com/dmalix/financelime-rest-api/packages/authorization/domain"
+import (
+	"github.com/dmalix/financelime-rest-api/packages/authorization/domain"
+)
 
 type Service struct {
-	userRepo           domain.UserRepo
 	inviteCodeRequired bool
+	userRepo           domain.UserRepo
+	userSMTP           domain.UserSMTP
 }
 
-func NewAuthorizationService(
-	accountRepo domain.UserRepo,
-	inviteCodeRequired bool) *Service {
+func NewService(
+	inviteCodeRequired bool,
+	userRepo domain.UserRepo,
+	userSMTP domain.UserSMTP) *Service {
 	return &Service{
-		userRepo:           accountRepo,
 		inviteCodeRequired: inviteCodeRequired,
+		userRepo:           userRepo,
+		userSMTP:           userSMTP,
 	}
 }
