@@ -6,6 +6,7 @@ package email
 
 import (
 	"github.com/dmalix/financelime-rest-api/models"
+	"net/mail"
 )
 
 type Daemon struct {
@@ -17,6 +18,7 @@ type Daemon struct {
 }
 
 type Manager struct {
+	from mail.Address
 }
 
 func NewSenderDaemon(
@@ -34,6 +36,9 @@ func NewSenderDaemon(
 	}
 }
 
-func NewManager() *Manager {
-	return &Manager{}
+func NewManager(
+	from mail.Address) *Manager {
+	return &Manager{
+		from: from,
+	}
 }

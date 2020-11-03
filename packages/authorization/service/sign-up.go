@@ -25,7 +25,7 @@ import (
 					INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 */
 // Related interfaces:
-//	packages/authorization/domain/user.go
+//	packages/authorization/user-service.go
 func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	var (
@@ -79,7 +79,7 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	err = a.userMessage.AddEmailMessageToQueue(
 		a.messageQueue,
-		mail.Address{Name: "USER_NAME", Address: email},
+		mail.Address{Address: email},
 		a.languageContent.Data.User.Signup.Email.Confirm.Subject[a.languageContent.Language[language]],
 		fmt.Sprintf(
 			a.languageContent.Data.User.Signup.Email.Confirm.Body[a.languageContent.Language[language]],

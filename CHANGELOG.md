@@ -6,7 +6,8 @@
 - Add human-readable errors (domain error code).
 - Fix minor inaccuracies in SQL-queries.
 - Create a new "utils/email" package and implement it into the authorization package.
-- Make minor improvements to the project structure 
+- Make minor improvements to the project structure.
+- Add a sending email function with a link to verify your email address.
 
 **Tests:**
 - Write a unit-test for the utils/random.StringRand function.

@@ -132,7 +132,7 @@ func NewApp() (*App, error) {
 	userRepo := authorizationRepo.NewRepo(dbAuthMain, dbAuthRead, dbBlade)
 	emailMessageSenderDaemon := emailMessage.NewSenderDaemon(config.smtp.user, config.smtp.password,
 		config.smtp.host, config.smtp.port, emailMessageQueue)
-	userEmail := emailMessage.NewManager()
+	userMessage := emailMessage.NewManager(config.mailMessage.from)
 
 	languageContent, err = initLanguageContent()
 	if err != nil {
@@ -151,7 +151,7 @@ func NewApp() (*App, error) {
 			config.auth.inviteCodeRequired,
 			languageContent,
 			emailMessageQueue,
-			userEmail,
+			userMessage,
 			userRepo),
 	}, nil
 }

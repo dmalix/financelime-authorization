@@ -7,6 +7,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"net/mail"
 	"os"
 	"strconv"
 )
@@ -32,6 +33,9 @@ type cfg struct {
 		password string
 		host     string
 		port     string
+	}
+	mailMessage struct {
+		from mail.Address
 	}
 }
 
@@ -156,6 +160,12 @@ func initConfig() (cfg, error) {
 	config.smtp.password = os.Getenv("SMTP_PASSWORD")
 	config.smtp.host = os.Getenv("SMTP_HOST")
 	config.smtp.port = os.Getenv("SMTP_PORT")
+
+	// MAIL MESSAGE
+	// ------------
+
+	config.mailMessage.from.Name = os.Getenv("MAIL_MESSAGE_FROM_NAME")
+	config.mailMessage.from.Address = os.Getenv("MAIL_MESSAGE_FROM_ADDR")
 
 	return config, nil
 }

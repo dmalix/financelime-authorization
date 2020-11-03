@@ -39,7 +39,7 @@ type inviteCode struct {
 				INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 */
 // Related interfaces:
-//	packages/authorization/domain/user.go
+//	packages/authorization/user-repo.go
 func (repo *Repo) CreateUser(user *models.User,
 	remoteAddr, linkKey string, inviteCodeRequired bool) (int64, error) {
 
