@@ -26,7 +26,7 @@ import (
 */
 // Related interfaces:
 //	packages/authorization/domain/user.go
-func (a *Service) SignUp(userEmail, inviteCode, language, remoteAddr string) error {
+func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	var (
 		user     *models.User
@@ -36,7 +36,7 @@ func (a *Service) SignUp(userEmail, inviteCode, language, remoteAddr string) err
 	)
 
 	user = &models.User{
-		Email:      userEmail,
+		Email:      email,
 		InviteCode: inviteCode,
 		Language:   language,
 	}
@@ -77,11 +77,17 @@ func (a *Service) SignUp(userEmail, inviteCode, language, remoteAddr string) err
 		}
 	}
 
-	err = a.userSMTP.SendEmail(
-		mail.Address{Name: "USER_NAME", Address: "test.user@financelime.com"},
-		"MESSAGE SUBJECT",
-		"MESSAGE BODY",
-		"MESSAGE_ID")
+	err = a.userMessage.AddEmailMessageToQueue(
+		a.messageQueue,
+		mail.Address{Name: "USER_NAME", Address: email},
+		a.languageContent.Data.User.Signup.Email.Confirm.Subject[a.languageContent.Language[language]],
+		fmt.Sprintf(
+			a.languageContent.Data.User.Signup.Email.Confirm.Body[a.languageContent.Language[language]],
+			a.domainAPI, linkKey),
+		fmt.Sprintf(
+			"<%s@%s>",
+			linkKey,
+			fmt.Sprintf("%s.%s", "create-new-account", a.domainAPI)))
 
 	if err != nil {
 		errLabel = "XfCCWkb2"

@@ -1,0 +1,86 @@
+{
+  "Language": [
+    "ru",
+    "en"
+  ],
+  "Data": {
+    "User": {
+      "Signup": {
+        "Email": {
+          "Confirm": {
+            "Subject": [
+              "Пожалуйста, подтвердите ваш email-адрес",
+              "Please verify your email address"
+            ],
+            "Body": [
+              "Уважаемый пользователь! \r\n\r\nПожалуйста, подтвердите ваш адрес электронной почты, чтобы мы знали, что это действительно вы!\r\n\r\nИспользуйте следующую ссылку для подтверждения:\r\n\r\nhttps://%s/c/%s\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
+              "Dear User! \r\n\r\nPlease verify your email address so we know that it's really you!\r\n\r\nUse the following link to confirm:\r\n\r\nhttps://%s/c/%s\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
+            ]
+          },
+          "Password": {
+            "Subject": [
+              "Ваш пароль для входа в Financelime",
+              "Your password to login Financelime"
+            ],
+            "Body": [
+              "Поздравляем!\r\n\r\nВы успешно создали аккаунт!\r\n\r\nВот ваш пароль для входа:\r\n\r\n%s\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
+              "Congratulations!\r\n\r\nYou have successfully registered!\r\n\r\nHere is your login password:\r\n\r\n%s\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
+            ]
+          }
+        },
+        "Page": {
+          "Confirm": {
+            "Text": [
+              "Поздравляем!\r\n\r\nВаша учетная запись была успешно подтверждена!\r\n\r\nПожалуйста, проверьте свою электронную почту для дальнейших инструкций.",
+              "Congratulations!\r\n\r\nYour registration has been successfully confirmed!\r\n\r\nPlease check your email for further instructions."
+            ]
+          }
+        }
+      },
+      "ResetPassword": {
+        "Email": {
+          "Request": {
+            "Subject": [
+              "Пожалуйста, подтвердите сброс пароля",
+              "Please confirm password reset"
+            ],
+            "Body": [
+              "Уважаемый пользователь!\r\n\r\nВы или кто-то другой запросил сброс пароля для вашего аккаунта (с адреса %s).\r\n\r\nЕсли это сделали не вы, то проигнорируйте это письмо. Если вы действительно хотите сбросить пароль, то для подтверждения используйте следующую ссылку:\r\n\r\nhttps://%s/rp/%s\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
+              "Dear User!\r\n\r\nYou or someone else has requested a password reset for your account (from address %s)!\r\n\r\nIf you didn't do it, then ignore this letter. If you really want to reset your password, please use the following link to confirm:\r\n\r\nhttps://%s/rp/%s\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
+            ]
+          },
+          "Password": {
+            "Subject": [
+              "Ваш новый пароль для входа в Financelime",
+              "Your new password to login Financelime"
+            ],
+            "Body": [
+              "Уважаемый пользователь!\r\n\r\nВы успешно подтвердили запрос на сброс пароля для вашей учетной записи!\r\n\r\nВот ваш новый пароль для входа:\r\n\r\n%s\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
+              "Dear User!\r\n\r\nYou have successfully submitted a password reset request for your account!\r\n\r\nHere is your new login password:\r\n\r\n%s\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
+            ]
+          }
+        },
+        "Page": {
+          "Request": {
+            "Text": [
+              "Сброс подтвержден!\r\n\r\nВаш пароль был успешно сброшен!\r\n\r\nПожалуйста, проверьте свою электронную почту для дальнейших инструкций.",
+              "Reset confirmed!\r\n\r\nYour password has been successfully reset!\r\n\r\nPlease check your email for further instructions."
+            ]
+          }
+        }
+      },
+      "Login": {
+        "Email": {
+          "Subject": [
+            "Выполнен вход в аккаунт",
+            "You are logged into your account"
+          ],
+          "Body": [
+            "Уважаемый пользователь!\r\n\r\nВаша учетная запись была использована на устройстве:\r\n\r\n%s\r\n\r\n%s (с адреса %s)\r\n\r\nЕсли это сделали не Вы, перейдите в настройки Financelime (пункт 'Сессии'), удалите это устройство из списка и сбросьте ваш пароль: https://%s/resetpassword\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
+            "Dear User!\r\n\r\nYour account has been used on the device:\r\n\r\n%s\r\n\r\n%s (from address %s)\r\n\r\nIf you didn't do it, go to Financelime settings ('Sessions' item), remove this device from the list and reset your password: https://%s/resetpassword\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
+          ]
+        }
+      }
+    }
+  }
+}

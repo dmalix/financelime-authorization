@@ -5,22 +5,32 @@
 package service
 
 import (
-	"github.com/dmalix/financelime-rest-api/packages/authorization/domain"
+	"github.com/dmalix/financelime-rest-api/models"
+	"github.com/dmalix/financelime-rest-api/packages/authorization"
 )
 
 type Service struct {
+	domainAPI          string
 	inviteCodeRequired bool
-	userRepo           domain.UserRepo
-	userSMTP           domain.UserSMTP
+	languageContent    models.LanguageContent
+	messageQueue       chan models.EmailMessage
+	userMessage        authorization.UserMessage
+	userRepo           authorization.UserRepo
 }
 
 func NewService(
+	domainAPI string,
 	inviteCodeRequired bool,
-	userRepo domain.UserRepo,
-	userSMTP domain.UserSMTP) *Service {
+	languageContent models.LanguageContent,
+	messageQueue chan models.EmailMessage,
+	userMessage authorization.UserMessage,
+	userRepo authorization.UserRepo) *Service {
 	return &Service{
+		domainAPI:          domainAPI,
 		inviteCodeRequired: inviteCodeRequired,
+		languageContent:    languageContent,
+		messageQueue:       messageQueue,
+		userMessage:        userMessage,
 		userRepo:           userRepo,
-		userSMTP:           userSMTP,
 	}
 }

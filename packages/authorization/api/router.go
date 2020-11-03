@@ -5,12 +5,12 @@
 package api
 
 import (
-	"github.com/dmalix/financelime-rest-api/packages/authorization/domain"
+	"github.com/dmalix/financelime-rest-api/packages/authorization"
 	"github.com/dmalix/financelime-rest-api/utils/router"
 	"net/http"
 )
 
-func Router(mux *http.ServeMux, service domain.UserService, middleware ...func(http.Handler) http.Handler) {
+func Router(mux *http.ServeMux, service authorization.UserService, middleware ...func(http.Handler) http.Handler) {
 
 	handler := NewHandler(service)
 

@@ -5,7 +5,8 @@
 - Make some improvements to function and variable names.
 - Add human-readable errors (domain error code).
 - Fix minor inaccuracies in SQL-queries.
-- Create a new "utils/email" package and implement it into the authorization package. 
+- Create a new "utils/email" package and implement it into the authorization package.
+- Make minor improvements to the project structure 
 
 **Tests:**
 - Write a unit-test for the utils/random.StringRand function.

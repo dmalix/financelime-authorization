@@ -2,7 +2,7 @@
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
-package config
+package server
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 )
 
-func Migrate(db *sql.DB, dropFile, createFile, insertFile string) error {
+func migrate(db *sql.DB, dropFile, createFile, insertFile string) error {
 
 	var (
 		err  error

@@ -9,13 +9,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-rest-api/models"
+	"github.com/dmalix/financelime-rest-api/packages/authorization"
 	authorizationAPI "github.com/dmalix/financelime-rest-api/packages/authorization/api"
 	authorizationMiddleware "github.com/dmalix/financelime-rest-api/packages/authorization/api/middleware"
-	authorizationDomain "github.com/dmalix/financelime-rest-api/packages/authorization/domain"
 	authorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repo"
-	authorizationService "github.com/dmalix/financelime-rest-api/packages/authorization/service"
-	serverConfig "github.com/dmalix/financelime-rest-api/server/config"
-	utilsEmail "github.com/dmalix/financelime-rest-api/utils/email"
+	"github.com/dmalix/financelime-rest-api/packages/authorization/service"
+	emailMessage "github.com/dmalix/financelime-rest-api/utils/email"
 	"log"
 	"net/http"
 	"os"
@@ -24,24 +24,31 @@ import (
 	"time"
 )
 
+type emailSenderDaemon interface {
+	Run()
+}
+
 type App struct {
-	config      serverConfig.Cfg
-	httpServer  *http.Server
-	authService authorizationDomain.UserService
+	httpPort                 string
+	emailMessageSenderDaemon emailSenderDaemon
+	httpServer               *http.Server
+	authService              authorization.UserService
 }
 
 func NewApp() (*App, error) {
 
 	var (
-		app        *App
-		err        error
-		dbAuthMain *sql.DB
-		dbAuthRead *sql.DB
-		dbBlade    *sql.DB
-		config     serverConfig.Cfg
+		app               *App
+		err               error
+		dbAuthMain        *sql.DB
+		dbAuthRead        *sql.DB
+		dbBlade           *sql.DB
+		config            cfg
+		languageContent   models.LanguageContent
+		emailMessageQueue = make(chan models.EmailMessage, 300)
 	)
 
-	config, err = serverConfig.Init()
+	config, err = initConfig()
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
@@ -51,12 +58,12 @@ func NewApp() (*App, error) {
 	}
 
 	dbAuthMain, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
-		Host:     config.DB.AuthMain.Connect.Host,
-		Port:     config.DB.AuthMain.Connect.Port,
-		SSLMode:  config.DB.AuthMain.Connect.SSLMode,
-		DBName:   config.DB.AuthMain.Connect.DBName,
-		User:     config.DB.AuthMain.Connect.User,
-		Password: config.DB.AuthMain.Connect.Password,
+		Host:     config.db.authMain.connect.host,
+		Port:     config.db.authMain.connect.port,
+		SSLMode:  config.db.authMain.connect.sslMode,
+		DBName:   config.db.authMain.connect.dbName,
+		User:     config.db.authMain.connect.user,
+		Password: config.db.authMain.connect.password,
 	})
 	if err != nil {
 		return app,
@@ -67,12 +74,12 @@ func NewApp() (*App, error) {
 	}
 
 	dbAuthRead, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
-		Host:     config.DB.AuthRead.Connect.Host,
-		Port:     config.DB.AuthRead.Connect.Port,
-		SSLMode:  config.DB.AuthRead.Connect.SSLMode,
-		DBName:   config.DB.AuthRead.Connect.DBName,
-		User:     config.DB.AuthRead.Connect.User,
-		Password: config.DB.AuthRead.Connect.Password,
+		Host:     config.db.authRead.connect.host,
+		Port:     config.db.authRead.connect.port,
+		SSLMode:  config.db.authRead.connect.sslMode,
+		DBName:   config.db.authRead.connect.dbName,
+		User:     config.db.authRead.connect.user,
+		Password: config.db.authRead.connect.password,
 	})
 	if err != nil {
 		return app,
@@ -83,12 +90,12 @@ func NewApp() (*App, error) {
 	}
 
 	dbBlade, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
-		Host:     config.DB.Blade.Connect.Host,
-		Port:     config.DB.Blade.Connect.Port,
-		SSLMode:  config.DB.Blade.Connect.SSLMode,
-		DBName:   config.DB.Blade.Connect.DBName,
-		User:     config.DB.Blade.Connect.User,
-		Password: config.DB.Blade.Connect.Password,
+		Host:     config.db.blade.connect.host,
+		Port:     config.db.blade.connect.port,
+		SSLMode:  config.db.blade.connect.sslMode,
+		DBName:   config.db.blade.connect.dbName,
+		User:     config.db.blade.connect.user,
+		Password: config.db.blade.connect.password,
 	})
 	if err != nil {
 		return app,
@@ -98,10 +105,10 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	err = serverConfig.Migrate(dbAuthMain,
-		config.DB.AuthMain.Migrate.DropFile,
-		config.DB.AuthMain.Migrate.CreateFile,
-		config.DB.AuthMain.Migrate.InsertFile)
+	err = migrate(dbAuthMain,
+		config.db.authMain.migrate.dropFile,
+		config.db.authMain.migrate.createFile,
+		config.db.authMain.migrate.insertFile)
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
@@ -110,9 +117,9 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	err = serverConfig.Migrate(dbBlade,
-		config.DB.Blade.Migrate.DropFile,
-		config.DB.Blade.Migrate.CreateFile,
+	err = migrate(dbBlade,
+		config.db.blade.migrate.dropFile,
+		config.db.blade.migrate.createFile,
 		"")
 	if err != nil {
 		return app,
@@ -123,26 +130,48 @@ func NewApp() (*App, error) {
 	}
 
 	userRepo := authorizationRepo.NewRepo(dbAuthMain, dbAuthRead, dbBlade)
-	userSMTP := utilsEmail.NewAuthSMTP(config.SMTP.User, config.SMTP.Password, config.SMTP.Host, config.SMTP.Port)
+	emailMessageSenderDaemon := emailMessage.NewSenderDaemon(config.smtp.user, config.smtp.password,
+		config.smtp.host, config.smtp.port, emailMessageQueue)
+	userEmail := emailMessage.NewManager()
+
+	languageContent, err = initLanguageContent()
+	if err != nil {
+		return app,
+			errors.New(fmt.Sprintf("%s: %s [%s]",
+				"d1oC8sm0",
+				"Error initializing language content",
+				err.Error()))
+	}
 
 	return &App{
-		config: config,
-		authService: authorizationService.NewService(
-			config.Auth.InviteCodeRequired,
-			userRepo,
-			userSMTP,
-		),
+		httpPort:                 config.http.port,
+		emailMessageSenderDaemon: emailMessageSenderDaemon,
+		authService: service.NewService(
+			config.domain.api,
+			config.auth.inviteCodeRequired,
+			languageContent,
+			emailMessageQueue,
+			userEmail,
+			userRepo),
 	}, nil
 }
 
-func (a *App) Run() error {
+func (app *App) Run() error {
+
+	// Start mail sender daemon
+	// ------------------------
+
+	go app.emailMessageSenderDaemon.Run()
+
+	// Start REST-API
+	// --------------
 
 	mux := http.NewServeMux()
 
-	authorizationAPI.Router(mux, a.authService, authorizationMiddleware.RequestID)
+	authorizationAPI.Router(mux, app.authService, authorizationMiddleware.RequestID)
 
-	a.httpServer = &http.Server{
-		Addr:           ":" + a.config.Http.Port,
+	app.httpServer = &http.Server{
+		Addr:           ":" + app.httpPort,
 		Handler:        mux,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -150,7 +179,7 @@ func (a *App) Run() error {
 	}
 
 	go func() {
-		if err := a.httpServer.ListenAndServe(); err != nil {
+		if err := app.httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("FATAL [D49VshMa: Failed to listen and serve: [%v]]", err)
 		}
 	}()
@@ -170,7 +199,7 @@ func (a *App) Run() error {
 	log.Print("The service is shutting down...")
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdown()
-	err := a.httpServer.Shutdown(ctx)
+	err := app.httpServer.Shutdown(ctx)
 	if err != nil {
 		log.Print("Done")
 	}

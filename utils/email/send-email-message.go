@@ -15,7 +15,7 @@ import (
 )
 
 /*
-	Send Email
+	Send Message
 		------------------
 			Return:
 				error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details])::
@@ -30,11 +30,7 @@ import (
 				        MESSAGE_CLOSE:   failed to Send message (CLOSE)
 				        QUIT:            failed to Quit
 */
-// Related interfaces:
-//	packages/authorization/domain/user.go
-func (authSMTP *AuthSMTP) SendEmail(to mail.Address, subject, body string, messageID ...string) error {
-
-	var from = mail.Address{Name: "SUPPORT_NAME", Address: "support@financelime.com"}
+func (daemon Daemon) smtpSender(to, from mail.Address, subject, body string, messageID string) error {
 
 	var (
 		smtpAuth       smtp.Auth
@@ -54,8 +50,8 @@ func (authSMTP *AuthSMTP) SendEmail(to mail.Address, subject, body string, messa
 
 	messageHeaders = make(map[string]string)
 
-	if len(messageID) == 1 {
-		messageHeaders["Message-Id"] = messageID[0]
+	if len(messageID) > 0 {
+		messageHeaders["Message-Id"] = messageID
 	}
 
 	messageHeaders["From"] = from.String()
@@ -75,7 +71,7 @@ func (authSMTP *AuthSMTP) SendEmail(to mail.Address, subject, body string, messa
 	// 2. Prepare authorization data
 	// -----------------------------
 
-	smtpAuth = smtp.PlainAuth("", authSMTP.User, authSMTP.Password, authSMTP.Host)
+	smtpAuth = smtp.PlainAuth("", daemon.AuthSMTPUser, daemon.AuthSMTPPassword, daemon.AuthSMTPHost)
 
 	// 3. Performing a TLS Connection
 	// ------------------------------
@@ -84,11 +80,11 @@ func (authSMTP *AuthSMTP) SendEmail(to mail.Address, subject, body string, messa
 
 	smtpTlsConfig = &tls.Config{
 		InsecureSkipVerify: true,
-		ServerName:         authSMTP.Host,
+		ServerName:         daemon.AuthSMTPHost,
 	}
 
 	smtpTlsConnect, err =
-		tls.Dial("tcp", fmt.Sprintf("%s:%s", authSMTP.Host, authSMTP.Port), smtpTlsConfig)
+		tls.Dial("tcp", fmt.Sprintf("%s:%s", daemon.AuthSMTPHost, daemon.AuthSMTPPort), smtpTlsConfig)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
 			"TLS_CONNECTION", "Failed to Performing a TLS Connection", err))
@@ -98,7 +94,7 @@ func (authSMTP *AuthSMTP) SendEmail(to mail.Address, subject, body string, messa
 	// -----------------
 
 	smtpClient, err =
-		smtp.NewClient(smtpTlsConnect, authSMTP.Host)
+		smtp.NewClient(smtpTlsConnect, daemon.AuthSMTPHost)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
 			"CONNECT_CLIENT", "failed to Perform client authentication", err))

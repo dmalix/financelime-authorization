@@ -4,22 +4,36 @@
 
 package email
 
-type AuthSMTP struct {
-	User     string
-	Password string
-	Host     string
-	Port     string
+import (
+	"github.com/dmalix/financelime-rest-api/models"
+)
+
+type Daemon struct {
+	AuthSMTPUser     string
+	AuthSMTPPassword string
+	AuthSMTPHost     string
+	AuthSMTPPort     string
+	MessageQueue     chan models.EmailMessage
 }
 
-func NewAuthSMTP(
-	smtpUser,
-	smtpPassword,
-	smtpHost,
-	smtpPort string) *AuthSMTP {
-	return &AuthSMTP{
-		User:     smtpUser,
-		Password: smtpPassword,
-		Host:     smtpHost,
-		Port:     smtpPort,
+type Manager struct {
+}
+
+func NewSenderDaemon(
+	authSMTPUser,
+	authSMTPPassword,
+	authSMTPHost,
+	authSMTPPort string,
+	messageQueue chan models.EmailMessage) *Daemon {
+	return &Daemon{
+		AuthSMTPUser:     authSMTPUser,
+		AuthSMTPPassword: authSMTPPassword,
+		AuthSMTPHost:     authSMTPHost,
+		AuthSMTPPort:     authSMTPPort,
+		MessageQueue:     messageQueue,
 	}
+}
+
+func NewManager() *Manager {
+	return &Manager{}
 }

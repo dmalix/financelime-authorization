@@ -73,6 +73,36 @@ rm migrate.tar.gz
 if [ $? -ne 0 ] ; then echo -e "\e[1;31mRemove the archive with with migrate files to test-bench [E622yCat]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
+########################################################################################################################
+
+echo -ne "- Compress the new language content files:\t\t\t"
+tar --create --gzip --file=language.tar.gz language
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to compress the language content files [lqkHB4jD]\e[0m"; exit; fi
+echo -e "\e[32mOK\e[0m"
+
+echo -ne "- Backup the prev language files on test-bench:\t\t\t"
+ssh -p ${port} ${user}@${host} \
+"cd ${remoteServiceHomePath}; tar --create --gzip --file=language.${currentTime}.tar.gz language; rm --force --dir --recursive language"
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to backup the prev language files on test-bench [Zcfs65i9]\e[0m"; exit; fi
+echo -e "\e[32mOK\e[0m"
+
+echo "- Copy the archive with language files to test-bench:"
+scp -P ${port}	language.tar.gz	${user}@${host}:${remoteServiceHomePath}
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to Copy the archive with language files to test-bench [qGdihL5M]\e[0m"; exit; fi
+
+echo -ne "- Extract the new language files on test-bench:\t\t\t"
+ssh -p ${port} ${user}@${host} \
+"cd ${remoteServiceHomePath}; tar --extract --gzip --file=language.tar.gz; rm language.tar.gz"
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to extract the new language files on test-bench [Zcs65if9]\e[0m"; exit; fi
+echo -e "\e[32mOK\e[0m"
+
+echo -ne "- Remove the archive with with language files to test-bench:\t"
+rm language.tar.gz
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mRemove the archive with with language files to test-bench [yCE622at]\e[0m"; exit; fi
+echo -e "\e[32mOK\e[0m"
+
+########################################################################################################################
+
 echo -ne "- Backup the prev systemd file on test-bench:\t\t\t"
 ssh -p ${port} ${user}@${host} \
 "cd ${remoteSystemdHomePath}; tar --create --gzip --file=${remoteSystemdFileName}.${currentTime}.tar.gz ${remoteSystemdFileName}"
