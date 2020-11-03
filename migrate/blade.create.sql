@@ -9,9 +9,8 @@ CREATE TABLE IF NOT EXISTS "public"."confirmation_create_new_user" (
 	"deleted_at" TIMESTAMP ( 6 ) DEFAULT NULL :: TIMESTAMP WITHOUT TIME ZONE,
 	"email" VARCHAR ( 255 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"language" VARCHAR ( 5 ) COLLATE "pg_catalog"."default" NOT NULL,
-	"link_key" VARCHAR ( 16 ) COLLATE "pg_catalog"."default" NOT NULL,
+	"confirmation_key" VARCHAR ( 16 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"expires_at" TIMESTAMP ( 6 ) NOT NULL,
-	"is_sent" bool NOT NULL DEFAULT FALSE,
 	"remote_addr" VARCHAR ( 45 ) COLLATE "pg_catalog"."default" NOT NULL,
 	CONSTRAINT "confirmation_create_new_user_pkey" PRIMARY KEY ( "id" )
 );
@@ -25,10 +24,9 @@ CREATE TABLE IF NOT EXISTS "public"."confirmation_reset_password" (
 	"deleted_at" TIMESTAMP ( 6 ) DEFAULT NULL :: TIMESTAMP WITHOUT TIME ZONE,
 	"email" VARCHAR ( 255 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"language" VARCHAR ( 5 ) COLLATE "pg_catalog"."default" NOT NULL,
-	"link_key" VARCHAR ( 16 ) COLLATE "pg_catalog"."default" NOT NULL,
+	"confirmation_key" VARCHAR ( 16 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"expires_at" TIMESTAMP ( 6 ) NOT NULL,
 	"remote_addr" VARCHAR ( 45 ) COLLATE "pg_catalog"."default" NOT NULL,
-	"is_sent" bool NOT NULL DEFAULT FALSE,
 	CONSTRAINT "confirmation_reset_password_pkey" PRIMARY KEY ( "id" )
 );
 ALTER TABLE "public"."confirmation_reset_password" OWNER TO "financelime_user";

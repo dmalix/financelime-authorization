@@ -29,10 +29,10 @@ import (
 func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	var (
-		user     *models.User
-		linkKey  string
-		err      error
-		errLabel string
+		user            *models.User
+		confirmationKey string
+		err             error
+		errLabel        string
 	)
 
 	user = &models.User{
@@ -41,13 +41,13 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 		Language:   language,
 	}
 
-	linkKey = random.StringRand(16, 16, true)
+	confirmationKey = random.StringRand(16, 16, true)
 
-	_, err = a.userRepo.CreateUser(user, remoteAddr, linkKey, a.inviteCodeRequired)
+	err = a.repository.CreateUser(user, remoteAddr, confirmationKey, a.inviteCodeRequired)
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
-		case "PROPS_EMAIL", "PROPS_INVITE_CODE", "PROPS_LANG", "PROPS_REMOTE_ADDR", "PROPS_LINK_KEY":
+		case "PROPS_EMAIL", "PROPS_INVITE_CODE", "PROPS_LANG", "PROPS_REMOTE_ADDR", "PROPS_CONFIRMATION_KEY":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
 				"PROPS",
 				"one or more of the input parameters are invalid",
@@ -77,17 +77,17 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 		}
 	}
 
-	err = a.userMessage.AddEmailMessageToQueue(
+	err = a.message.AddEmailMessageToQueue(
 		a.messageQueue,
 		mail.Address{Address: email},
 		a.languageContent.Data.User.Signup.Email.Confirm.Subject[a.languageContent.Language[language]],
 		fmt.Sprintf(
 			a.languageContent.Data.User.Signup.Email.Confirm.Body[a.languageContent.Language[language]],
-			a.domainAPI, linkKey),
+			a.domainAPI, confirmationKey),
 		fmt.Sprintf(
 			"<%s@%s>",
-			linkKey,
-			fmt.Sprintf("%s.%s", "create-new-account", a.domainAPI)))
+			confirmationKey,
+			fmt.Sprintf("%s.%s", "sign-up", a.domainAPI)))
 
 	if err != nil {
 		errLabel = "XfCCWkb2"

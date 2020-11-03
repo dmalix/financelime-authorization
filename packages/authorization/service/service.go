@@ -14,8 +14,8 @@ type Service struct {
 	inviteCodeRequired bool
 	languageContent    models.LanguageContent
 	messageQueue       chan models.EmailMessage
-	userMessage        authorization.UserMessage
-	userRepo           authorization.UserRepo
+	message            authorization.Message
+	repository         authorization.Repository
 }
 
 func NewService(
@@ -23,14 +23,14 @@ func NewService(
 	inviteCodeRequired bool,
 	languageContent models.LanguageContent,
 	messageQueue chan models.EmailMessage,
-	userMessage authorization.UserMessage,
-	userRepo authorization.UserRepo) *Service {
+	message authorization.Message,
+	repository authorization.Repository) *Service {
 	return &Service{
 		domainAPI:          domainAPI,
 		inviteCodeRequired: inviteCodeRequired,
 		languageContent:    languageContent,
 		messageQueue:       messageQueue,
-		userMessage:        userMessage,
-		userRepo:           userRepo,
+		message:            message,
+		repository:         repository,
 	}
 }

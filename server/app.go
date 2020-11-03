@@ -13,7 +13,7 @@ import (
 	"github.com/dmalix/financelime-rest-api/packages/authorization"
 	authorizationAPI "github.com/dmalix/financelime-rest-api/packages/authorization/api"
 	authorizationMiddleware "github.com/dmalix/financelime-rest-api/packages/authorization/api/middleware"
-	authorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repo"
+	authorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repository"
 	"github.com/dmalix/financelime-rest-api/packages/authorization/service"
 	emailMessage "github.com/dmalix/financelime-rest-api/utils/email"
 	"log"
@@ -32,7 +32,7 @@ type App struct {
 	httpPort                 string
 	emailMessageSenderDaemon emailSenderDaemon
 	httpServer               *http.Server
-	authService              authorization.UserService
+	authService              authorization.Service
 }
 
 func NewApp() (*App, error) {
@@ -129,7 +129,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	userRepo := authorizationRepo.NewRepo(dbAuthMain, dbAuthRead, dbBlade)
+	userRepo := authorizationRepo.NewRepository(dbAuthMain, dbAuthRead, dbBlade)
 	emailMessageSenderDaemon := emailMessage.NewSenderDaemon(config.smtp.user, config.smtp.password,
 		config.smtp.host, config.smtp.port, emailMessageQueue)
 	userMessage := emailMessage.NewManager(config.mailMessage.from)

@@ -16,7 +16,9 @@ type SignUp_MockDescription struct {
 		Language   string
 		RemoteAddr string
 	}
-	ExpectedError error
+	Expected struct {
+		Error error
+	}
 }
 
 //noinspection GoSnakeCaseUsage
@@ -24,14 +26,14 @@ var SignUp_MockData SignUp_MockDescription
 
 func (a *SignUp_MockDescription) SignUp(email, inviteCode, language, remoteAddr string) error {
 
-	if SignUp_MockData.ExpectedError != nil {
-		return SignUp_MockData.ExpectedError
+	if SignUp_MockData.Expected.Error != nil {
+		return SignUp_MockData.Expected.Error
 	}
 
-	if email != SignUp_MockData.Props.Email && inviteCode != SignUp_MockData.Props.InviteCode &&
-		language != SignUp_MockData.Props.Language && remoteAddr != SignUp_MockData.Props.RemoteAddr {
+	if email != SignUp_MockData.Props.Email || inviteCode != SignUp_MockData.Props.InviteCode ||
+		language != SignUp_MockData.Props.Language || remoteAddr != SignUp_MockData.Props.RemoteAddr {
 		return errors.New("DefaultError")
 	}
 
-	return nil
+	return SignUp_MockData.Expected.Error
 }
