@@ -2,13 +2,14 @@
 
 - [1. Environment variables](#1-0)
 - [2. Identification at the device and request level](#2-0) 
-- [3. Service version and state](#3-0)
+- [3. Service version](#3-0)
+    - [3.1. Get the current version of the REST API service](#3-1) 
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
     
 ---
 <a name="1-0"></a>
-## 1. Environment variables
+## 1. Environment variables.
 
 Name | Description
 ---|---
@@ -39,9 +40,9 @@ DB_BLADE_MIGRATE_DROPFILE |
 DB_BLADE_MIGRATE_CREATEFILE |
 
 <a name="2-0"></a>
-## 2. Identification at the device and request level
+## 2. Identification at the device and request level.
 <a name="2-1"></a> 
-### 2.1. Header 'request-id'
+### 2.1. Header 'request-id'.
 API requests must contain a `request-id` header. Its content must be generated immediately before the request, according to a certain algorithm. API service validates the header before processing some requests. The `request-id` header allows you to identify the request and, together with the` Authorization` header, quickly track the chain of events, for example, filter events in the logs by device and request.  
 If a request requires a `request-id` header but is missing or failed validation, the request is rejected and a `400 Bad Request` response is returned. Since the algorithm changes slightly with each version, the `request-id` header effectively filters out inappropriate requests from bots, being a CAPTCHA for them.
  
@@ -69,9 +70,9 @@ LXXXX | L - The letter that is always equal to a letter from set 4
       |        The number of characters is always 4 (missing ones get zeros)
 ```  
 <a name="3-0"></a>
-## 3. Service version and state 
+## 3. System commands. 
 <a name="3-1"></a>
-### 3.1. Get the current version of the REST API service 
+### 3.1. Get the current version of the REST API service. 
 - Method: `GET` 
 - Endpoint:  `/dist`
 
@@ -86,7 +87,7 @@ build       | string | Service Build
 ```
 curl -i -X GET \
 -H "request-id: K7800-H7625-Z5852-N1693-K1972" \
-"https://api.dev.financelime.com/dist"
+"https://api.dev.financelime.com/system/dist"
 ```
 #### Request Headers
 ```
@@ -100,46 +101,9 @@ content-type:application/json;charset=utf-8
 #### Response Body
 ```json
 {
-   "version":"0.4.0",
-   "build":"202007162345" 
+  "version":"v0.1.5-alpha",
+  "build":"373dcab [2020-11-05_19:23:56]"
 }
-```
-<a name="3-2"></a>
-### 3.2. Get the current state of a REST API service 
-- Method: `GET` 
-- Endpoint:  `/status`
-
-The request will return a JSON object containing the following attributes:
-
-Name        | Type   | Description
-------------|--------|------------
-api         | bool   | Status of API
-db          | bool   | Status of DB
-
-#### cURL Example
-```
-curl -i -X GET \
--H "request-id: K7800-H7625-Z5852-N1693-K1972" \
-"https://api.dev.financelime.com/status"
-```
-#### Request Headers
-```
-content-type:application/json
-request-id: REQUEST_ID
-```
-#### Response Headers
-```
-status: 200
-content-type:application/json;charset=utf-8
-```
-#### Response Body
-
-```json
-{
-   "api":true,
-   "db":true
-}
-
 ```
 <a name="4-0"></a>
 ## 4. Authorization 

@@ -1,5 +1,8 @@
 ## Pre-Release v0.1.5-alpha
 
+**New Features:**
+- Add new functionality to get the current version of the REST API service.
+
 **Changes:**
 - Add error labels.
 - Make some improvements to function and variable names.

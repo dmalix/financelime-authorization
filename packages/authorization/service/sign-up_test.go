@@ -52,7 +52,7 @@ func TestSignUp_Success(t *testing.T) {
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 
 	if err != nil {
-		t.Errorf("handler returned wrong err value: got %v want %v",
+		t.Errorf("service returned wrong err value: got %v want %v",
 			err, nil)
 	}
 }
@@ -92,11 +92,11 @@ func TestSignUp_RepoError(t *testing.T) {
 
 	if err != nil {
 		if err.Error() != errDescription {
-			t.Errorf("handler returned wrong err value: got %v want %v",
+			t.Errorf("service returned wrong err value: got %v want %v",
 				err, errDescription)
 		}
 	} else {
-		t.Errorf("handler returned wrong err value: got %v want %v",
+		t.Errorf("service returned wrong err value: got %v want %v",
 			err, errDescription)
 	}
 }
@@ -141,11 +141,11 @@ func TestSignUp_EmailError(t *testing.T) {
 
 	if err != nil {
 		if err.Error() != errDescription {
-			t.Errorf("handler returned wrong err value: got %v want %v",
+			t.Errorf("service returned wrong err value: got %v want %v",
 				err, errDescription)
 		}
 	} else {
-		t.Errorf("handler returned wrong err value: got %v want %v",
+		t.Errorf("service returned wrong err value: got %v want %v",
 			err, errDescription)
 	}
 }

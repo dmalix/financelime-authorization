@@ -10,18 +10,28 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-rest-api/models"
-	"github.com/dmalix/financelime-rest-api/packages/authorization"
-	authorizationAPI "github.com/dmalix/financelime-rest-api/packages/authorization/api"
-	authorizationMiddleware "github.com/dmalix/financelime-rest-api/packages/authorization/api/middleware"
-	authorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repository"
-	"github.com/dmalix/financelime-rest-api/packages/authorization/service"
-	emailMessage "github.com/dmalix/financelime-rest-api/utils/email"
+	packageAuthorization "github.com/dmalix/financelime-rest-api/packages/authorization"
+	packageAuthorizationAPI "github.com/dmalix/financelime-rest-api/packages/authorization/api"
+	packageAuthorizationMiddleware "github.com/dmalix/financelime-rest-api/packages/authorization/api/middleware"
+	packageAuthorizationRepo "github.com/dmalix/financelime-rest-api/packages/authorization/repository"
+	packageAuthorizationService "github.com/dmalix/financelime-rest-api/packages/authorization/service"
+	packageSystem "github.com/dmalix/financelime-rest-api/packages/system"
+	packageSystemAPI "github.com/dmalix/financelime-rest-api/packages/system/api"
+	packageSystemService "github.com/dmalix/financelime-rest-api/packages/system/service"
+	"github.com/dmalix/financelime-rest-api/utils/email"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+)
+
+var (
+	version   = "unset"
+	buildTime = "unset"
+	commit    = "unset"
+	compiler  = "unset"
 )
 
 type emailSenderDaemon interface {
@@ -32,7 +42,8 @@ type App struct {
 	httpPort                 string
 	emailMessageSenderDaemon emailSenderDaemon
 	httpServer               *http.Server
-	authService              authorization.Service
+	authorizationService     packageAuthorization.Service
+	systemService            packageSystem.Service
 }
 
 func NewApp() (*App, error) {
@@ -48,6 +59,9 @@ func NewApp() (*App, error) {
 		emailMessageQueue = make(chan models.EmailMessage, 300)
 	)
 
+	// Init the Config and the Language Content
+	// ----------------------------------------
+
 	config, err = initConfig()
 	if err != nil {
 		return app,
@@ -57,7 +71,19 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbAuthMain, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
+	languageContent, err = initLanguageContent()
+	if err != nil {
+		return app,
+			errors.New(fmt.Sprintf("%s: %s [%s]",
+				"d1oC8sm0",
+				"Error initializing language content",
+				err.Error()))
+	}
+
+	// Databases
+	// ---------
+
+	dbAuthMain, err = packageAuthorizationRepo.NewPostgreDB(packageAuthorizationRepo.Config{
 		Host:     config.db.authMain.connect.host,
 		Port:     config.db.authMain.connect.port,
 		SSLMode:  config.db.authMain.connect.sslMode,
@@ -73,7 +99,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbAuthRead, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
+	dbAuthRead, err = packageAuthorizationRepo.NewPostgreDB(packageAuthorizationRepo.Config{
 		Host:     config.db.authRead.connect.host,
 		Port:     config.db.authRead.connect.port,
 		SSLMode:  config.db.authRead.connect.sslMode,
@@ -89,7 +115,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbBlade, err = authorizationRepo.NewPostgreDB(authorizationRepo.Config{
+	dbBlade, err = packageAuthorizationRepo.NewPostgreDB(packageAuthorizationRepo.Config{
 		Host:     config.db.blade.connect.host,
 		Port:     config.db.blade.connect.port,
 		SSLMode:  config.db.blade.connect.sslMode,
@@ -129,46 +155,69 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	userRepo := authorizationRepo.NewRepository(dbAuthMain, dbAuthRead, dbBlade)
-	emailMessageSenderDaemon := emailMessage.NewSenderDaemon(config.smtp.user, config.smtp.password,
-		config.smtp.host, config.smtp.port, emailMessageQueue)
-	userMessage := emailMessage.NewManager(config.mailMessage.from)
+	// Email Message
+	// -------------
 
-	languageContent, err = initLanguageContent()
-	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"d1oC8sm0",
-				"Error initializing language content",
-				err.Error()))
-	}
+	emailMessageSenderDaemon := email.NewSenderDaemon(
+		config.smtp.user,
+		config.smtp.password,
+		config.smtp.host,
+		config.smtp.port,
+		emailMessageQueue)
+
+	emailMessageManager := email.NewManager(
+		config.mailMessage.from)
+
+	// Authorization
+	// -------------
+
+	authorizationRepo := packageAuthorizationRepo.NewRepository(
+		dbAuthMain,
+		dbAuthRead,
+		dbBlade)
+
+	authorizationService := packageAuthorizationService.NewService(
+		config.domain.api,
+		config.auth.inviteCodeRequired,
+		languageContent,
+		emailMessageQueue,
+		emailMessageManager,
+		authorizationRepo)
+
+	// System
+	// -------
+
+	systemService := packageSystemService.NewService(
+		version,
+		buildTime,
+		commit,
+		compiler)
+
+	// Implementation of prepared objects into the REST-API application
+	// ----------------------------------------------------------------
 
 	return &App{
 		httpPort:                 config.http.port,
 		emailMessageSenderDaemon: emailMessageSenderDaemon,
-		authService: service.NewService(
-			config.domain.api,
-			config.auth.inviteCodeRequired,
-			languageContent,
-			emailMessageQueue,
-			userMessage,
-			userRepo),
+		authorizationService:     authorizationService,
+		systemService:            systemService,
 	}, nil
 }
 
 func (app *App) Run() error {
 
-	// Start mail sender daemon
-	// ------------------------
+	// Start the Mail-Sender daemon
+	// ----------------------------
 
 	go app.emailMessageSenderDaemon.Run()
 
-	// Start REST-API
-	// --------------
+	// Start the REST-API application
+	// ------------------------------
 
 	mux := http.NewServeMux()
 
-	authorizationAPI.Router(mux, app.authService, authorizationMiddleware.RequestID)
+	packageAuthorizationAPI.Router(mux, app.authorizationService, packageAuthorizationMiddleware.RequestID)
+	packageSystemAPI.Router(mux, app.systemService, packageAuthorizationMiddleware.RequestID)
 
 	app.httpServer = &http.Server{
 		Addr:           ":" + app.httpPort,
@@ -185,6 +234,7 @@ func (app *App) Run() error {
 	}()
 
 	// Graceful shutdown
+	// -----------------
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
