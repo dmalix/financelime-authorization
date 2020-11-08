@@ -25,8 +25,8 @@ import (
 					INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 */
 // Related interfaces:
-//	packages/authorization/user-service.go
-func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
+//	packages/authorization/domain.go
+func (s *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	var (
 		user            *models.User
@@ -43,7 +43,7 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	confirmationKey = random.StringRand(16, 16, true)
 
-	err = a.repository.CreateUser(user, remoteAddr, confirmationKey, a.inviteCodeRequired)
+	err = s.repository.CreateUser(user, remoteAddr, confirmationKey, s.inviteCodeRequired)
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
@@ -77,17 +77,17 @@ func (a *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 		}
 	}
 
-	err = a.message.AddEmailMessageToQueue(
-		a.messageQueue,
+	err = s.message.AddEmailMessageToQueue(
+		s.messageQueue,
 		mail.Address{Address: email},
-		a.languageContent.Data.User.Signup.Email.Confirm.Subject[a.languageContent.Language[language]],
+		s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[language]],
 		fmt.Sprintf(
-			a.languageContent.Data.User.Signup.Email.Confirm.Body[a.languageContent.Language[language]],
-			a.domainAPI, confirmationKey),
+			s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[language]],
+			s.domainAPI, confirmationKey),
 		fmt.Sprintf(
 			"<%s@%s>",
 			confirmationKey,
-			fmt.Sprintf("%s.%s", "sign-up", a.domainAPI)))
+			fmt.Sprintf("%s.%s", "sign-up", s.domainAPI)))
 
 	if err != nil {
 		errLabel = "XfCCWkb2"

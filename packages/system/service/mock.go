@@ -5,7 +5,7 @@
 package service
 
 //noinspection GoSnakeCaseUsage
-type Dist_MockDescription struct {
+type MockDescription struct {
 	Props struct {
 	}
 	Expected struct {
@@ -14,8 +14,8 @@ type Dist_MockDescription struct {
 }
 
 //noinspection GoSnakeCaseUsage
-var Dist_MockData Dist_MockDescription
+var MockData MockDescription
 
-func (a *Dist_MockDescription) Dist() (string, string, error) {
-	return "version", "build", Dist_MockData.Expected.Error
+func (a *MockDescription) Dist() (string, string, error) {
+	return "version", "build", MockData.Expected.Error
 }

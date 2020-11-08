@@ -38,8 +38,8 @@ type inviteCode struct {
 				INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 */
 // Related interfaces:
-//	packages/authorization/user-repo.go
-func (repo *Repository) CreateUser(user *models.User, remoteAddr, confirmationKey string, inviteCodeRequired bool) error {
+//	packages/authorization/domain.go
+func (r *Repository) CreateUser(user *models.User, remoteAddr, confirmationKey string, inviteCodeRequired bool) error {
 
 	type incomingProps struct {
 		email              string
@@ -115,7 +115,7 @@ func (repo *Repository) CreateUser(user *models.User, remoteAddr, confirmationKe
 	// Begin the transaction
 	// ---------------------
 
-	dbTransactionAuthMain, err = repo.dbAuthMain.Begin()
+	dbTransactionAuthMain, err = r.dbAuthMain.Begin()
 	if err != nil {
 		errLabel = "W0wfephh"
 		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
@@ -123,7 +123,7 @@ func (repo *Repository) CreateUser(user *models.User, remoteAddr, confirmationKe
 	//noinspection GoUnhandledErrorResult
 	defer dbTransactionAuthMain.Rollback()
 
-	dbTransactionBlade, err = repo.dbBlade.Begin()
+	dbTransactionBlade, err = r.dbBlade.Begin()
 	if err != nil {
 		errLabel = "FSvBG7Dr"
 		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))

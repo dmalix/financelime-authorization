@@ -18,7 +18,7 @@ func (manager Manager) AddEmailMessageToQueue(messageQueue chan models.EmailMess
 	message.From = manager.from
 	message.Subject = subject
 	message.Body = body
-	if len(message.MessageID) > 0 {
+	if len(messageID[0]) > 0 {
 		message.MessageID = messageID[0]
 	}
 

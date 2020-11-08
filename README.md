@@ -6,6 +6,7 @@
     - [3.1. Get the current version of the REST API service](#3-1) 
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
+    - [4.2. Confirm user email](#4-2)
     
 ---
 <a name="1-0"></a>
@@ -155,4 +156,35 @@ DOMAIN_ERROR_CODE | Description
 `USER_ALREADY_EXIST` | User already exists
 `INVITE_NOT_EXIST_EXPIRED` | The invite code does not exist or is expired
 `INVITE_LIMIT` | The limit for issuing the specified invite code has been exhausted
+
+<a name="4-2"></a>
+### 4.2. Confirm user email 
+
+- Method: `GET` 
+- Endpoint:  `/acue/LINK_KEY`
+
+#### Параметры:
+Name        | Type       | Description
+------------|------------|------------
+LINK_KEY    | string     | confirmation key
+
+#### Ответ:
+API returns HTML-page with a message (success or error).
+
+#### cURL Example
+```
+curl -X GET \
+"https://c/LINK_KEY"
+```
+#### Response Headers
+```
+status: STATUS_CODE
+content-type: text/plain; charset=utf-8
+```
+##### Status Code
+
+STATUS_CODE        | Description
+-------------------|----------------
+200 Ok             | API returns HTML-page with a message
+404 Not Found      | Link not found
 

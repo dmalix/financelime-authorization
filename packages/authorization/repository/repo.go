@@ -12,15 +12,18 @@ type Repository struct {
 	dbAuthMain *sql.DB
 	dbAuthRead *sql.DB
 	dbBlade    *sql.DB
+	cryptoSalt string
 }
 
 func NewRepository(
 	dbAuthMain,
 	dbAuthRead,
-	dbBlade *sql.DB) *Repository {
+	dbBlade *sql.DB,
+	cryptoSalt string) *Repository {
 	return &Repository{
 		dbAuthMain: dbAuthMain,
 		dbAuthRead: dbAuthRead,
 		dbBlade:    dbBlade,
+		cryptoSalt: cryptoSalt,
 	}
 }

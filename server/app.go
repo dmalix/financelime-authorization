@@ -174,7 +174,8 @@ func NewApp() (*App, error) {
 	authorizationRepo := packageAuthorizationRepo.NewRepository(
 		dbAuthMain,
 		dbAuthRead,
-		dbBlade)
+		dbBlade,
+		config.crypto.salt)
 
 	authorizationService := packageAuthorizationService.NewService(
 		config.domain.api,

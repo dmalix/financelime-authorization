@@ -26,13 +26,13 @@ func TestSignUp_Success(t *testing.T) {
 		languageContent              models.LanguageContent
 		emailMessageQueue            = make(chan models.EmailMessage, 1)
 		userMessage                  = new(email.AddEmailMessageToQueue_MockDescription)
-		userRepo                     = new(repository.CreateUser_MockDescription)
+		userRepo                     = new(repository.MockDescription)
 		err                          error
 		props                        incomingProps
 		remoteAdrr                   = "127.0.0.1"
 	)
 
-	repository.CreateUser_MockData.Expected.Error = nil
+	repository.MockData.Expected.Error = nil
 	email.AddEmailMessageToQueue_MockData.Expected.Error = nil
 
 	languageContent.Language = make(map[string]int)
@@ -65,14 +65,14 @@ func TestSignUp_RepoError(t *testing.T) {
 		languageContent              models.LanguageContent
 		emailMessageQueue            = make(chan models.EmailMessage, 1)
 		userMessage                  = new(email.AddEmailMessageToQueue_MockDescription)
-		userRepo                     = new(repository.CreateUser_MockDescription)
+		userRepo                     = new(repository.MockDescription)
 		err                          error
 		errDescription               = "4PtDRMCQ:a system error was returned[RepoError]"
 		props                        incomingProps
 		remoteAdrr                   = "127.0.0.1"
 	)
 
-	repository.CreateUser_MockData.Expected.Error = errors.New("RepoError")
+	repository.MockData.Expected.Error = errors.New("RepoError")
 
 	languageContent.Language = make(map[string]int)
 	languageContent.Language["abc"] = 0
@@ -109,14 +109,14 @@ func TestSignUp_EmailError(t *testing.T) {
 		languageContent              models.LanguageContent
 		emailMessageQueue            = make(chan models.EmailMessage, 1)
 		userMessage                  = new(email.AddEmailMessageToQueue_MockDescription)
-		userRepo                     = new(repository.CreateUser_MockDescription)
+		userRepo                     = new(repository.MockDescription)
 		err                          error
 		errDescription               = "XfCCWkb2:Failed to send message to the user[EmailError]"
 		props                        incomingProps
 		remoteAdrr                   = "127.0.0.1"
 	)
 
-	repository.CreateUser_MockData.Expected.Error = nil
+	repository.MockData.Expected.Error = nil
 	email.AddEmailMessageToQueue_MockData.Expected.Error = errors.New("EmailError")
 
 	languageContent.Language = make(map[string]int)

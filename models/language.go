@@ -31,9 +31,7 @@ type UserDataLanguageContent struct {
 			}
 		}
 		Page struct {
-			Confirm struct {
-				Text []string
-			}
+			Text []string
 		}
 	}
 	ResetPassword struct {

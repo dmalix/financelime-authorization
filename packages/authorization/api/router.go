@@ -19,4 +19,9 @@ func Router(mux *http.ServeMux, service authorization.Service, middleware ...fun
 			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.SignUp()}),
 			middleware,
 		))
+
+	mux.Handle("/acue/",
+		router.Group(
+			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.ConfirmUserEmail()}),
+		))
 }

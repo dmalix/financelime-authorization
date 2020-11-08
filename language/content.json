@@ -29,12 +29,10 @@
           }
         },
         "Page": {
-          "Confirm": {
-            "Text": [
-              "Поздравляем!\r\n\r\nВаша учетная запись была успешно подтверждена!\r\n\r\nПожалуйста, проверьте свою электронную почту для дальнейших инструкций.",
-              "Congratulations!\r\n\r\nYour registration has been successfully confirmed!\r\n\r\nPlease check your email for further instructions."
-            ]
-          }
+          "Text": [
+            "Поздравляем!\r\n\r\nВаша учетная запись была успешно подтверждена!\r\n\r\nПожалуйста, проверьте свою электронную почту для дальнейших инструкций.",
+            "Congratulations!\r\n\r\nYour registration has been successfully confirmed!\r\n\r\nPlease check your email for further instructions."
+          ]
         }
       },
       "ResetPassword": {

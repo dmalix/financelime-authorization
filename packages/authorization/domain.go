@@ -10,6 +10,7 @@ import (
 )
 
 type Service interface {
+
 	/*
 		   	Create a new user
 		   		----------------
@@ -22,9 +23,20 @@ type Service interface {
 						INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 	*/
 	SignUp(email, inviteCode, language, remoteAddr string) error
+
+	/*
+		   	Confirm user email
+		   		----------------
+		   		Return:
+		   			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
+						------------------------------------------------
+						CONFIRMATION_KEY_NOT_VALID: the confirmation key not valid
+	*/
+	ConfirmUserEmail(confirmationKey string) (string, error)
 }
 
 type Repository interface {
+
 	/*
 		Create a new user
 			----------------
@@ -41,6 +53,20 @@ type Repository interface {
 					INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 	*/
 	CreateUser(user *models.User, remoteAddr, confirmationKey string, inviteCodeRequired bool) error
+
+	/*
+		Confirm email
+			---------
+			Return:
+				user  models.User
+				password string
+				error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
+				        ------------------------------------------------
+				        PROPS_CONFIRMATION_KEY: The confirmationKey param is not valid
+				        CONFIRMATION_KEY_NOT_FOUND_EXPIRED: The confirmation key hasn't found or expired.
+				        CONFIRMATION_KEY_ALREADY_CONFIRMED: The user email is already confirmed.
+	*/
+	ConfirmUserEmail(confirmationKey string) (models.User, error)
 }
 
 type Message interface {

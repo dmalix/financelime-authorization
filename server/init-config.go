@@ -37,6 +37,9 @@ type cfg struct {
 	mailMessage struct {
 		from mail.Address
 	}
+	crypto struct {
+		salt string
+	}
 }
 
 type cfgDB struct {
@@ -166,6 +169,11 @@ func initConfig() (cfg, error) {
 
 	config.mailMessage.from.Name = os.Getenv("MAIL_MESSAGE_FROM_NAME")
 	config.mailMessage.from.Address = os.Getenv("MAIL_MESSAGE_FROM_ADDR")
+
+	// CRYPTO
+	// ------------
+
+	config.crypto.salt = os.Getenv("CRYPTO_SALT")
 
 	return config, nil
 }

@@ -15,7 +15,7 @@ import (
 )
 
 //	Create new user
-func (handler *Handler) SignUp() http.Handler {
+func (h *Handler) SignUp() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		type incomingProps struct {
@@ -83,7 +83,7 @@ func (handler *Handler) SignUp() http.Handler {
 			remoteAdrr = r.RemoteAddr
 		}
 
-		err = handler.service.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
+		err = h.service.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 		if err != nil {
 			domainErrorCode = strings.Split(err.Error(), ":")[0]
 			errorMessage = "failed to Sign Up"

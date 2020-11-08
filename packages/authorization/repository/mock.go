@@ -9,7 +9,7 @@ import (
 )
 
 //noinspection GoSnakeCaseUsage
-type CreateUser_MockDescription struct {
+type MockDescription struct {
 	Props struct {
 	}
 	Expected struct {
@@ -18,13 +18,13 @@ type CreateUser_MockDescription struct {
 }
 
 //noinspection GoSnakeCaseUsage
-var CreateUser_MockData CreateUser_MockDescription
+var MockData MockDescription
 
-func (repo *CreateUser_MockDescription) CreateUser(_ *models.User, _, _ string, _ bool) error {
+func (repo *MockDescription) CreateUser(_ *models.User, _, _ string, _ bool) error {
+	return MockData.Expected.Error
+}
 
-	if CreateUser_MockData.Expected.Error != nil {
-		return CreateUser_MockData.Expected.Error
-	}
-
-	return CreateUser_MockData.Expected.Error
+func (repo *MockDescription) ConfirmUserEmail(_ string) (models.User, error) {
+	var user models.User
+	return user, MockData.Expected.Error
 }

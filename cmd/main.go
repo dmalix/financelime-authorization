@@ -7,10 +7,13 @@ package main
 import (
 	"github.com/dmalix/financelime-rest-api/server"
 	"log"
+	"math/rand"
+	"time"
 )
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func main() {

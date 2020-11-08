@@ -13,7 +13,7 @@ import (
 
 func TestDist(t *testing.T) {
 
-	service.Dist_MockData.Expected.Error = nil
+	service.MockData.Expected.Error = nil
 
 	request, err := http.NewRequest(
 		http.MethodGet,
@@ -24,7 +24,7 @@ func TestDist(t *testing.T) {
 	}
 	responseRecorder := httptest.NewRecorder()
 
-	newService := new(service.Dist_MockDescription)
+	newService := new(service.MockDescription)
 	newHandler := NewHandler(newService)
 	handler := newHandler.Dist()
 
