@@ -12,6 +12,8 @@
 - Create a new "utils/email" package and implement it into the authorization package.
 - Make minor improvements to the project structure.
 - Add a sending email function with a link to verify the email address.
+- Small changes in the user model.
+
 
 ## Pre-Release v0.1.4-alpha
 

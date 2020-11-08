@@ -7,10 +7,11 @@
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
     - [4.2. Confirm user email](#4-2)
+    - [4.5. Request Access Token (Login)](#4-5)
     
 ---
 <a name="1-0"></a>
-## 1. Environment variables.
+## 1. Environment variables
 
 Name | Description
 ---|---
@@ -71,7 +72,7 @@ LXXXX | L - The letter that is always equal to a letter from set 4
       |        The number of characters is always 4 (missing ones get zeros)
 ```  
 <a name="3-0"></a>
-## 3. System commands. 
+## 3. System commands 
 <a name="3-1"></a>
 ### 3.1. Get the current version of the REST API service. 
 - Method: `GET` 
@@ -187,4 +188,76 @@ STATUS_CODE        | Description
 -------------------|----------------
 200 Ok             | API returns HTML-page with a message
 404 Not Found      | Link not found
+
+<a name="4-5"></a>
+### 4.5. Request Access Token 
+
+- Method: `POST` 
+- Endpoint:  `/authorization/oauth/token/request`
+
+#### Параметры:
+
+Name        | Type   | Description
+------------|--------|------------
+email       | string | User Email
+password    | string | User Password
+client_id   | string | User Client ID
+device      | object | User Device Specification
+
+** device object **
+
+Name        | Type   
+------------|--------
+platform    | string 
+height      | int     
+width       | int    
+language    | string 
+timezone    | string 
+
+
+#### Ответ
+The request will return an object with three attributes:
+
+Name            | Type     | Description
+----------------|----------|------------
+id              | string   | Session ID
+accessToken     | string   | Access Jwt-Token 
+refreshToken    | string   | Refresh Jwt-Token 
+
+#### cURL Example
+```
+curl -i -X POST \
+-H "content-type:application/json;charset=utf-8" \
+-H "request-id:K7800-H7625-Z5852-N1693-K1972" \
+-d '{"email":"max@apivox.com","password":"12345", client_id: "PWA_v0.0.1", \
+device":{"platform":"Linux x86_64", "height":1920, "width":1060, "language":"en-US", "timezone":"2"}}' \
+"https://api.financelime.com/authorization/oauth/token/request"
+```
+#### Request Headers
+```
+content-type: application/json;charset=utf-8
+request-id: REQUEST_ID
+```
+#### Response Headers
+```
+status: STATUS_CODE
+content-type:application/json;charset=utf-8 (в случае успеха) 
+content-type: text/plain; charset=utf-8 (в случае ошибки)
+```
+##### Status Code
+
+Status Code        | Description
+-------------------|----------------
+200 OK             | API successfully processed the request, returned JWT tokens and sent a notification to the email account
+401 Bad Request    | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
+404 Not Found      | Account not found
+
+#### Response Body
+```
+{
+   "id":"16d7db537247eaf113f4c8ad59e9a2a589ce7caf6135bcd7bfec0b525af48a2a",
+   "accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6ImFjY2VzcyIsImlkIjoiMTZkN2RiNTM3MjQ3ZWFmMTEzZjRjOGFkNTllOWEyYTU4OWNlN2NhZjYxMzViY2Q3YmZlYzBiNTI1YWY0OGEyYSIsImlhdCI6MTU5NjgzNTM5OX0.d68bea3232f10c60483f838fff8d8c66661cb497b141213c9a006be2e7c9d723",
+   "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJpZCI6IjE2ZDdkYjUzNzI0N2VhZjExM2Y0YzhhZDU5ZTlhMmE1ODljZTdjYWY2MTM1YmNkN2JmZWMwYjUyNWFmNDhhMmEiLCJpYXQiOjE1OTY4MzUzOTl9.b88345d361482865f1a7af533d41d66e922dcca4c76c2d4b1fcfa65616679471"
+}
+```
 

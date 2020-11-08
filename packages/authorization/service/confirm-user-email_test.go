@@ -93,5 +93,3 @@ func TestConfirmUserEmail_Error(t *testing.T) {
 			err, nil)
 	}
 }
-
-

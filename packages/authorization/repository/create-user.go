@@ -28,18 +28,18 @@ type inviteCode struct {
 		Return:
 			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
 				------------------------------------------------
-				PROPS_EMAIL:              param user.Email is not valid
-				PROPS_INVITE:             parap user.InviteCode is not valid
-				PROPS_LANG:               param user.Language is not valid
-				PROPS_REMOTE_ADDR:        param remoteAddr is not valid
-				PROPS_CONFIRMATION_KEY:   param confirmationKey is not valid
+				PROPS_EMAIL:              the propsUser.Email param is not valid
+				PROPS_LANG:               the propsUser.Language param is not valid
+				PROPS_INVITE:             the propsInviteCode param is not valid
+				PROPS_REMOTE_ADDR:        the propsRemoteAddr param is not valid
+				PROPS_CONFIRMATION_KEY:   the propsConfirmationKey param is not valid
 				USER_ALREADY_EXIST:       a user with the email you specified already exists
 				INVITE_NOT_EXIST_EXPIRED: the invite code does not exist or is expired
 				INVITE_LIMIT:             the limit for issuing this invite code has been exhausted
 */
 // Related interfaces:
 //	packages/authorization/domain.go
-func (r *Repository) CreateUser(user *models.User, remoteAddr, confirmationKey string, inviteCodeRequired bool) error {
+func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRemoteAddr, propsConfirmationKey string, propsInviteCodeRequired bool) error {
 
 	type incomingProps struct {
 		email              string
@@ -73,43 +73,43 @@ func (r *Repository) CreateUser(user *models.User, remoteAddr, confirmationKey s
 	// Check props
 	// -----------
 
-	props.inviteCodeRequired = inviteCodeRequired
+	props.inviteCodeRequired = propsInviteCodeRequired
 
-	props.email = html.EscapeString(user.Email)
+	props.email = html.EscapeString(propsUser.Email)
 	if len(props.email) <= 2 || len(props.email) > 255 {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_EMAIL", "param user.Email is not valid", props.email))
+			"PROPS_EMAIL", "param propsUser.Email is not valid", props.email))
 	}
 
-	props.inviteCode = html.EscapeString(user.InviteCode)
+	props.inviteCode = html.EscapeString(propsInviteCode)
 	paramValueRegexp = regexp.MustCompile(`^[0-9a-zA-Z_-]{3,16}$`)
 	if !paramValueRegexp.MatchString(props.inviteCode) {
 		if props.inviteCodeRequired {
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				"PROPS_INVITE", "param user.InviteCode is not valid", props.inviteCode))
+				"PROPS_INVITE", "param propsInviteCode is not valid", props.inviteCode))
 		}
 	}
 
-	props.language = html.EscapeString(user.Language)
+	props.language = html.EscapeString(propsUser.Language)
 	paramValueRegexp = regexp.MustCompile(`^[ru|en]{2}$`)
 	if !paramValueRegexp.MatchString(props.language) {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_LANG", "param user.Language is not valid", props.language))
+			"PROPS_LANG", "param propsUser.Language is not valid", props.language))
 	}
 
-	props.remoteAddr = html.EscapeString(remoteAddr)
+	props.remoteAddr = html.EscapeString(propsRemoteAddr)
 	remoteAddrSource = net.ParseIP(props.remoteAddr)
 	if remoteAddrSource == nil {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_REMOTE_ADDR", "param remoteAddr is not valid", props.remoteAddr))
+			"PROPS_REMOTE_ADDR", "param propsRemoteAddr is not valid", props.remoteAddr))
 	}
 	props.remoteAddr = remoteAddrSource.String()
 
-	props.confirmationKey = html.EscapeString(confirmationKey)
+	props.confirmationKey = html.EscapeString(propsConfirmationKey)
 	paramValueRegexp = regexp.MustCompile(`^[abcefghijkmnopqrtuvwxyz23479]{16}$`)
 	if !paramValueRegexp.MatchString(props.confirmationKey) {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_CONFIRMATION_KEY", "param confirmationKey is not valid", props.confirmationKey))
+			"PROPS_CONFIRMATION_KEY", "param propsConfirmationKey is not valid", props.confirmationKey))
 	}
 
 	// Begin the transaction

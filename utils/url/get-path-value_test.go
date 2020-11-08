@@ -10,7 +10,7 @@ import (
 
 func TestGetPathValue_Success(t *testing.T) {
 
-	result, err:= GetPathValue("/test/target",1)
+	result, err := GetPathValue("/test/target", 1)
 
 	if err != nil {
 		t.Errorf("function returned wrong the err value: got %v want %v",
@@ -25,7 +25,7 @@ func TestGetPathValue_Success(t *testing.T) {
 
 func TestGetPathValue_Error(t *testing.T) {
 
-	_, err:= GetPathValue("/test/target",2)
+	_, err := GetPathValue("/test/target", 2)
 
 	if err == nil {
 		t.Errorf("function returned wrong the err value: got %v want %v",

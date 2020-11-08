@@ -27,7 +27,7 @@ func TestConfirmUserEmail_200(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest("","/acue/12345", bytes.NewBuffer(propsByte))
+	request, err := http.NewRequest("", "/acue/12345", bytes.NewBuffer(propsByte))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestConfirmUserEmail_500(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest("","/acue/12345", bytes.NewBuffer(propsByte))
+	request, err := http.NewRequest("", "/acue/12345", bytes.NewBuffer(propsByte))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestConfirmUserEmail_404__CONFIRMATION_KEY_NOT_FOUND(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest("","/acue", bytes.NewBuffer(propsByte))
+	request, err := http.NewRequest("", "/acue", bytes.NewBuffer(propsByte))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +120,7 @@ func TestConfirmUserEmail_404__CONFIRMATION_KEY_NOT_VALID(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest("","/acue", bytes.NewBuffer(propsByte))
+	request, err := http.NewRequest("", "/acue", bytes.NewBuffer(propsByte))
 	if err != nil {
 		t.Fatal(err)
 	}

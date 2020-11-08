@@ -20,7 +20,7 @@ type MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var MockData MockDescription
 
-func (repo *MockDescription) CreateUser(_ *models.User, _, _ string, _ bool) error {
+func (repo *MockDescription) CreateUser(_ *models.User, _, _, _ string, _ bool) error {
 	return MockData.Expected.Error
 }
 

@@ -21,16 +21,15 @@ import (
 		---------
 		Return:
 			user  models.User
-			password string
 			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
 			        ------------------------------------------------
-			        PROPS_CONFIRMATION_KEY: The confirmationKey param is not valid
+			        PROPS_CONFIRMATION_KEY: The propsConfirmationKey param is not valid
 			        CONFIRMATION_KEY_NOT_FOUND_EXPIRED: The confirmation key hasn't found or expired.
 			        CONFIRMATION_KEY_ALREADY_CONFIRMED: The user email is already confirmed.
 */
 // Related interfaces:
 //	packages/authorization/domain.go
-func (r *Repository) ConfirmUserEmail(confirmationKey string) (models.User, error) {
+func (r *Repository) ConfirmUserEmail(propsConfirmationKey string) (models.User, error) {
 
 	var (
 		dbTransactionAuthMain *sql.Tx
@@ -48,13 +47,13 @@ func (r *Repository) ConfirmUserEmail(confirmationKey string) (models.User, erro
 	)
 
 	propsValueRegexp = regexp.MustCompile(`^[abcefghijkmnopqrtuvwxyz23479]{16}$`)
-	if !propsValueRegexp.MatchString(confirmationKey) {
+	if !propsValueRegexp.MatchString(propsConfirmationKey) {
 		return user,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				"PROPS_CONFIRMATION_KEY", "the confirmationKey param is not valid", html.EscapeString(confirmationKey)))
+				"PROPS_CONFIRMATION_KEY", "the propsConfirmationKey param is not valid", html.EscapeString(propsConfirmationKey)))
 	}
 
-	// Check the confirmationKey in Database
+	// Check the propsConfirmationKey in Database
 	// -------------------------------------
 
 	dbRows, err =
@@ -72,7 +71,7 @@ func (r *Repository) ConfirmUserEmail(confirmationKey string) (models.User, erro
 			ORDER BY
 				confirmation_create_new_user."id" DESC 
 				LIMIT 1`,
-			confirmationKey)
+			propsConfirmationKey)
 	if err != nil {
 		errLabel = "Dtv3CkDF"
 		return user,
@@ -96,7 +95,7 @@ func (r *Repository) ConfirmUserEmail(confirmationKey string) (models.User, erro
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				"CONFIRMATION_KEY_NOT_FOUND_EXPIRED",
 				"the confirmation key hasn't found or expired",
-				html.EscapeString(confirmationKey)))
+				html.EscapeString(propsConfirmationKey)))
 	}
 
 	// Begin the transaction

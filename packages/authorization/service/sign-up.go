@@ -26,7 +26,7 @@ import (
 */
 // Related interfaces:
 //	packages/authorization/domain.go
-func (s *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
+func (s *Service) SignUp(propsEmail, propsInviteCode, propsLanguage, propsRemoteAddr string) error {
 
 	var (
 		user            *models.User
@@ -36,14 +36,13 @@ func (s *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 	)
 
 	user = &models.User{
-		Email:      email,
-		InviteCode: inviteCode,
-		Language:   language,
+		Email:    propsEmail,
+		Language: propsLanguage,
 	}
 
 	confirmationKey = random.StringRand(16, 16, true)
 
-	err = s.repository.CreateUser(user, remoteAddr, confirmationKey, s.inviteCodeRequired)
+	err = s.repository.CreateUser(user, propsInviteCode, propsRemoteAddr, confirmationKey, s.inviteCodeRequired)
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
@@ -55,7 +54,7 @@ func (s *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 		case "USER_ALREADY_EXIST":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
 				domainErrorCode,
-				"a user with the email you specified already exists",
+				"a user with the propsEmail you specified already exists",
 				err))
 		case "INVITE_NOT_EXIST_EXPIRED":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
@@ -79,10 +78,10 @@ func (s *Service) SignUp(email, inviteCode, language, remoteAddr string) error {
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: email},
-		s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[language]],
+		mail.Address{Address: propsEmail},
+		s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[propsLanguage]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[language]],
+			s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[propsLanguage]],
 			s.domainAPI, confirmationKey),
 		fmt.Sprintf(
 			"<%s@%s>",
