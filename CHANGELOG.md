@@ -1,8 +1,10 @@
 ## Pre-Release v0.1.5-alpha
 
 **New Features:**
-- Add new functionality to get the current version of the REST API service.
-- Add new functionality to confirm user email. 
+- Get the current version of the REST API service.
+- Confirm user email. 
+- Confirm user email.
+- Request Access token.
 
 **Changes:**
 - Add error labels.

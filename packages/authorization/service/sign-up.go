@@ -7,7 +7,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/models"
 	"github.com/dmalix/financelime-rest-api/utils/random"
 	"net/mail"
 	"strings"
@@ -26,23 +25,17 @@ import (
 */
 // Related interfaces:
 //	packages/authorization/domain.go
-func (s *Service) SignUp(propsEmail, propsInviteCode, propsLanguage, propsRemoteAddr string) error {
+func (s *Service) SignUp(email, language, inviteCode, remoteAddr string) error {
 
 	var (
-		user            *models.User
 		confirmationKey string
 		err             error
 		errLabel        string
 	)
 
-	user = &models.User{
-		Email:    propsEmail,
-		Language: propsLanguage,
-	}
-
 	confirmationKey = random.StringRand(16, 16, true)
 
-	err = s.repository.CreateUser(user, propsInviteCode, propsRemoteAddr, confirmationKey, s.inviteCodeRequired)
+	err = s.repository.CreateUser(email, language, inviteCode, remoteAddr, confirmationKey, s.config.AuthInviteCodeRequired)
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
@@ -54,7 +47,7 @@ func (s *Service) SignUp(propsEmail, propsInviteCode, propsLanguage, propsRemote
 		case "USER_ALREADY_EXIST":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
 				domainErrorCode,
-				"a user with the propsEmail you specified already exists",
+				"a user with the email you specified already exists",
 				err))
 		case "INVITE_NOT_EXIST_EXPIRED":
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
@@ -78,16 +71,15 @@ func (s *Service) SignUp(propsEmail, propsInviteCode, propsLanguage, propsRemote
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: propsEmail},
-		s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[propsLanguage]],
+		mail.Address{Address: email},
+		s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[propsLanguage]],
-			s.domainAPI, confirmationKey),
+			s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[language]],
+			s.config.DomainAPI, confirmationKey),
 		fmt.Sprintf(
 			"<%s@%s>",
 			confirmationKey,
-			fmt.Sprintf("%s.%s", "sign-up", s.domainAPI)))
-
+			fmt.Sprintf("%s.%s", "sign-up", s.config.DomainAPI)))
 	if err != nil {
 		errLabel = "XfCCWkb2"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",

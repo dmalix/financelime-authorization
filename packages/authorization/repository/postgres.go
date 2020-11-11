@@ -19,10 +19,10 @@ type Config struct {
 	Password string
 }
 
-func NewPostgreDB(cfg Config) (*sql.DB, error) {
+func NewPostgreDB(c Config) (*sql.DB, error) {
 	db, err := sql.Open("postgres",
 		fmt.Sprintf("host=%s port=%s sslmode=%s dbname=%s user=%s password=%s",
-			cfg.Host, cfg.Port, cfg.SSLMode, cfg.DBName, cfg.User, cfg.Password))
+			c.Host, c.Port, c.SSLMode, c.DBName, c.User, c.Password))
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("%s: %s [%s]",
 			"hAjgNlS8",

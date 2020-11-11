@@ -19,6 +19,7 @@ import (
 	packageSystemAPI "github.com/dmalix/financelime-rest-api/packages/system/api"
 	packageSystemService "github.com/dmalix/financelime-rest-api/packages/system/service"
 	"github.com/dmalix/financelime-rest-api/utils/email"
+	"github.com/dmalix/financelime-rest-api/utils/jwt"
 	"log"
 	"net/http"
 	"os"
@@ -155,6 +156,17 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
+	//    JWT
+	// -----------
+
+	jwtManager := jwt.NewToken(
+		config.jwt.secretKey,
+		config.jwt.signingAlgorithm,
+		config.jwt.issuer,
+		config.jwt.subject,
+		config.jwt.accessTokenLifetime,
+		config.jwt.refreshTokenLifetime)
+
 	// Email Message
 	// -------------
 
@@ -169,7 +181,7 @@ func NewApp() (*App, error) {
 		config.mailMessage.from)
 
 	// Authorization
-	// -------------
+	// ------------------------
 
 	authorizationRepo := packageAuthorizationRepo.NewRepository(
 		dbAuthMain,
@@ -177,16 +189,23 @@ func NewApp() (*App, error) {
 		dbBlade,
 		config.crypto.salt)
 
+	authorizationServiceConfig := packageAuthorizationService.Config{
+		DomainAPP:              config.domain.app,
+		DomainAPI:              config.domain.api,
+		AuthInviteCodeRequired: config.auth.inviteCodeRequired,
+		CryptoSalt:             config.crypto.salt,
+	}
+
 	authorizationService := packageAuthorizationService.NewService(
-		config.domain.api,
-		config.auth.inviteCodeRequired,
+		authorizationServiceConfig,
 		languageContent,
 		emailMessageQueue,
 		emailMessageManager,
-		authorizationRepo)
+		authorizationRepo,
+		jwtManager)
 
 	// System
-	// -------
+	// --------------
 
 	systemService := packageSystemService.NewService(
 		version,
@@ -197,12 +216,14 @@ func NewApp() (*App, error) {
 	// Implementation of prepared objects into the REST-API application
 	// ----------------------------------------------------------------
 
-	return &App{
+	app = &App{
 		httpPort:                 config.http.port,
 		emailMessageSenderDaemon: emailMessageSenderDaemon,
 		authorizationService:     authorizationService,
 		systemService:            systemService,
-	}, nil
+	}
+
+	return app, nil
 }
 
 func (app *App) Run() error {

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS "public"."session" (
 	"updated_at" TIMESTAMP ( 6 ) DEFAULT NULL :: TIMESTAMP WITHOUT TIME ZONE,
 	"deleted_at" TIMESTAMP ( 6 ) DEFAULT NULL :: TIMESTAMP WITHOUT TIME ZONE,
 	"user_id" int4 NOT NULL,
+	"client_id" VARCHAR ( 32 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"remote_addr" VARCHAR ( 45 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"public_id" VARCHAR ( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 	CONSTRAINT "session_pkey" PRIMARY KEY ( "id" )

@@ -20,11 +20,21 @@ type MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var MockData MockDescription
 
-func (repo *MockDescription) CreateUser(_ *models.User, _, _, _ string, _ bool) error {
+func (repo *MockDescription) CreateUser(propsEmail, propsLanguage, propsInviteCode, propsRemoteAddr,
+	propsConfirmationKey string, propsInviteCodeRequired bool) error {
 	return MockData.Expected.Error
 }
 
 func (repo *MockDescription) ConfirmUserEmail(_ string) (models.User, error) {
 	var user models.User
 	return user, MockData.Expected.Error
+}
+
+func (repo *MockDescription) GetUserByAuth(email, password string) (models.User, error) {
+	var user models.User
+	return user, MockData.Expected.Error
+}
+
+func (repo *MockDescription) SaveSession(userID int64, publicSessionID, client_id, remoteAddr string, device models.Device) error {
+	return MockData.Expected.Error
 }

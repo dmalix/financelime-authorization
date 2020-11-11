@@ -20,17 +20,14 @@ func Router(mux *http.ServeMux, service authorization.Service, middleware ...fun
 			middleware,
 		))
 
-	mux.Handle("/acue/",
+	mux.Handle("/u/",
 		router.Group(
 			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.ConfirmUserEmail()}),
 		))
 
-	/*
-		mux.Handle("/authorization/oauth/token/request",
+	mux.Handle("/authorization/oauth/token/request",
 		router.Group(
 			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.RequestAccessToken()}),
 		))
-
-	*/
 
 }

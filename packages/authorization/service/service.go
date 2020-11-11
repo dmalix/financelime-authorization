@@ -9,28 +9,35 @@ import (
 	"github.com/dmalix/financelime-rest-api/packages/authorization"
 )
 
+type Config struct {
+	DomainAPP              string
+	DomainAPI              string
+	AuthInviteCodeRequired bool
+	CryptoSalt             string
+}
+
 type Service struct {
-	domainAPI          string
-	inviteCodeRequired bool
-	languageContent    models.LanguageContent
-	messageQueue       chan models.EmailMessage
-	message            authorization.Message
-	repository         authorization.Repository
+	config          Config
+	languageContent models.LanguageContent
+	messageQueue    chan models.EmailMessage
+	message         authorization.Message
+	repository      authorization.Repository
+	jwt             authorization.Jwt
 }
 
 func NewService(
-	domainAPI string,
-	inviteCodeRequired bool,
+	config Config,
 	languageContent models.LanguageContent,
 	messageQueue chan models.EmailMessage,
 	message authorization.Message,
-	repository authorization.Repository) *Service {
+	repository authorization.Repository,
+	jwt authorization.Jwt) *Service {
 	return &Service{
-		domainAPI:          domainAPI,
-		inviteCodeRequired: inviteCodeRequired,
-		languageContent:    languageContent,
-		messageQueue:       messageQueue,
-		message:            message,
-		repository:         repository,
+		config:          config,
+		languageContent: languageContent,
+		messageQueue:    messageQueue,
+		message:         message,
+		repository:      repository,
+		jwt:             jwt,
 	}
 }

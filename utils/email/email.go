@@ -17,10 +17,6 @@ type Daemon struct {
 	MessageQueue     chan models.EmailMessage
 }
 
-type Manager struct {
-	from mail.Address
-}
-
 func NewSenderDaemon(
 	authSMTPUser,
 	authSMTPPassword,
@@ -34,6 +30,10 @@ func NewSenderDaemon(
 		AuthSMTPPort:     authSMTPPort,
 		MessageQueue:     messageQueue,
 	}
+}
+
+type Manager struct {
+	from mail.Address
 }
 
 func NewManager(

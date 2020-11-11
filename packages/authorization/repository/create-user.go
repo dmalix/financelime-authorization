@@ -8,14 +8,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/models"
 	"html"
 	"net"
 	"regexp"
 	"strconv"
 )
 
-type inviteCode struct {
+type inviteCodeRecord struct {
 	ID          int64
 	UserID      int64
 	NumberLimit int
@@ -28,7 +27,7 @@ type inviteCode struct {
 		Return:
 			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
 				------------------------------------------------
-				PROPS_EMAIL:              the propsUser.Email param is not valid
+				PROPS_EMAIL:              the email param is not valid
 				PROPS_LANG:               the propsUser.Language param is not valid
 				PROPS_INVITE:             the propsInviteCode param is not valid
 				PROPS_REMOTE_ADDR:        the propsRemoteAddr param is not valid
@@ -39,7 +38,7 @@ type inviteCode struct {
 */
 // Related interfaces:
 //	packages/authorization/domain.go
-func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRemoteAddr, propsConfirmationKey string, propsInviteCodeRequired bool) error {
+func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirmationKey string, inviteCodeRequired bool) error {
 
 	type incomingProps struct {
 		email              string
@@ -58,7 +57,7 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 		dbRowsBlade             *sql.Rows
 		paramValueRegexp        *regexp.Regexp
 		userID                  int64
-		inviteCode              inviteCode
+		inviteCodeRecord        inviteCodeRecord
 		inviteCodeReservedID    int64
 		countInviteCodeIssued   int
 		countInviteCodeReserved int
@@ -73,43 +72,43 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 	// Check props
 	// -----------
 
-	props.inviteCodeRequired = propsInviteCodeRequired
+	props.inviteCodeRequired = inviteCodeRequired
 
-	props.email = html.EscapeString(propsUser.Email)
+	props.email = html.EscapeString(email)
 	if len(props.email) <= 2 || len(props.email) > 255 {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_EMAIL", "param propsUser.Email is not valid", props.email))
+			"PROPS_EMAIL", "param email is not valid", props.email))
 	}
 
-	props.inviteCode = html.EscapeString(propsInviteCode)
+	props.inviteCode = html.EscapeString(inviteCode)
 	paramValueRegexp = regexp.MustCompile(`^[0-9a-zA-Z_-]{3,16}$`)
 	if !paramValueRegexp.MatchString(props.inviteCode) {
 		if props.inviteCodeRequired {
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				"PROPS_INVITE", "param propsInviteCode is not valid", props.inviteCode))
+				"PROPS_INVITE", "param inviteCode is not valid", props.inviteCode))
 		}
 	}
 
-	props.language = html.EscapeString(propsUser.Language)
+	props.language = html.EscapeString(language)
 	paramValueRegexp = regexp.MustCompile(`^[ru|en]{2}$`)
 	if !paramValueRegexp.MatchString(props.language) {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_LANG", "param propsUser.Language is not valid", props.language))
+			"PROPS_LANG", "param language is not valid", props.language))
 	}
 
-	props.remoteAddr = html.EscapeString(propsRemoteAddr)
+	props.remoteAddr = html.EscapeString(remoteAddr)
 	remoteAddrSource = net.ParseIP(props.remoteAddr)
 	if remoteAddrSource == nil {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_REMOTE_ADDR", "param propsRemoteAddr is not valid", props.remoteAddr))
+			"PROPS_REMOTE_ADDR", "param remoteAddr is not valid", props.remoteAddr))
 	}
 	props.remoteAddr = remoteAddrSource.String()
 
-	props.confirmationKey = html.EscapeString(propsConfirmationKey)
+	props.confirmationKey = html.EscapeString(confirmationKey)
 	paramValueRegexp = regexp.MustCompile(`^[abcefghijkmnopqrtuvwxyz23479]{16}$`)
 	if !paramValueRegexp.MatchString(props.confirmationKey) {
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			"PROPS_CONFIRMATION_KEY", "param propsConfirmationKey is not valid", props.confirmationKey))
+			"PROPS_CONFIRMATION_KEY", "param confirmationKey is not valid", props.confirmationKey))
 	}
 
 	// Begin the transaction
@@ -178,14 +177,14 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 		}
 
 		for dbRowsAuthMaster.Next() {
-			err = dbRowsAuthMaster.Scan(&inviteCode.ID, &inviteCode.NumberLimit, &inviteCode.UserID)
+			err = dbRowsAuthMaster.Scan(&inviteCodeRecord.ID, &inviteCodeRecord.NumberLimit, &inviteCodeRecord.UserID)
 			if err != nil {
 				errLabel = "cWqgt3VB"
 				return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
 			}
 		}
 
-		if inviteCode.ID == 0 { // The invite code does not exist or is expired
+		if inviteCodeRecord.ID == 0 { // The invite code does not exist or is expired
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
 				"INVITE_NOT_EXIST_EXPIRED", "the invite code does not exist or is expired", props.inviteCode))
 		}
@@ -207,7 +206,7 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 				AND invite_code_issued.deleted_at IS NULL 
 				AND invite_code.deleted_at IS NULL 
 				AND invite_code.expires_at > NOW( )`,
-				inviteCode.ID)
+				inviteCodeRecord.ID)
 		if err != nil {
 			errLabel = "P4BJAxNp"
 			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
@@ -234,7 +233,7 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 				AND invite_code_reserved.deleted_at IS NULL 
 				AND confirmation_create_new_user.deleted_at IS NULL 
 				AND confirmation_create_new_user.expires_at > NOW( )`,
-				inviteCode.ID)
+				inviteCodeRecord.ID)
 		if err != nil {
 			errLabel = "K8bddqeW"
 			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
@@ -248,7 +247,7 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 			}
 		}
 
-		if (countInviteCodeIssued + countInviteCodeReserved) >= inviteCode.NumberLimit {
+		if (countInviteCodeIssued + countInviteCodeReserved) >= inviteCodeRecord.NumberLimit {
 			inviteCodesIsRunOut = true
 
 			if props.inviteCodeRequired { // the limit for issuing this invite code has been exhausted
@@ -256,7 +255,7 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
 					fmt.Sprintf(
 						"%s:%s[inviteCode.NumberLimit=%s, countInviteCodeIssued=%s, countInviteCodeReserved=%s]",
 						"INVITE_LIMIT", "the limit for issuing this invite code has been exhausted",
-						strconv.Itoa(inviteCode.NumberLimit),
+						strconv.Itoa(inviteCodeRecord.NumberLimit),
 						strconv.Itoa(countInviteCodeIssued),
 						strconv.Itoa(countInviteCodeReserved)))
 			}
@@ -349,7 +348,7 @@ func (r *Repository) CreateUser(propsUser *models.User, propsInviteCode, propsRe
            		INSERT INTO invite_code_reserved ( created_at, invite_code_id, email, confirmation_id )
 					VALUES
 					( NOW( ), $1, $2, $3 ) RETURNING "id"`,
-				inviteCode.ID, props.email, confirmationID).Scan(&inviteCodeReservedID)
+				inviteCodeRecord.ID, props.email, confirmationID).Scan(&inviteCodeReservedID)
 		if err != nil {
 			errLabel = "MANT4no8"
 			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))

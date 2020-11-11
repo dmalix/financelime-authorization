@@ -6,6 +6,7 @@ package service
 
 import (
 	"errors"
+	"github.com/dmalix/financelime-rest-api/models"
 )
 
 //noinspection GoSnakeCaseUsage
@@ -24,7 +25,7 @@ type MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var MockData MockDescription
 
-func (s *MockDescription) SignUp(email, inviteCode, language, remoteAddr string) error {
+func (s *MockDescription) SignUp(email, language, inviteCode, remoteAddr string) error {
 
 	if MockData.Expected.Error != nil {
 		return MockData.Expected.Error
@@ -40,4 +41,8 @@ func (s *MockDescription) SignUp(email, inviteCode, language, remoteAddr string)
 
 func (s *MockDescription) ConfirmUserEmail(confirmationKey string) (string, error) {
 	return "", MockData.Expected.Error
+}
+
+func (s *MockDescription) RequestAccessToken(email, password, clientID, remoteAddr string, device models.Device) (string, string, error) {
+	return "", "", MockData.Expected.Error
 }

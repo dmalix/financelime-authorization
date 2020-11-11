@@ -7,6 +7,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dmalix/financelime-rest-api/models"
 	"github.com/dmalix/financelime-rest-api/utils/responder"
 	"io/ioutil"
 	"log"
@@ -14,19 +15,26 @@ import (
 	"strings"
 )
 
-//	Create new user
-func (h *Handler) SignUp() http.Handler {
+//	Request an access token
+func (h *Handler) RequestAccessToken() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		type incomingProps struct {
-			Email      string `json:"email"`
-			InviteCode string `json:"inviteCode"`
-			Language   string `json:"language"`
+			Email    string        `json:"email"`
+			Password string        `json:"password"`
+			ClientID string        `json:"client_id"`
+			Device   models.Device `json:"device"`
+		}
+
+		type outgoingResponse struct {
+			AccessToken  string `json:"accessToken"`
+			RefreshToken string `json:"refreshToken"`
 		}
 
 		var (
 			props           incomingProps
 			body            []byte
+			response        outgoingResponse
 			responseBody    []byte
 			statusCode      int
 			contentType     string
@@ -38,7 +46,7 @@ func (h *Handler) SignUp() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			errLabel = "26Pi82rl"
+			errLabel = "Gwn3ryea"
 			log.Printf("ERROR [%s: %s]", errLabel,
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
@@ -49,7 +57,7 @@ func (h *Handler) SignUp() http.Handler {
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			errLabel = "w5a7C38O"
+			errLabel = "N4lidcri"
 			log.Printf("ERROR [%s: %s [%s]]", errLabel,
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
@@ -59,7 +67,7 @@ func (h *Handler) SignUp() http.Handler {
 		}
 		err = r.Body.Close()
 		if err != nil {
-			errLabel = "8w5a7C3O"
+			errLabel = "5UMtv0YJ"
 			log.Printf("ERROR [%s: %s [%s]]", errLabel,
 				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
 				err)
@@ -69,7 +77,7 @@ func (h *Handler) SignUp() http.Handler {
 		}
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			errLabel = "jlgeF0it"
+			errLabel = "TALDtv9L"
 			log.Printf("ERROR [%s: %s [%s]]", errLabel,
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
@@ -83,40 +91,27 @@ func (h *Handler) SignUp() http.Handler {
 			remoteAdrr = r.RemoteAddr
 		}
 
-		err = h.service.SignUp(props.Email, props.Language, props.InviteCode, remoteAdrr)
+		response.AccessToken, response.RefreshToken, err =
+			h.service.RequestAccessToken(props.Email, props.Password, props.ClientID, remoteAdrr, props.Device)
 		if err != nil {
 			domainErrorCode = strings.Split(err.Error(), ":")[0]
-			errorMessage = "failed to Sign Up"
+			errorMessage = "failed to request an access token"
 			switch domainErrorCode {
-			case "PROPS": // one or more of the input parameters are invalid
-				errLabel = "jInpoLV5"
+			case "PROPS": // One or more of the input parameters are invalid
+				errLabel = "e0c1Dbcq"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				http.Error(w, "400 Bad Request", http.StatusBadRequest)
 				return
-			case "USER_ALREADY_EXIST": // a user with the email you specified already exists
-				errLabel = "5Ig7X4Sv"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
-				w.Header().Add("domain-error-code", domainErrorCode)
-				http.Error(w, "409 Conflict", http.StatusConflict)
-				return
-			case "INVITE_NOT_EXIST_EXPIRED": // the invite code does not exist or is expired
-				errLabel = "61H2IR2f"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
-				w.Header().Add("domain-error-code", domainErrorCode)
-				http.Error(w, "409 Conflict", http.StatusConflict)
-				return
-			case "INVITE_LIMIT": // the limit for issuing this invite code has been exhausted
-				errLabel = "pZ4fgc9k"
+			case "USER_NOT_FOUND": // User is not found
+				errLabel = "tueOfg6R"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
 			default:
-				errLabel = "e3YlkJHc"
+				errLabel = "CnUTwP27"
 				log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
@@ -124,9 +119,17 @@ func (h *Handler) SignUp() http.Handler {
 			}
 		}
 
-		statusCode = http.StatusAccepted
-		responseBody = nil
-		contentType = ""
+		responseBody, err = json.Marshal(response)
+		if err != nil {
+			errLabel = "Wu8wbXvv"
+			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
+			w.Header().Add("error-label", errLabel)
+			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
+			return
+		}
+
+		statusCode = http.StatusOK
+		contentType = "application/json;charset=utf-8"
 
 		responder.Response(w, r, responseBody, statusCode, contentType)
 		return

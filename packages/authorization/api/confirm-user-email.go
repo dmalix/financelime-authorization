@@ -43,7 +43,7 @@ func (h *Handler) ConfirmUserEmail() http.Handler {
 			errorMessage = "failed to confirm user email"
 			switch domainErrorCode {
 			case "CONFIRMATION_KEY_NOT_VALID": // the confirmation key not valid
-				errLabel = "oLjInpV5"
+				errLabel = "C2V0NqJm"
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				http.Error(w, "404 Not Found", http.StatusNotFound)

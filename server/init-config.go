@@ -40,6 +40,14 @@ type cfg struct {
 	crypto struct {
 		salt string
 	}
+	jwt struct {
+		secretKey            string
+		signingAlgorithm     string
+		issuer               string
+		subject              string
+		accessTokenLifetime  int
+		refreshTokenLifetime int
+	}
 }
 
 type cfgDB struct {
@@ -170,10 +178,32 @@ func initConfig() (cfg, error) {
 	config.mailMessage.from.Name = os.Getenv("MAIL_MESSAGE_FROM_NAME")
 	config.mailMessage.from.Address = os.Getenv("MAIL_MESSAGE_FROM_ADDR")
 
-	// CRYPTO
+	//   CRYPTO
 	// ------------
 
 	config.crypto.salt = os.Getenv("CRYPTO_SALT")
+
+	//     JWT
+	// ------------
+
+	config.jwt.secretKey = os.Getenv("JWT_SECRET_KEY")
+	config.jwt.signingAlgorithm = os.Getenv("JWT_SIGNING_ALGORITHM")
+	config.jwt.issuer = os.Getenv("JWT_ISSUER")
+	config.jwt.subject = os.Getenv("JWT_SUBJECT")
+	config.jwt.accessTokenLifetime, err = strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_LIFETIME"))
+	if err != nil {
+		return config, errors.New(fmt.Sprintf("%s: %s [%s]",
+			"1oC8sdm0",
+			"The JWT_ACCESS_TOKEN_LIFETIME environment variable has no integer type",
+			err.Error()))
+	}
+	config.jwt.refreshTokenLifetime, err = strconv.Atoi(os.Getenv("JWT_REFRESH_TOKEN_LIFETIME"))
+	if err != nil {
+		return config, errors.New(fmt.Sprintf("%s: %s [%s]",
+			"s1oC8dm0",
+			"The JWT_REFRESH_TOKEN_LIFETIME environment variable has no integer type",
+			err.Error()))
+	}
 
 	return config, nil
 }

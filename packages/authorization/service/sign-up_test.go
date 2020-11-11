@@ -9,6 +9,7 @@ import (
 	"github.com/dmalix/financelime-rest-api/models"
 	"github.com/dmalix/financelime-rest-api/packages/authorization/repository"
 	"github.com/dmalix/financelime-rest-api/utils/email"
+	"github.com/dmalix/financelime-rest-api/utils/jwt"
 	"testing"
 )
 
@@ -40,14 +41,27 @@ func TestSignUp_Success(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Confirm.Subject = append(languageContent.Data.User.Signup.Email.Confirm.Subject, "")
 	languageContent.Data.User.Signup.Email.Confirm.Body = append(languageContent.Data.User.Signup.Email.Confirm.Body, "%s%s")
 
+	jwtManager := jwt.NewToken(
+		"",
+		"",
+		"",
+		"",
+		0,
+		0)
+
+	serviceConfig := Config{
+		DomainAPI:              configDomainAPI,
+		AuthInviteCodeRequired: configAuthInviteCodeRequired,
+	}
+
 	//noinspection GoBoolExpressions
 	var newService = NewService(
-		configDomainAPI,
-		configAuthInviteCodeRequired,
+		serviceConfig,
 		languageContent,
 		emailMessageQueue,
 		userMessage,
-		userRepo)
+		userRepo,
+		jwtManager)
 
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 
@@ -79,14 +93,27 @@ func TestSignUp_RepoError(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Confirm.Subject = append(languageContent.Data.User.Signup.Email.Confirm.Subject, "")
 	languageContent.Data.User.Signup.Email.Confirm.Body = append(languageContent.Data.User.Signup.Email.Confirm.Body, "%s%s")
 
+	jwtManager := jwt.NewToken(
+		"",
+		"",
+		"",
+		"",
+		0,
+		0)
+
+	serviceConfig := Config{
+		DomainAPI:              configDomainAPI,
+		AuthInviteCodeRequired: configAuthInviteCodeRequired,
+	}
+
 	//noinspection GoBoolExpressions
 	var newService = NewService(
-		configDomainAPI,
-		configAuthInviteCodeRequired,
+		serviceConfig,
 		languageContent,
 		emailMessageQueue,
 		userMessage,
-		userRepo)
+		userRepo,
+		jwtManager)
 
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 
@@ -128,14 +155,27 @@ func TestSignUp_EmailError(t *testing.T) {
 		append(languageContent.Data.User.Signup.Email.Confirm.Body,
 			"%s%s")
 
+	jwtManager := jwt.NewToken(
+		"",
+		"",
+		"",
+		"",
+		0,
+		0)
+
+	serviceConfig := Config{
+		DomainAPI:              configDomainAPI,
+		AuthInviteCodeRequired: configAuthInviteCodeRequired,
+	}
+
 	//noinspection GoBoolExpressions
 	var newService = NewService(
-		configDomainAPI,
-		configAuthInviteCodeRequired,
+		serviceConfig,
 		languageContent,
 		emailMessageQueue,
 		userMessage,
-		userRepo)
+		userRepo,
+		jwtManager)
 
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
 

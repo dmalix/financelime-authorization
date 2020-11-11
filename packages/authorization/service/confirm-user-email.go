@@ -22,7 +22,7 @@ import (
 */
 // Related interfaces:
 //	packages/authorization/domain.go
-func (s *Service) ConfirmUserEmail(propsConfirmationKey string) (string, error) {
+func (s *Service) ConfirmUserEmail(confirmationKey string) (string, error) {
 
 	var (
 		user     models.User
@@ -31,7 +31,7 @@ func (s *Service) ConfirmUserEmail(propsConfirmationKey string) (string, error) 
 		message  string
 	)
 
-	user, err = s.repository.ConfirmUserEmail(propsConfirmationKey)
+	user, err = s.repository.ConfirmUserEmail(confirmationKey)
 
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
@@ -63,7 +63,7 @@ func (s *Service) ConfirmUserEmail(propsConfirmationKey string) (string, error) 
 		fmt.Sprintf(
 			"<%s@%s>",
 			user.Password,
-			fmt.Sprintf("%s.%s", "confirm-user-email", s.domainAPI)))
+			fmt.Sprintf("%s.%s", "confirm-user-email", s.config.DomainAPI)))
 
 	if err != nil {
 		errLabel = "XfCCWkb2"

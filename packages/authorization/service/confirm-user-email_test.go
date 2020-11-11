@@ -9,6 +9,7 @@ import (
 	"github.com/dmalix/financelime-rest-api/models"
 	"github.com/dmalix/financelime-rest-api/packages/authorization/repository"
 	"github.com/dmalix/financelime-rest-api/utils/email"
+	"github.com/dmalix/financelime-rest-api/utils/jwt"
 	"testing"
 )
 
@@ -34,14 +35,27 @@ func TestConfirmUserEmail_Success(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Password.Body = append(languageContent.Data.User.Signup.Email.Password.Body, "%s%s")
 	languageContent.Data.User.Signup.Page.Text = append(languageContent.Data.User.Signup.Page.Text, "text")
 
+	jwtManager := jwt.NewToken(
+		"",
+		"",
+		"",
+		"",
+		0,
+		0)
+
+	serviceConfig := Config{
+		DomainAPI:              configDomainAPI,
+		AuthInviteCodeRequired: configAuthInviteCodeRequired,
+	}
+
 	//noinspection GoBoolExpressions
 	var newService = NewService(
-		configDomainAPI,
-		configAuthInviteCodeRequired,
+		serviceConfig,
 		languageContent,
 		emailMessageQueue,
 		userMessage,
-		userRepo)
+		userRepo,
+		jwtManager)
 
 	message, err = newService.ConfirmUserEmail("12345")
 
@@ -77,14 +91,27 @@ func TestConfirmUserEmail_Error(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Password.Body = append(languageContent.Data.User.Signup.Email.Password.Body, "%s%s")
 	languageContent.Data.User.Signup.Page.Text = append(languageContent.Data.User.Signup.Page.Text, "text")
 
+	jwtManager := jwt.NewToken(
+		"",
+		"",
+		"",
+		"",
+		0,
+		0)
+
+	serviceConfig := Config{
+		DomainAPI:              configDomainAPI,
+		AuthInviteCodeRequired: configAuthInviteCodeRequired,
+	}
+
 	//noinspection GoBoolExpressions
 	var newService = NewService(
-		configDomainAPI,
-		configAuthInviteCodeRequired,
+		serviceConfig,
 		languageContent,
 		emailMessageQueue,
 		userMessage,
-		userRepo)
+		userRepo,
+		jwtManager)
 
 	_, err = newService.ConfirmUserEmail("12345")
 
