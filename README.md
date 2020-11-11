@@ -7,7 +7,7 @@
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
     - [4.2. Confirm user email](#4-2)
-    - [4.5. Request Access Token (Login)](#4-5)
+    - [4.5. Request Access token](#4-5)
     
 ---
 <a name="1-0"></a>
@@ -190,7 +190,7 @@ STATUS_CODE        | Description
 404 Not Found      | Link not found
 
 <a name="4-5"></a>
-### 4.5. Request Access Token 
+### 4.5. Request Access token 
 
 - Method: `POST` 
 - Endpoint:  `/authorization/oauth/token/request`
