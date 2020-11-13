@@ -5,14 +5,15 @@
 package main
 
 import (
-	"github.com/dmalix/financelime-rest-api/server"
+	"github.com/dmalix/financelime-authorization/server"
 	"log"
 	"math/rand"
 	"time"
 )
 
 func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	//log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.Llongfile)
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 

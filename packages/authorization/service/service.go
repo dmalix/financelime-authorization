@@ -5,8 +5,8 @@
 package service
 
 import (
-	"github.com/dmalix/financelime-rest-api/models"
-	"github.com/dmalix/financelime-rest-api/packages/authorization"
+	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/packages/authorization"
 )
 
 type Config struct {

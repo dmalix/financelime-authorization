@@ -1,9 +1,9 @@
-## Financelime REST API service   
+## Financelime Authorization service   
 
 - [1. Environment variables](#1-0)
 - [2. Identification at the device and request level](#2-0) 
 - [3. Service version](#3-0)
-    - [3.1. Get the current version of the REST API service](#3-1) 
+    - [3.1. Get the current version of the service](#3-1) 
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
     - [4.2. Confirm user email](#4-2)
@@ -74,9 +74,9 @@ LXXXX | L - The letter that is always equal to a letter from set 4
 <a name="3-0"></a>
 ## 3. System commands 
 <a name="3-1"></a>
-### 3.1. Get the current version of the REST API service. 
+### 3.1. Get the current version of the service. 
 - Method: `GET` 
-- Endpoint:  `/dist`
+- Endpoint:  `/v1/dist`
 
 The request will return a JSON object containing the following attributes:
 
@@ -89,7 +89,7 @@ build       | string | Service Build
 ```
 curl -i -X GET \
 -H "request-id: K7800-H7625-Z5852-N1693-K1972" \
-"https://api.dev.financelime.com/system/dist"
+"https://api.auth.financelime.com/v1/dist"
 ```
 #### Request Headers
 ```
@@ -113,7 +113,7 @@ content-type:application/json;charset=utf-8
 ### 4.1. Sign up
 
 - Method: `POST` 
-- Endpoint:  `/authorization/signup`
+- Endpoint:  `/v1/signup`
 
 #### Parameters:
 Name        | Type   | Description
@@ -132,7 +132,7 @@ curl -i -X POST \
 -H "content-type:application/json;charset=utf-8" \
 -H "request-id:K7800-H7625-Z5852-N1693-K1972" \
 -d '{"email":"testuser@financelime.com", "inviteCode":"testInviteCode", "language":"en"}' \
-"https://api.dev.financelime.com/authorization/signup"
+"https://api.auth.financelime.com/v1/signup"
 ```
 #### Request Headers
 ```
@@ -162,7 +162,7 @@ DOMAIN_ERROR_CODE | Description
 ### 4.2. Confirm user email 
 
 - Method: `GET` 
-- Endpoint:  `/acue/LINK_KEY`
+- Endpoint:  `/u/LINK_KEY`
 
 #### Параметры:
 Name        | Type       | Description
@@ -175,7 +175,7 @@ API returns HTML-page with a message (success or error).
 #### cURL Example
 ```
 curl -X GET \
-"https://c/LINK_KEY"
+"https://u/LINK_KEY"
 ```
 #### Response Headers
 ```
@@ -193,7 +193,7 @@ STATUS_CODE        | Description
 ### 4.5. Request Access token 
 
 - Method: `POST` 
-- Endpoint:  `/authorization/oauth/token/request`
+- Endpoint:  `/v1/oauth/token/request`
 
 #### Параметры:
 
@@ -230,7 +230,7 @@ curl -i -X POST \
 -H "request-id:K7800-H7625-Z5852-N1693-K1972" \
 -d '{"email":"max@apivox.com","password":"12345", client_id: "PWA_v0.0.1", \
 device":{"platform":"Linux x86_64", "height":1920, "width":1060, "language":"en-US", "timezone":"2"}}' \
-"https://api.financelime.com/authorization/oauth/token/request"
+"https://api.auth.financelime.com/v1/oauth/token/request"
 ```
 #### Request Headers
 ```

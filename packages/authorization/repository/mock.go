@@ -5,7 +5,7 @@
 package repository
 
 import (
-	"github.com/dmalix/financelime-rest-api/models"
+	"github.com/dmalix/financelime-authorization/models"
 )
 
 //noinspection GoSnakeCaseUsage

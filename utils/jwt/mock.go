@@ -1,6 +1,6 @@
 package jwt
 
-import "github.com/dmalix/financelime-rest-api/models"
+import "github.com/dmalix/financelime-authorization/models"
 
 type MockDescription struct {
 	Props struct {

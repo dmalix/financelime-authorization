@@ -6,8 +6,8 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/dmalix/financelime-rest-api/models"
-	"github.com/dmalix/financelime-rest-api/utils/responder"
+	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/responder"
 	"log"
 	"net/http"
 )

@@ -7,7 +7,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/dmalix/financelime-rest-api/packages/authorization/service"
+	"github.com/dmalix/financelime-authorization/packages/authorization/service"
 	"log"
 	"net/http"
 	"net/http/httptest"

@@ -5,10 +5,10 @@
 package service
 
 import (
-	"github.com/dmalix/financelime-rest-api/models"
-	"github.com/dmalix/financelime-rest-api/packages/authorization/repository"
-	"github.com/dmalix/financelime-rest-api/utils/email"
-	"github.com/dmalix/financelime-rest-api/utils/jwt"
+	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/packages/authorization/repository"
+	"github.com/dmalix/financelime-authorization/utils/email"
+	"github.com/dmalix/financelime-authorization/utils/jwt"
 	"testing"
 )
 
@@ -50,7 +50,7 @@ func TestRequestAccessToken(t *testing.T) {
 		jwtManager)
 
 	_, _, err =
-		newService.RequestAccessToken("email","password", "PWA", "127.0.0.1", device)
+		newService.RequestAccessToken("email", "password", "PWA", "127.0.0.1", device)
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",

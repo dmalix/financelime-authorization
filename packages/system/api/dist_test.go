@@ -5,7 +5,7 @@
 package api
 
 import (
-	"github.com/dmalix/financelime-rest-api/packages/system/service"
+	"github.com/dmalix/financelime-authorization/packages/system/service"
 	"net/http"
 	"net/http/httptest"
 	"testing"

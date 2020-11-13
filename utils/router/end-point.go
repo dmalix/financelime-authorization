@@ -6,7 +6,7 @@ package router
 
 import (
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/responder"
 	"log"
 	"net/http"
 )

@@ -7,8 +7,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/models"
-	"github.com/dmalix/financelime-rest-api/utils/responder"
+	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/responder"
 	"io/ioutil"
 	"log"
 	"net/http"

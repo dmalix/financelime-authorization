@@ -5,7 +5,7 @@
 package api
 
 import (
-	"github.com/dmalix/financelime-rest-api/packages/system"
+	"github.com/dmalix/financelime-authorization/packages/system"
 )
 
 type Handler struct {

@@ -1,4 +1,4 @@
-module github.com/dmalix/financelime-rest-api
+module github.com/dmalix/financelime-authorization
 
 go 1.15
 

@@ -5,8 +5,8 @@
 package api
 
 import (
-	"github.com/dmalix/financelime-rest-api/utils/responder"
-	"github.com/dmalix/financelime-rest-api/utils/url"
+	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/url"
 	"log"
 	"net/http"
 	"strings"

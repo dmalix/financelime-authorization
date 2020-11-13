@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/utils/random"
+	"github.com/dmalix/financelime-authorization/utils/random"
 	"hash"
 	"strconv"
 	"time"

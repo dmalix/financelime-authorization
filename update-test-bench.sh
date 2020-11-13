@@ -9,7 +9,7 @@ readonly host=${TEST_BENCH_UPDATE_HOST}
 readonly port=${TEST_BENCH_UPDATE_PORT}
 readonly user=${TEST_BENCH_UPDATE_USER}
 readonly unit=${TEST_BENCH_UPDATE_UNIT}
-readonly binName=financelime-rest-api
+readonly binName=financelime-auth
 readonly remoteServiceHomePath=${TEST_BENCH_UPDATE_REMOTE_SERVICE_HOME_PATH}
 
 readonly localSystemdHomePath=${TEST_BENCH_UPDATE_LOCAL_SYSTEMD_HOME_PATH}

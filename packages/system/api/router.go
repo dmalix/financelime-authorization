@@ -5,8 +5,8 @@
 package api
 
 import (
-	"github.com/dmalix/financelime-rest-api/packages/system"
-	"github.com/dmalix/financelime-rest-api/utils/router"
+	"github.com/dmalix/financelime-authorization/packages/system"
+	"github.com/dmalix/financelime-authorization/utils/router"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ func Router(mux *http.ServeMux, service system.Service, middleware ...func(http.
 
 	handler := NewHandler(service)
 
-	mux.Handle("/system/dist",
+	mux.Handle("/v1/dist",
 		router.Group(
 			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.Dist()}),
 			middleware,

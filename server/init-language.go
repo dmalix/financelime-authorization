@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/models"
+	"github.com/dmalix/financelime-authorization/models"
 	"io/ioutil"
 	"os"
 )

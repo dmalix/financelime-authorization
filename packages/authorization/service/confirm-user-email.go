@@ -7,7 +7,7 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-rest-api/models"
+	"github.com/dmalix/financelime-authorization/models"
 	"net/mail"
 	"strings"
 )
