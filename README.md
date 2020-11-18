@@ -15,31 +15,47 @@
 
 Name | Description
 ---|---
-HTTP_SERVER_PORT |
-AUTH_INVITE_CODE_REQUIRED |
-DB_AUTH_MAIN_CONNECT_HOST |
-DB_AUTH_MAIN_CONNECT_PORT |
-DB_AUTH_MAIN_CONNECT_SSLMODE |
-DB_AUTH_MAIN_CONNECT_DBNAME |
-DB_AUTH_MAIN_CONNECT_USER |
-DB_AUTH_MAIN_CONNECT_PASSWORD |
-DB_AUTH_MAIN_MIGRATE_DROPFILE |
-DB_AUTH_MAIN_MIGRATE_CREATEFILE |
-DB_AUTH_MAIN_MIGRATE_INSERTFILE |
-DB_AUTH_READ_CONNECT_HOST |
-DB_AUTH_READ_CONNECT_PORT |
-DB_AUTH_READ_CONNECT_SSLMODE |
-DB_AUTH_READ_CONNECT_DBNAME |
-DB_AUTH_READ_CONNECT_USER |
-DB_AUTH_READ_CONNECT_PASSWORD |
-DB_BLADE_CONNECT_HOST |
-DB_BLADE_CONNECT_PORT |
-DB_BLADE_CONNECT_SSLMODE |
-DB_BLADE_CONNECT_DBNAME |
-DB_BLADE_CONNECT_USER |
-DB_BLADE_CONNECT_PASSWORD |
-DB_BLADE_MIGRATE_DROPFILE |
-DB_BLADE_MIGRATE_CREATEFILE |
+`DOMAIN_APP` |
+`DOMAIN_API` |
+`HTTP_SERVER_PORT` |
+`AUTH_INVITE_CODE_REQUIRED` |
+`DB_AUTH_MAIN_CONNECT_HOST` |
+`DB_AUTH_MAIN_CONNECT_PORT` |
+`DB_AUTH_MAIN_CONNECT_SSLMODE` |
+`DB_AUTH_MAIN_CONNECT_DBNAME` |
+`DB_AUTH_MAIN_CONNECT_USER` |
+`DB_AUTH_MAIN_CONNECT_PASSWORD` |
+`DB_AUTH_MAIN_MIGRATE_DROPFILE` |
+`DB_AUTH_MAIN_MIGRATE_CREATEFILE` |
+`DB_AUTH_MAIN_MIGRATE_INSERTFILE` |
+`DB_AUTH_READ_CONNECT_HOST` |
+`DB_AUTH_READ_CONNECT_PORT` |
+`DB_AUTH_READ_CONNECT_SSLMODE` |
+`DB_AUTH_READ_CONNECT_DBNAME` |
+`DB_AUTH_READ_CONNECT_USER` |
+`DB_AUTH_READ_CONNECT_PASSWORD` |
+`DB_BLADE_CONNECT_HOST` |
+`DB_BLADE_CONNECT_PORT` |
+`DB_BLADE_CONNECT_SSLMODE` |
+`DB_BLADE_CONNECT_DBNAME` |
+`DB_BLADE_CONNECT_USER` |
+`DB_BLADE_CONNECT_PASSWORD` |
+`DB_BLADE_MIGRATE_DROPFILE` |
+`DB_BLADE_MIGRATE_CREATEFILE` |
+`SMTP_USER` |
+`SMTP_PASSWORD` |
+`SMTP_HOST` |
+`SMTP_PORT` |
+`MAIL_MESSAGE_FROM_NAME` |
+`MAIL_MESSAGE_FROM_ADDR` |
+`LANGUAGE_CONTENT_FILE` |
+`CRYPTO_SALT` |
+`JWT_SECRET_KEY` |
+`JWT_SIGNING_ALGORITHM` |
+`JWT_ISSUER` |
+`JWT_SUBJECT` |
+`JWT_ACCESS_TOKEN_LIFETIME` |
+`JWT_REFRESH_TOKEN_LIFETIME` |
 
 <a name="2-0"></a>
 ## 2. Identification at the device and request level.
@@ -82,8 +98,8 @@ The request will return a JSON object containing the following attributes:
 
 Name        | Type   | Description
 ------------|--------|------------
-version     | string | Service Version
-build       | string | Service Build
+`version`   | string | Service Version
+`build`     | string | Service Build
 
 #### cURL Example
 ```
@@ -144,7 +160,7 @@ request-id: REQUEST_ID
 
 STATUS_CODE        | Description
 -------------------|----------------
-`202 Accepted`    | The API has successfully processed the request and the service sends a confirmation link to the specified email
+`204 Not Content`  | The API has successfully processed the request and the service sends a confirmation link to the specified email
 `400 Bad Request` | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
 `409 Conflict`    | An error occurred while processing the request (details in the section `Domain Error Code`, in the next paragraph)
 
@@ -167,7 +183,7 @@ DOMAIN_ERROR_CODE | Description
 #### Параметры:
 Name        | Type       | Description
 ------------|------------|------------
-LINK_KEY    | string     | confirmation key
+`LINK_KEY`    | string     | confirmation key
 
 #### Ответ:
 API returns HTML-page with a message (success or error).
@@ -186,8 +202,8 @@ content-type: text/plain; charset=utf-8
 
 STATUS_CODE        | Description
 -------------------|----------------
-200 Ok             | API returns HTML-page with a message
-404 Not Found      | Link not found
+`200 Ok`           | API returns HTML-page with a message
+`404 Not Found`    | Link not found
 
 <a name="4-5"></a>
 ### 4.5. Request Access token 
@@ -199,20 +215,20 @@ STATUS_CODE        | Description
 
 Name        | Type   | Description
 ------------|--------|------------
-email       | string | User Email
-password    | string | User Password
-client_id   | string | User Client ID
-device      | object | User Device Specification
+`email`     | string | User Email
+`password`  | string | User Password
+`client_id` | string | User Client ID
+`device`    | object | User Device Specification
 
 ** device object **
 
 Name        | Type   
 ------------|--------
-platform    | string 
-height      | int     
-width       | int    
-language    | string 
-timezone    | string 
+`platform`    | string 
+`height`      | int     
+`width`       | int    
+`language`    | string 
+`timezone`    | string 
 
 
 #### Ответ
@@ -220,8 +236,8 @@ The request will return an object with three attributes:
 
 Name            | Type     | Description
 ----------------|----------|------------
-accessToken     | string   | Access Jwt-Token 
-refreshToken    | string   | Refresh Jwt-Token 
+`accessToken`   | string   | Access Jwt-Token 
+`refreshToken`  | string   | Refresh Jwt-Token 
 
 #### cURL Example
 ```
@@ -247,9 +263,9 @@ content-type: text/plain; charset=utf-8 (в случае ошибки)
 
 Status Code        | Description
 -------------------|----------------
-200 OK             | API successfully processed the request, returned JWT tokens and sent a notification to the email account
-401 Bad Request    | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
-404 Not Found      | Account not found
+`200 OK`           | API successfully processed the request, returned JWT tokens and sent a notification to the email account
+`401 Bad Request`  | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
+`404 Not Found`    | Account not found
 
 #### Response Body
 ```

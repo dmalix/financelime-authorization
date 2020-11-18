@@ -2,7 +2,7 @@
 
 **New Features:**
 - Get the current version of the REST API service.
-- Confirm user email. 
+- Sign Up. 
 - Confirm user email.
 - Request Access token.
 

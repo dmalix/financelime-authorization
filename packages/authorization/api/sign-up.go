@@ -124,7 +124,7 @@ func (h *Handler) SignUp() http.Handler {
 			}
 		}
 
-		statusCode = http.StatusAccepted
+		statusCode = http.StatusNoContent
 		responseBody = nil
 		contentType = ""
 
