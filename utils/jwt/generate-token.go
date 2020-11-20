@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-func (token *Token) GenerateToken(publicSessionID, tokenPurpose string, issuedAt ...int64) (string, error) {
+func (token *Token) GenerateToken(publicSessionID string, userData []byte, tokenPurpose string, issuedAt ...int64) (string, error) {
 
 	var (
 		headersBase64 string
@@ -35,7 +35,9 @@ func (token *Token) GenerateToken(publicSessionID, tokenPurpose string, issuedAt
 	)
 	const NoPadding rune = -1
 
-	// Headers
+	//    Headers
+	// ------------
+
 	jwtData.Headers.Type = PropsTypeJWT
 	jwtData.Headers.SigningAlgorithm = token.SigningAlgorithm
 	valueByte, err = json.Marshal(jwtData.Headers)
@@ -49,7 +51,9 @@ func (token *Token) GenerateToken(publicSessionID, tokenPurpose string, issuedAt
 	}
 	headersBase64 = base64.URLEncoding.WithPadding(NoPadding).EncodeToString(valueByte)
 
-	// Payload
+	//   Payload
+	// ------------
+
 	jwtData.Payload.Issuer = token.Issuer
 	jwtData.Payload.Subject = token.Subject
 
@@ -64,6 +68,8 @@ func (token *Token) GenerateToken(publicSessionID, tokenPurpose string, issuedAt
 	jwtData.Payload.Purpose = tokenPurpose
 
 	jwtData.Payload.PublicSessionID = publicSessionID
+
+	jwtData.Payload.UserData = string(userData)
 	if len(issuedAt) == 0 {
 		jwtData.Payload.IssuedAt = time.Now().UTC().Unix()
 	} else {
@@ -81,7 +87,9 @@ func (token *Token) GenerateToken(publicSessionID, tokenPurpose string, issuedAt
 	}
 	payloadBase64 = base64.URLEncoding.WithPadding(NoPadding).EncodeToString(valueByte)
 
-	// Sign
+	//    Sign
+	// -----------
+
 	unsignedToken = headersBase64 + "." + payloadBase64
 	switch jwtData.Headers.SigningAlgorithm {
 	case PropsSigningAlgorithmHS256:
@@ -89,13 +97,19 @@ func (token *Token) GenerateToken(publicSessionID, tokenPurpose string, issuedAt
 	case PropsSigningAlgorithmHS512:
 		mac = hmac.New(sha512.New, []byte(token.SecretKey))
 	default:
-		return jwt, errors.New("invalid algorithm")
+		errLabel = "sM4kzS1Z"
+		return jwt,
+			errors.New(fmt.Sprintf("%s:%s",
+				errLabel,
+				"invalid algorithm"))
 	}
 
 	mac.Write([]byte(unsignedToken))
 	signature = hex.EncodeToString(mac.Sum(nil))
 
-	// Make JWT
+	//   Make JWT
+	// ------------
+
 	jwt =
 		html.UnescapeString(headersBase64) +
 			"." + html.UnescapeString(payloadBase64) +

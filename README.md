@@ -1,13 +1,17 @@
-## Financelime Authorization service   
+# Financelime Authorization service
+## RESTfull API Version 1  
 
 - [1. Environment variables](#1-0)
 - [2. Identification at the device and request level](#2-0) 
-- [3. Service version](#3-0)
+- [3. System commands](#3-0)
     - [3.1. Get the current version of the service](#3-1) 
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
     - [4.2. Confirm user email](#4-2)
+    - ...
     - [4.5. Request Access token](#4-5)
+    - ...
+    - [4.8. Get a list of active sessions](#4-8)
     
 ---
 <a name="1-0"></a>
@@ -58,9 +62,9 @@ Name | Description
 `JWT_REFRESH_TOKEN_LIFETIME` |
 
 <a name="2-0"></a>
-## 2. Identification at the device and request level.
+## 2. Identification at the device and request level
 <a name="2-1"></a> 
-### 2.1. Header 'request-id'.
+### 2.1. Header 'request-id'
 API requests must contain a `request-id` header. Its content must be generated immediately before the request, according to a certain algorithm. API service validates the header before processing some requests. The `request-id` header allows you to identify the request and, together with the` Authorization` header, quickly track the chain of events, for example, filter events in the logs by device and request.  
 If a request requires a `request-id` header but is missing or failed validation, the request is rejected and a `400 Bad Request` response is returned. Since the algorithm changes slightly with each version, the `request-id` header effectively filters out inappropriate requests from bots, being a CAPTCHA for them.
  
@@ -90,7 +94,7 @@ LXXXX | L - The letter that is always equal to a letter from set 4
 <a name="3-0"></a>
 ## 3. System commands 
 <a name="3-1"></a>
-### 3.1. Get the current version of the service. 
+### 3.1. Get the current version of the service 
 - Method: `GET` 
 - Endpoint:  `/v1/dist`
 
@@ -275,3 +279,55 @@ Status Code        | Description
 }
 ```
 
+<a name="4-8"></a>
+### 4.8. Get a list of active sessions.
+
+- Method: `GET` 
+- Endpoint:  /v1/oauth/sessions
+
+#### cURL Example
+```
+curl -i -X GET \
+-H "request-id:K7800-H7625-Z5852-N1693-K1972" \
+-H "authorization:bearer ACCESS_TOKEN" \
+"https://api.financelime.com/account/oauth/sessions"
+```
+#### Request Headers
+```
+request-id: REQUEST_ID
+authorization: ACCESS_TOKEN
+```
+#### Response Headers
+```
+status: 200
+content-type: application/json;charset=utf-8
+```
+##### Status Code
+
+Status Code        | Description
+-------------------|----------------
+200 OK             | API successfully processed the request
+400 Bad Request    | The API did not accept the request because headers did not pass validation (detail in API logs)
+403 Forbidden      | API did not accept request because authorization is required
+
+#### Response Body
+
+```json
+[
+  {
+    "id":"8d8e1a32b7c349ee306eb3ec2b82e1fd37a97eba0903c66f061e5fdc774067f0",
+    "updatedAt":"2020-08-23T17:59:46.558594Z",
+    "platform":"Linux x86_64"
+  },
+  { 
+    "id":"828d96230888e9aad01f874212a5a8abf3a74ec6bbd44272bb112d0727418c38",
+    "updatedAt":"2020-08-23T18:01:16.2457Z",
+    "platform":"iPhone"
+  },
+  {
+    "id":"904eebcbcb7a9911b934d5ba0ac248247d66e6e7fb96dbaeff1ebf09073b7c4c",
+    "updatedAt":"2020-08-23T18:01:32.233222Z",
+    "platform":"Android"
+  }
+]
+```

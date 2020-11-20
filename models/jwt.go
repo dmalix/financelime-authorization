@@ -9,7 +9,8 @@ type JwtData struct {
 		Issuer          string `json:"iss"`
 		Subject         string `json:"sub"`
 		Purpose         string `json:"purpose"`
-		PublicSessionID string `json:"id"`
+		PublicSessionID string `json:"publicSessionID"`
+		UserData        string `json:"userData"`
 		IssuedAt        int64  `json:"iat"`
 	}
 }

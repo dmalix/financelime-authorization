@@ -5,6 +5,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
@@ -29,12 +30,16 @@ func (s *Service) RequestAccessToken(email, password,
 	clientID, remoteAddr string, device models.Device) (string, string, error) {
 
 	var (
-		user            models.User
-		err             error
-		errLabel        string
-		publicSessionID string
-		accessToken     string
-		refreshToken    string
+		err      error
+		errLabel string
+
+		user              models.User
+		publicSessionID   string
+		sourceUserData    []byte
+		encryptedUserData []byte
+
+		accessToken  string
+		refreshToken string
 	)
 
 	user, err = s.repository.GetUserByAuth(email, password)
@@ -73,7 +78,25 @@ func (s *Service) RequestAccessToken(email, password,
 				err))
 	}
 
-	accessToken, err = s.jwt.GenerateToken(publicSessionID, jwt.PropsPurposeAccess)
+	sourceUserData, err = json.Marshal(user)
+	if err != nil {
+		return accessToken, refreshToken,
+			errors.New(fmt.Sprintf("%s:%s[%s]",
+				errLabel,
+				"Failed to marshal the user struct",
+				err))
+	}
+
+	encryptedUserData, err = s.cryptographer.Encrypt(sourceUserData)
+	if err != nil {
+		return accessToken, refreshToken,
+			errors.New(fmt.Sprintf("%s:%s[%s]",
+				errLabel,
+				"Failed to marshal the user struct",
+				err))
+	}
+
+	accessToken, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeAccess)
 	if err != nil {
 		errLabel = "Ro53EujS"
 		return accessToken, refreshToken,
@@ -83,7 +106,7 @@ func (s *Service) RequestAccessToken(email, password,
 				err))
 	}
 
-	refreshToken, err = s.jwt.GenerateToken(publicSessionID, jwt.PropsPurposeRefresh)
+	refreshToken, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeRefresh)
 	if err != nil {
 		errLabel = "D8JVbpWO"
 		return accessToken, refreshToken,

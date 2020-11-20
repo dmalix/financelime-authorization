@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/packages/authorization/repository"
+	"github.com/dmalix/financelime-authorization/utils/cryptographer"
 	"github.com/dmalix/financelime-authorization/utils/email"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
 	"testing"
@@ -35,6 +36,9 @@ func TestConfirmUserEmail_Success(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Password.Body = append(languageContent.Data.User.Signup.Email.Password.Body, "%s%s")
 	languageContent.Data.User.Signup.Page.Text = append(languageContent.Data.User.Signup.Page.Text, "text")
 
+	cryptographerManager := cryptographer.NewCryptographer(
+		"")
+
 	jwtManager := jwt.NewToken(
 		"",
 		"",
@@ -55,6 +59,7 @@ func TestConfirmUserEmail_Success(t *testing.T) {
 		emailMessageQueue,
 		userMessage,
 		userRepo,
+		cryptographerManager,
 		jwtManager)
 
 	message, err = newService.ConfirmUserEmail("12345")
@@ -91,6 +96,9 @@ func TestConfirmUserEmail_Error(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Password.Body = append(languageContent.Data.User.Signup.Email.Password.Body, "%s%s")
 	languageContent.Data.User.Signup.Page.Text = append(languageContent.Data.User.Signup.Page.Text, "text")
 
+	cryptographerManager := cryptographer.NewCryptographer(
+		"")
+
 	jwtManager := jwt.NewToken(
 		"",
 		"",
@@ -111,6 +119,7 @@ func TestConfirmUserEmail_Error(t *testing.T) {
 		emailMessageQueue,
 		userMessage,
 		userRepo,
+		cryptographerManager,
 		jwtManager)
 
 	_, err = newService.ConfirmUserEmail("12345")

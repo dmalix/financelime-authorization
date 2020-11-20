@@ -289,8 +289,8 @@ func TestSignUp_202(t *testing.T) {
 
 	handler.ServeHTTP(responseRecorder, request)
 
-	if status := responseRecorder.Code; status != http.StatusAccepted {
+	if status := responseRecorder.Code; status != http.StatusNoContent {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusAccepted)
+			status, http.StatusNoContent)
 	}
 }

@@ -13,6 +13,7 @@ type Config struct {
 	DomainAPP              string
 	DomainAPI              string
 	AuthInviteCodeRequired bool
+	SecretKey              string
 	CryptoSalt             string
 }
 
@@ -22,6 +23,7 @@ type Service struct {
 	messageQueue    chan models.EmailMessage
 	message         authorization.Message
 	repository      authorization.Repository
+	cryptographer   authorization.Cryptographer
 	jwt             authorization.Jwt
 }
 
@@ -31,6 +33,7 @@ func NewService(
 	messageQueue chan models.EmailMessage,
 	message authorization.Message,
 	repository authorization.Repository,
+	cryptographer authorization.Cryptographer,
 	jwt authorization.Jwt) *Service {
 	return &Service{
 		config:          config,
@@ -38,6 +41,7 @@ func NewService(
 		messageQueue:    messageQueue,
 		message:         message,
 		repository:      repository,
+		cryptographer:   cryptographer,
 		jwt:             jwt,
 	}
 }

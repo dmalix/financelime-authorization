@@ -18,6 +18,7 @@ import (
 	packageSystem "github.com/dmalix/financelime-authorization/packages/system"
 	packageSystemAPI "github.com/dmalix/financelime-authorization/packages/system/api"
 	packageSystemService "github.com/dmalix/financelime-authorization/packages/system/service"
+	"github.com/dmalix/financelime-authorization/utils/cryptographer"
 	"github.com/dmalix/financelime-authorization/utils/email"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
 	"log"
@@ -156,6 +157,11 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
+	//    Cryptographer
+	// --------------------
+
+	cryptoManager := cryptographer.NewCryptographer(config.jwt.secretKey)
+
 	//    JWT
 	// -----------
 
@@ -202,6 +208,7 @@ func NewApp() (*App, error) {
 		emailMessageQueue,
 		emailMessageManager,
 		authorizationRepo,
+		cryptoManager,
 		jwtManager)
 
 	// System

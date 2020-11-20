@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/packages/authorization/repository"
+	"github.com/dmalix/financelime-authorization/utils/cryptographer"
 	"github.com/dmalix/financelime-authorization/utils/email"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
 	"testing"
@@ -41,6 +42,8 @@ func TestSignUp_Success(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Confirm.Subject = append(languageContent.Data.User.Signup.Email.Confirm.Subject, "")
 	languageContent.Data.User.Signup.Email.Confirm.Body = append(languageContent.Data.User.Signup.Email.Confirm.Body, "%s%s")
 
+	cryptographerManager := cryptographer.NewCryptographer("6368616e676520746869732070617373")
+
 	jwtManager := jwt.NewToken(
 		"",
 		"",
@@ -61,6 +64,7 @@ func TestSignUp_Success(t *testing.T) {
 		emailMessageQueue,
 		userMessage,
 		userRepo,
+		cryptographerManager,
 		jwtManager)
 
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
@@ -93,6 +97,8 @@ func TestSignUp_RepoError(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Confirm.Subject = append(languageContent.Data.User.Signup.Email.Confirm.Subject, "")
 	languageContent.Data.User.Signup.Email.Confirm.Body = append(languageContent.Data.User.Signup.Email.Confirm.Body, "%s%s")
 
+	cryptographerManager := cryptographer.NewCryptographer("6368616e676520746869732070617373")
+
 	jwtManager := jwt.NewToken(
 		"",
 		"",
@@ -113,6 +119,7 @@ func TestSignUp_RepoError(t *testing.T) {
 		emailMessageQueue,
 		userMessage,
 		userRepo,
+		cryptographerManager,
 		jwtManager)
 
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)
@@ -155,6 +162,8 @@ func TestSignUp_EmailError(t *testing.T) {
 		append(languageContent.Data.User.Signup.Email.Confirm.Body,
 			"%s%s")
 
+	cryptographerManager := cryptographer.NewCryptographer("6368616e676520746869732070617373")
+
 	jwtManager := jwt.NewToken(
 		"",
 		"",
@@ -175,6 +184,7 @@ func TestSignUp_EmailError(t *testing.T) {
 		emailMessageQueue,
 		userMessage,
 		userRepo,
+		cryptographerManager,
 		jwtManager)
 
 	err = newService.SignUp(props.Email, props.InviteCode, props.Language, remoteAdrr)

@@ -26,7 +26,12 @@ type Message interface {
 	AddEmailMessageToQueue(messageQueue chan models.EmailMessage, to mail.Address, subject, body string, messageID ...string) error
 }
 
+type Cryptographer interface {
+	Encrypt(data []byte) ([]byte, error)
+	Decrypt(data []byte) ([]byte, error)
+}
+
 type Jwt interface {
-	GenerateToken(publicSessionID, tokenPurpose string, issuedAt ...int64) (string, error)
+	GenerateToken(publicSessionID string, userData []byte, tokenPurpose string, issuedAt ...int64) (string, error)
 	VerifyToken(jwt string) (models.JwtData, error)
 }

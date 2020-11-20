@@ -57,7 +57,8 @@ func (token *Token) VerifyToken(jwt string) (models.JwtData, error) {
 	}
 
 	// Check Sign
-	jwtToken, err = token.GenerateToken(jwtData.Payload.Purpose, jwtData.Payload.PublicSessionID, jwtData.Payload.IssuedAt)
+	jwtToken, err = token.GenerateToken(jwtData.Payload.PublicSessionID, []byte(jwtData.Payload.UserData),
+		jwtData.Payload.Purpose, jwtData.Payload.IssuedAt)
 	if err != nil { // Обработка ошибки
 		errLabel = "q2LFd94k"
 		return jwtData, errors.New(fmt.Sprintf("%s:%s[%s]", errLabel, InvalidJwtToken, err))

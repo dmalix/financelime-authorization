@@ -7,6 +7,7 @@ package service
 import (
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/packages/authorization/repository"
+	"github.com/dmalix/financelime-authorization/utils/cryptographer"
 	"github.com/dmalix/financelime-authorization/utils/email"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
 	"testing"
@@ -33,7 +34,15 @@ func TestRequestAccessToken(t *testing.T) {
 	languageContent.Data.User.Login.Email.Subject = append(languageContent.Data.User.Login.Email.Subject, "subject")
 	languageContent.Data.User.Login.Email.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
-	jwtManager := new(jwt.MockDescription)
+	cryptographerManager := cryptographer.NewCryptographer("")
+
+	jwtManager := jwt.NewToken(
+		"12345",
+		jwt.PropsSigningAlgorithmHS256,
+		"",
+		"",
+		0,
+		0)
 
 	serviceConfig := Config{
 		DomainAPI:              configDomainAPI,
@@ -47,6 +56,7 @@ func TestRequestAccessToken(t *testing.T) {
 		emailMessageQueue,
 		userMessage,
 		userRepo,
+		cryptographerManager,
 		jwtManager)
 
 	_, _, err =
