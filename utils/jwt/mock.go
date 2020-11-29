@@ -4,10 +4,6 @@ import "github.com/dmalix/financelime-authorization/models"
 
 type MockDescription struct {
 	Props struct {
-		Email      string
-		InviteCode string
-		Language   string
-		RemoteAddr string
 	}
 	Expected struct {
 		Error error

@@ -38,3 +38,8 @@ func (repo *MockDescription) GetUserByAuth(email, password string) (models.User,
 func (repo *MockDescription) SaveSession(userID int64, publicSessionID, client_id, remoteAddr string, device models.Device) error {
 	return MockData.Expected.Error
 }
+
+func (repo *MockDescription) GetListActiveSessions(userID int64) ([]models.Session, error) {
+	var sessions []models.Session
+	return sessions, MockData.Expected.Error
+}

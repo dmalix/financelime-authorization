@@ -10,14 +10,14 @@ import (
 	"net/http"
 )
 
-func Router(mux *http.ServeMux, service authorization.Service, middleware ...func(http.Handler) http.Handler) {
+func Router(mux *http.ServeMux, service authorization.Service, middleware authorization.APIMiddleware) {
 
 	handler := NewHandler(service)
 
 	mux.Handle("/v1/signup",
 		router.Group(
 			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.SignUp()}),
-			middleware,
+			middleware.RequestID,
 		))
 
 	mux.Handle("/u/",
@@ -28,6 +28,14 @@ func Router(mux *http.ServeMux, service authorization.Service, middleware ...fun
 	mux.Handle("/v1/oauth/token/request",
 		router.Group(
 			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.RequestAccessToken()}),
+			middleware.RequestID,
+		))
+
+	mux.Handle("/v1/oauth/sessions",
+		router.Group(
+			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.GetListActiveSessions()}),
+			middleware.Authorization,
+			middleware.RequestID,
 		))
 
 }

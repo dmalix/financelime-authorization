@@ -9,7 +9,7 @@ import (
 	"github.com/dmalix/financelime-authorization/packages/authorization"
 )
 
-type Config struct {
+type ConfigService struct {
 	DomainAPP              string
 	DomainAPI              string
 	AuthInviteCodeRequired bool
@@ -18,7 +18,7 @@ type Config struct {
 }
 
 type Service struct {
-	config          Config
+	config          ConfigService
 	languageContent models.LanguageContent
 	messageQueue    chan models.EmailMessage
 	message         authorization.Message
@@ -28,7 +28,7 @@ type Service struct {
 }
 
 func NewService(
-	config Config,
+	config ConfigService,
 	languageContent models.LanguageContent,
 	messageQueue chan models.EmailMessage,
 	message authorization.Message,

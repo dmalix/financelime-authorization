@@ -8,22 +8,27 @@ import (
 	"database/sql"
 )
 
+type ConfigRepository struct {
+	CryptoSalt              string
+	JwtRefreshTokenLifetime int
+}
+
 type Repository struct {
+	config     ConfigRepository
 	dbAuthMain *sql.DB
 	dbAuthRead *sql.DB
 	dbBlade    *sql.DB
-	cryptoSalt string
 }
 
 func NewRepository(
+	config ConfigRepository,
 	dbAuthMain,
 	dbAuthRead,
-	dbBlade *sql.DB,
-	cryptoSalt string) *Repository {
+	dbBlade *sql.DB) *Repository {
 	return &Repository{
+		config:     config,
 		dbAuthMain: dbAuthMain,
 		dbAuthRead: dbAuthRead,
 		dbBlade:    dbBlade,
-		cryptoSalt: cryptoSalt,
 	}
 }

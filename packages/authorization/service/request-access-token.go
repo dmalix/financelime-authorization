@@ -19,27 +19,28 @@ import (
 	   	Request an access token
 	   		----------------
 	   		Return:
-				jwtAccess   string
-				jwtRefresh  string
-	   			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
+				publicSessionID string
+				jwtAccess       string
+				jwtRefresh      string
+	   			err             error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
 					------------------------------------------------
 					PROPS:                    One or more of the input parameters are invalid
 					USER_NOT_FOUND:           User is not found
 */
 func (s *Service) RequestAccessToken(email, password,
-	clientID, remoteAddr string, device models.Device) (string, string, error) {
+	clientID, remoteAddr string, device models.Device) (string, string, string, error) {
 
 	var (
 		err      error
 		errLabel string
 
 		user              models.User
-		publicSessionID   string
 		sourceUserData    []byte
 		encryptedUserData []byte
 
-		accessToken  string
-		refreshToken string
+		publicSessionID string
+		jwtAccess       string
+		jwtRefresh      string
 	)
 
 	user, err = s.repository.GetUserByAuth(email, password)
@@ -47,20 +48,20 @@ func (s *Service) RequestAccessToken(email, password,
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
 		case "PROPS_EMAIL", "PROPS_PASSWORD", "PROPS_LANG":
-			return accessToken, refreshToken,
+			return publicSessionID, jwtAccess, jwtRefresh,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
 					"PROPS",
 					"One or more of the input parameters are invalid",
 					err))
 		case "USER_NOT_FOUND":
-			return accessToken, refreshToken,
+			return publicSessionID, jwtAccess, jwtRefresh,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
 					domainErrorCode,
 					"User is not found",
 					err))
 		default:
 			errLabel = "3REuo5jS"
-			return accessToken, refreshToken,
+			return publicSessionID, jwtAccess, jwtRefresh,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
 					errLabel,
 					"A system error was returned",
@@ -71,7 +72,7 @@ func (s *Service) RequestAccessToken(email, password,
 	publicSessionID, err = s.generatePublicID(user.ID)
 	if err != nil {
 		errLabel = "o53REujS"
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to generate the publicSessionID value",
@@ -80,7 +81,7 @@ func (s *Service) RequestAccessToken(email, password,
 
 	sourceUserData, err = json.Marshal(user)
 	if err != nil {
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to marshal the user struct",
@@ -89,27 +90,27 @@ func (s *Service) RequestAccessToken(email, password,
 
 	encryptedUserData, err = s.cryptographer.Encrypt(sourceUserData)
 	if err != nil {
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
-				"Failed to marshal the user struct",
+				"Failed to encrypt the user data",
 				err))
 	}
 
-	accessToken, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeAccess)
+	jwtAccess, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeAccess)
 	if err != nil {
 		errLabel = "Ro53EujS"
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to generate an access token (JWT)",
 				err))
 	}
 
-	refreshToken, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeRefresh)
+	jwtRefresh, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeRefresh)
 	if err != nil {
 		errLabel = "D8JVbpWO"
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to generate an refresh token (JWT)",
@@ -119,7 +120,7 @@ func (s *Service) RequestAccessToken(email, password,
 	err = s.repository.SaveSession(user.ID, publicSessionID, clientID, remoteAddr, device)
 	if err != nil {
 		errLabel = "6QqPfJGg"
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to save the session",
@@ -142,12 +143,12 @@ func (s *Service) RequestAccessToken(email, password,
 			fmt.Sprintf("%s.%s", "request-access-token", s.config.DomainAPI)))
 	if err != nil {
 		errLabel = "XfCCWkb2"
-		return accessToken, refreshToken,
+		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to send message to the user",
 				err))
 	}
 
-	return accessToken, refreshToken, nil
+	return publicSessionID, jwtAccess, jwtRefresh, nil
 }

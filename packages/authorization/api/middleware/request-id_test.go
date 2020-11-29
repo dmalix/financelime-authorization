@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/dmalix/financelime-authorization/utils/jwt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,9 +22,26 @@ func TestRequestID_400(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	authorizationAPIMiddlewareConfig := Config{
+		RequestIDRequired: true,
+		RequestIDCheck:    true,
+	}
+
+	jwtManager := jwt.NewToken(
+		"12345",
+		jwt.PropsSigningAlgorithmHS256,
+		"issuer",
+		"subject",
+		1000,
+		1000)
+
+	authorizationAPIMiddleware := NewMiddleware(
+		authorizationAPIMiddlewareConfig,
+		jwtManager)
+
 	request.Header.Add("request-id", "1234")
 	responseRecorder := httptest.NewRecorder()
-	handler := RequestID(handler200())
+	handler := authorizationAPIMiddleware.RequestID(handler200())
 	handler.ServeHTTP(responseRecorder, request)
 	if status := responseRecorder.Code; status != http.StatusBadRequest {
 		t.Errorf("handler returned wrong status code: got %v want %v",
@@ -38,9 +56,26 @@ func TestRequestID_200(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	authorizationAPIMiddlewareConfig := Config{
+		RequestIDRequired: true,
+		RequestIDCheck:    true,
+	}
+
+	jwtManager := jwt.NewToken(
+		"12345",
+		jwt.PropsSigningAlgorithmHS256,
+		"issuer",
+		"subject",
+		1000,
+		1000)
+
+	authorizationAPIMiddleware := NewMiddleware(
+		authorizationAPIMiddlewareConfig,
+		jwtManager)
+
 	request.Header.Add("request-id", "K7800-H7625-Z5852-N1693-K1972")
 	responseRecorder := httptest.NewRecorder()
-	handler := RequestID(handler200())
+	handler := authorizationAPIMiddleware.RequestID(handler200())
 	handler.ServeHTTP(responseRecorder, request)
 	if status := responseRecorder.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",

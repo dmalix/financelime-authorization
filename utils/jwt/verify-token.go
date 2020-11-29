@@ -57,7 +57,7 @@ func (token *Token) VerifyToken(jwt string) (models.JwtData, error) {
 	}
 
 	// Check Sign
-	jwtToken, err = token.GenerateToken(jwtData.Payload.PublicSessionID, []byte(jwtData.Payload.UserData),
+	jwtToken, err = token.GenerateToken(jwtData.Payload.PublicSessionID, jwtData.Payload.UserData,
 		jwtData.Payload.Purpose, jwtData.Payload.IssuedAt)
 	if err != nil { // Обработка ошибки
 		errLabel = "q2LFd94k"
@@ -72,15 +72,15 @@ func (token *Token) VerifyToken(jwt string) (models.JwtData, error) {
 	// Check Lifetime
 	switch jwtData.Payload.Purpose {
 	case PropsPurposeAccess:
-		lifeTime = token.AccessTokenLifetime
+		lifeTime = token.AccessTokenLifetimeSec
 	case PropsPurposeRefresh:
-		lifeTime = token.RefreshTokenLifetime
+		lifeTime = token.RefreshTokenLifetimeSec
 	default:
 		errLabel = "n3LDfSbA"
 		return jwtData, errors.New(fmt.Sprintf("%s:%s", errLabel, InvalidJwtToken))
 	}
 	if time.Now().UTC().Unix() >
-		time.Unix(jwtData.Payload.IssuedAt, 0).Add(time.Minute*time.Duration(lifeTime)).UTC().Unix() {
+		time.Unix(jwtData.Payload.IssuedAt, 0).Add(time.Second*time.Duration(lifeTime)).UTC().Unix() {
 		errLabel = "WoZD4wBI"
 		return jwtData, errors.New(fmt.Sprintf("%s:%s", errLabel, InvalidJwtToken))
 	}

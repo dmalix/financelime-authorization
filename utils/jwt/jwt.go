@@ -5,12 +5,12 @@
 package jwt
 
 type Token struct {
-	SecretKey            string
-	SigningAlgorithm     string
-	Issuer               string
-	Subject              string
-	AccessTokenLifetime  int
-	RefreshTokenLifetime int
+	SecretKey               string
+	SigningAlgorithm        string
+	Issuer                  string
+	Subject                 string
+	AccessTokenLifetimeSec  int
+	RefreshTokenLifetimeSec int
 }
 
 func NewToken(
@@ -18,15 +18,15 @@ func NewToken(
 	SigningAlgorithm string,
 	Issuer string,
 	Subject string,
-	AccessTokenLifetime int,
-	RefreshTokenLifetime int) *Token {
+	AccessTokenLifetimeSec int,
+	RefreshTokenLifetimeSec int) *Token {
 	return &Token{
 		SecretKey,
 		SigningAlgorithm,
 		Issuer,
 		Subject,
-		AccessTokenLifetime,
-		RefreshTokenLifetime,
+		AccessTokenLifetimeSec,
+		RefreshTokenLifetimeSec,
 	}
 }
 

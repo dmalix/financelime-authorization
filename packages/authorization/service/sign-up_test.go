@@ -52,7 +52,7 @@ func TestSignUp_Success(t *testing.T) {
 		0,
 		0)
 
-	serviceConfig := Config{
+	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
 	}
@@ -107,7 +107,7 @@ func TestSignUp_RepoError(t *testing.T) {
 		0,
 		0)
 
-	serviceConfig := Config{
+	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
 	}
@@ -172,7 +172,7 @@ func TestSignUp_EmailError(t *testing.T) {
 		0,
 		0)
 
-	serviceConfig := Config{
+	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
 	}

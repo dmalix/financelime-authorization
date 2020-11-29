@@ -260,7 +260,7 @@ func (r *Repository) ConfirmUserEmail(confirmationKey string) (models.User, erro
 
 	user.Password = random.StringRand(16, 16, false)
 	hs := sha256.New()
-	_, err = hs.Write([]byte(user.Password + r.cryptoSalt))
+	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
 	if err != nil {
 		errLabel = "Jhc7OYxi"
 		return user,

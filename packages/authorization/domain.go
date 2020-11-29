@@ -6,20 +6,28 @@ package authorization
 
 import (
 	"github.com/dmalix/financelime-authorization/models"
+	"net/http"
 	"net/mail"
 )
+
+type APIMiddleware interface {
+	RequestID(next http.Handler) http.Handler
+	Authorization(next http.Handler) http.Handler
+}
 
 type Service interface {
 	SignUp(email, language, inviteCode, remoteAddr string) error
 	ConfirmUserEmail(confirmationKey string) (string, error)
-	RequestAccessToken(email, password, clientID, remoteAddr string, device models.Device) (string, string, error)
+	RequestAccessToken(email, password, clientID, remoteAddr string, device models.Device) (string, string, string, error)
+	GetListActiveSessions(encryptedUserData []byte) ([]models.Session, error)
 }
 
 type Repository interface {
 	CreateUser(email, language, inviteCode, remoteAddr, confirmationKey string, inviteCodeRequired bool) error
 	ConfirmUserEmail(confirmationKey string) (models.User, error)
 	GetUserByAuth(email, password string) (models.User, error)
-	SaveSession(userID int64, publicSessionID, client_id, remoteAddr string, device models.Device) error
+	SaveSession(userID int64, publicSessionID, clientID, remoteAddr string, device models.Device) error
+	GetListActiveSessions(userID int64) ([]models.Session, error)
 }
 
 type Message interface {

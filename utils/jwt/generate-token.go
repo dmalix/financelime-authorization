@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-func (token *Token) GenerateToken(publicSessionID string, userData []byte, tokenPurpose string, issuedAt ...int64) (string, error) {
+func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpose string, issuedAt ...int64) (string, error) {
 
 	var (
 		headersBase64 string
@@ -67,9 +67,9 @@ func (token *Token) GenerateToken(publicSessionID string, userData []byte, token
 	}
 	jwtData.Payload.Purpose = tokenPurpose
 
-	jwtData.Payload.PublicSessionID = publicSessionID
+	jwtData.Payload.PublicSessionID = sessionID
 
-	jwtData.Payload.UserData = string(userData)
+	jwtData.Payload.UserData = userData
 	if len(issuedAt) == 0 {
 		jwtData.Payload.IssuedAt = time.Now().UTC().Unix()
 	} else {

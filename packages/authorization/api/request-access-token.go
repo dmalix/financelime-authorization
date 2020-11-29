@@ -27,8 +27,9 @@ func (h *Handler) RequestAccessToken() http.Handler {
 		}
 
 		type outgoingResponse struct {
-			AccessToken  string `json:"accessToken"`
-			RefreshToken string `json:"refreshToken"`
+			PublicSessionID string `json:"sessionID"`
+			AccessJWT       string `json:"accessToken"`
+			RefreshJWT      string `json:"refreshToken"`
 		}
 
 		var (
@@ -38,7 +39,7 @@ func (h *Handler) RequestAccessToken() http.Handler {
 			responseBody    []byte
 			statusCode      int
 			contentType     string
-			remoteAdrr      string
+			remoteAddr      string
 			err             error
 			errLabel        string
 			domainErrorCode string
@@ -86,13 +87,13 @@ func (h *Handler) RequestAccessToken() http.Handler {
 			return
 		}
 
-		remoteAdrr = r.Header.Get("X-Real-IP")
-		if len(remoteAdrr) == 0 {
-			remoteAdrr = r.RemoteAddr
+		remoteAddr = r.Header.Get("X-Real-IP")
+		if len(remoteAddr) == 0 {
+			remoteAddr = r.RemoteAddr
 		}
 
-		response.AccessToken, response.RefreshToken, err =
-			h.service.RequestAccessToken(props.Email, props.Password, props.ClientID, remoteAdrr, props.Device)
+		response.PublicSessionID, response.AccessJWT, response.RefreshJWT, err =
+			h.service.RequestAccessToken(props.Email, props.Password, props.ClientID, remoteAddr, props.Device)
 		if err != nil {
 			domainErrorCode = strings.Split(err.Error(), ":")[0]
 			errorMessage = "failed to request an access token"
@@ -108,7 +109,7 @@ func (h *Handler) RequestAccessToken() http.Handler {
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				w.Header().Add("domain-error-code", domainErrorCode)
-				http.Error(w, "409 Conflict", http.StatusConflict)
+				http.Error(w, "404 Not Found", http.StatusNotFound)
 				return
 			default:
 				errLabel = "CnUTwP27"

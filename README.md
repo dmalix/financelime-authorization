@@ -7,9 +7,9 @@
     - [3.1. Get the current version of the service](#3-1) 
 - [4. Authorization](#4-0)
     - [4.1. Sign up](#4-1)
-    - [4.2. Confirm user email](#4-2)
+    - [4.2. Confirm User Email](#4-2)
     - ...
-    - [4.5. Request Access token](#4-5)
+    - [4.5. Request Access Token](#4-5)
     - ...
     - [4.8. Get a list of active sessions](#4-8)
     
@@ -179,7 +179,7 @@ DOMAIN_ERROR_CODE | Description
 `INVITE_LIMIT` | The limit for issuing the specified invite code has been exhausted
 
 <a name="4-2"></a>
-### 4.2. Confirm user email 
+### 4.2. Confirm User Email 
 
 - Method: `GET` 
 - Endpoint:  `/u/LINK_KEY`
@@ -210,7 +210,7 @@ STATUS_CODE        | Description
 `404 Not Found`    | Link not found
 
 <a name="4-5"></a>
-### 4.5. Request Access token 
+### 4.5. Request Access Token 
 
 - Method: `POST` 
 - Endpoint:  `/v1/oauth/token/request`
@@ -240,6 +240,7 @@ The request will return an object with three attributes:
 
 Name            | Type     | Description
 ----------------|----------|------------
+`sessionID`     | string   | Public Session ID
 `accessToken`   | string   | Access Jwt-Token 
 `refreshToken`  | string   | Refresh Jwt-Token 
 
@@ -248,8 +249,8 @@ Name            | Type     | Description
 curl -i -X POST \
 -H "content-type:application/json;charset=utf-8" \
 -H "request-id:K7800-H7625-Z5852-N1693-K1972" \
--d '{"email":"max@apivox.com","password":"12345", client_id: "PWA_v0.0.1", \
-device":{"platform":"Linux x86_64", "height":1920, "width":1060, "language":"en-US", "timezone":"2"}}' \
+-d '{"email":"max@apivox.com","password":"12345", "client_id": "PWA_v0.0.1", \
+"device":{"platform":"Linux x86_64", "height":1920, "width":1060, "language":"en-US", "timezone":"2"}}' \
 "https://api.auth.financelime.com/v1/oauth/token/request"
 ```
 #### Request Headers
@@ -274,13 +275,14 @@ Status Code        | Description
 #### Response Body
 ```
 {
+   "sessionID":"46512f3a52cf8e6ddbe8ef34573f7b954086f8714b6a96f1df57234df8ee3735",
    "accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6ImFjY2VzcyIsImlkIjoiMTZkN2RiNTM3MjQ3ZWFmMTEzZjRjOGFkNTllOWEyYTU4OWNlN2NhZjYxMzViY2Q3YmZlYzBiNTI1YWY0OGEyYSIsImlhdCI6MTU5NjgzNTM5OX0.d68bea3232f10c60483f838fff8d8c66661cb497b141213c9a006be2e7c9d723",
    "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJpZCI6IjE2ZDdkYjUzNzI0N2VhZjExM2Y0YzhhZDU5ZTlhMmE1ODljZTdjYWY2MTM1YmNkN2JmZWMwYjUyNWFmNDhhMmEiLCJpYXQiOjE1OTY4MzUzOTl9.b88345d361482865f1a7af533d41d66e922dcca4c76c2d4b1fcfa65616679471"
 }
 ```
 
 <a name="4-8"></a>
-### 4.8. Get a list of active sessions.
+### 4.8. Get a list of active sessions
 
 - Method: `GET` 
 - Endpoint:  /v1/oauth/sessions
@@ -290,7 +292,7 @@ Status Code        | Description
 curl -i -X GET \
 -H "request-id:K7800-H7625-Z5852-N1693-K1972" \
 -H "authorization:bearer ACCESS_TOKEN" \
-"https://api.financelime.com/account/oauth/sessions"
+"https://api.financelime.com/v1/oauth/sessions"
 ```
 #### Request Headers
 ```
@@ -315,17 +317,17 @@ Status Code        | Description
 ```json
 [
   {
-    "id":"8d8e1a32b7c349ee306eb3ec2b82e1fd37a97eba0903c66f061e5fdc774067f0",
+    "sessionID":"8d8e1a32b7c349ee306eb3ec2b82e1fd37a97eba0903c66f061e5fdc774067f0",
     "updatedAt":"2020-08-23T17:59:46.558594Z",
     "platform":"Linux x86_64"
   },
   { 
-    "id":"828d96230888e9aad01f874212a5a8abf3a74ec6bbd44272bb112d0727418c38",
+    "sessionID":"828d96230888e9aad01f874212a5a8abf3a74ec6bbd44272bb112d0727418c38",
     "updatedAt":"2020-08-23T18:01:16.2457Z",
     "platform":"iPhone"
   },
   {
-    "id":"904eebcbcb7a9911b934d5ba0ac248247d66e6e7fb96dbaeff1ebf09073b7c4c",
+    "sessionID":"904eebcbcb7a9911b934d5ba0ac248247d66e6e7fb96dbaeff1ebf09073b7c4c",
     "updatedAt":"2020-08-23T18:01:32.233222Z",
     "platform":"Android"
   }

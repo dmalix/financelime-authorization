@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"hash"
+	"log"
 )
 
 /*
@@ -30,6 +31,7 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 	var (
 		user           models.User
 		dbRows         *sql.Rows
+		query          string
 		hs             hash.Hash
 		hashedPassword string
 		err            error
@@ -55,14 +57,13 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 	// --------
 
 	hs = sha256.New()
-	_, err = hs.Write([]byte(password + r.cryptoSalt))
+	_, err = hs.Write([]byte(password + r.config.CryptoSalt))
 	if err != nil {
 		return user, errors.New(fmt.Sprintf("%s:[%s]", "XAacJE73", err))
 	}
 	hashedPassword = hex.EncodeToString(hs.Sum(nil))
 
-	dbRows, err =
-		r.dbAuthRead.Query(`
+	query = `
 		SELECT
 			"user"."id",
 			"user".email,
@@ -73,8 +74,17 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 			"user".email = $1 AND
 			"user".password = $2 AND
 			"user".deleted_at IS NULL  
-			LIMIT 1`,
-			email, hashedPassword)
+			LIMIT 1`
+
+	log.Println("=================================================================================================")
+	log.Println("email")
+	log.Println(email)
+	log.Println("-------------------------------------------------------------------------------------------------")
+	log.Println("hashedPassword")
+	log.Println(hashedPassword)
+	log.Println("=================================================================================================")
+
+	dbRows, err = r.dbAuthRead.Query(query, email, hashedPassword)
 	if err != nil {
 		errLabel = "hv2FiCug"
 		return user,

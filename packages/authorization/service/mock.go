@@ -7,6 +7,7 @@ package service
 import (
 	"errors"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/packages/authorization/repository"
 )
 
 //noinspection GoSnakeCaseUsage
@@ -20,6 +21,7 @@ type MockDescription struct {
 	Expected struct {
 		Error error
 	}
+	repository repository.MockDescription
 }
 
 //noinspection GoSnakeCaseUsage
@@ -43,6 +45,11 @@ func (s *MockDescription) ConfirmUserEmail(confirmationKey string) (string, erro
 	return "", MockData.Expected.Error
 }
 
-func (s *MockDescription) RequestAccessToken(email, password, clientID, remoteAddr string, device models.Device) (string, string, error) {
-	return "", "", MockData.Expected.Error
+func (s *MockDescription) RequestAccessToken(email, password, clientID, remoteAddr string, device models.Device) (string, string, string, error) {
+	return "sessionID", "accessToken", "refreshToken", MockData.Expected.Error
+}
+
+func (s *MockDescription) GetListActiveSessions(encryptedUserData []byte) ([]models.Session, error) {
+	var sessions []models.Session
+	return sessions, MockData.Expected.Error
 }

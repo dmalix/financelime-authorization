@@ -47,7 +47,7 @@ func TestConfirmUserEmail_Success(t *testing.T) {
 		0,
 		0)
 
-	serviceConfig := Config{
+	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
 	}
@@ -107,7 +107,7 @@ func TestConfirmUserEmail_Error(t *testing.T) {
 		0,
 		0)
 
-	serviceConfig := Config{
+	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
 	}

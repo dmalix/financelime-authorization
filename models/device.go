@@ -5,10 +5,10 @@
 package models
 
 type Device struct {
-	Platform  string
-	Height    int
-	Width     int
-	Language  string
-	Timezone  string
+	Platform  string `json:"platform"`
+	Height    int    `json:"height"`
+	Width     int    `json:"width"`
+	Language  string `json:"language"`
+	Timezone  string `json:"timezone"`
 	UserAgent string
 }

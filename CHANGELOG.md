@@ -1,10 +1,11 @@
 ## Pre-Release v0.1.5-alpha
 
 **New Features:**
-- Get the current version of the REST API service.
-- Sign Up. 
-- Confirm user email.
-- Request Access token.
+- Get the current version of the REST API service
+- Sign Up 
+- Confirm User Email
+- Request Access Token
+- Get a list of Active Sessions
 
 **Changes:**
 - Add error labels.
@@ -15,7 +16,6 @@
 - Make minor improvements to the project structure.
 - Add a sending email function with a link to verify the email address.
 - Small changes in the user model.
-
 
 ## Pre-Release v0.1.4-alpha
 

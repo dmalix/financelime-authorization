@@ -12,8 +12,8 @@ import (
 	"github.com/dmalix/financelime-authorization/models"
 	packageAuthorization "github.com/dmalix/financelime-authorization/packages/authorization"
 	packageAuthorizationAPI "github.com/dmalix/financelime-authorization/packages/authorization/api"
-	packageAuthorizationMiddleware "github.com/dmalix/financelime-authorization/packages/authorization/api/middleware"
-	packageAuthorizationRepo "github.com/dmalix/financelime-authorization/packages/authorization/repository"
+	packageAuthorizationAPIMiddleware "github.com/dmalix/financelime-authorization/packages/authorization/api/middleware"
+	packageAuthorizationRepository "github.com/dmalix/financelime-authorization/packages/authorization/repository"
 	packageAuthorizationService "github.com/dmalix/financelime-authorization/packages/authorization/service"
 	packageSystem "github.com/dmalix/financelime-authorization/packages/system"
 	packageSystemAPI "github.com/dmalix/financelime-authorization/packages/system/api"
@@ -41,11 +41,12 @@ type emailSenderDaemon interface {
 }
 
 type App struct {
-	httpPort                 string
-	emailMessageSenderDaemon emailSenderDaemon
-	httpServer               *http.Server
-	authorizationService     packageAuthorization.Service
-	systemService            packageSystem.Service
+	httpPort                   string
+	emailMessageSenderDaemon   emailSenderDaemon
+	httpServer                 *http.Server
+	authorizationAPIMiddleware packageAuthorization.APIMiddleware
+	authorizationService       packageAuthorization.Service
+	systemService              packageSystem.Service
 }
 
 func NewApp() (*App, error) {
@@ -85,7 +86,7 @@ func NewApp() (*App, error) {
 	// Databases
 	// ---------
 
-	dbAuthMain, err = packageAuthorizationRepo.NewPostgreDB(packageAuthorizationRepo.Config{
+	dbAuthMain, err = packageAuthorizationRepository.NewPostgreDB(packageAuthorizationRepository.Config{
 		Host:     config.db.authMain.connect.host,
 		Port:     config.db.authMain.connect.port,
 		SSLMode:  config.db.authMain.connect.sslMode,
@@ -101,7 +102,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbAuthRead, err = packageAuthorizationRepo.NewPostgreDB(packageAuthorizationRepo.Config{
+	dbAuthRead, err = packageAuthorizationRepository.NewPostgreDB(packageAuthorizationRepository.Config{
 		Host:     config.db.authRead.connect.host,
 		Port:     config.db.authRead.connect.port,
 		SSLMode:  config.db.authRead.connect.sslMode,
@@ -117,7 +118,7 @@ func NewApp() (*App, error) {
 				err.Error()))
 	}
 
-	dbBlade, err = packageAuthorizationRepo.NewPostgreDB(packageAuthorizationRepo.Config{
+	dbBlade, err = packageAuthorizationRepository.NewPostgreDB(packageAuthorizationRepository.Config{
 		Host:     config.db.blade.connect.host,
 		Port:     config.db.blade.connect.port,
 		SSLMode:  config.db.blade.connect.sslMode,
@@ -189,13 +190,27 @@ func NewApp() (*App, error) {
 	// Authorization
 	// ------------------------
 
-	authorizationRepo := packageAuthorizationRepo.NewRepository(
+	authorizationAPIMiddlewareConfig := packageAuthorizationAPIMiddleware.Config{
+		RequestIDRequired: true,
+		RequestIDCheck:    true,
+	}
+
+	authorizationAPIMiddleware := packageAuthorizationAPIMiddleware.NewMiddleware(
+		authorizationAPIMiddlewareConfig,
+		jwtManager)
+
+	authorizationRepositoryConfig := packageAuthorizationRepository.ConfigRepository{
+		CryptoSalt:              config.crypto.salt,
+		JwtRefreshTokenLifetime: config.jwt.refreshTokenLifetime,
+	}
+
+	authorizationRepository := packageAuthorizationRepository.NewRepository(
+		authorizationRepositoryConfig,
 		dbAuthMain,
 		dbAuthRead,
-		dbBlade,
-		config.crypto.salt)
+		dbBlade)
 
-	authorizationServiceConfig := packageAuthorizationService.Config{
+	authorizationServiceConfig := packageAuthorizationService.ConfigService{
 		DomainAPP:              config.domain.app,
 		DomainAPI:              config.domain.api,
 		AuthInviteCodeRequired: config.auth.inviteCodeRequired,
@@ -207,7 +222,7 @@ func NewApp() (*App, error) {
 		languageContent,
 		emailMessageQueue,
 		emailMessageManager,
-		authorizationRepo,
+		authorizationRepository,
 		cryptoManager,
 		jwtManager)
 
@@ -224,10 +239,11 @@ func NewApp() (*App, error) {
 	// ----------------------------------------------------------------
 
 	app = &App{
-		httpPort:                 config.http.port,
-		emailMessageSenderDaemon: emailMessageSenderDaemon,
-		authorizationService:     authorizationService,
-		systemService:            systemService,
+		httpPort:                   config.http.port,
+		emailMessageSenderDaemon:   emailMessageSenderDaemon,
+		authorizationAPIMiddleware: authorizationAPIMiddleware,
+		authorizationService:       authorizationService,
+		systemService:              systemService,
 	}
 
 	return app, nil
@@ -245,8 +261,8 @@ func (app *App) Run() error {
 
 	mux := http.NewServeMux()
 
-	packageAuthorizationAPI.Router(mux, app.authorizationService, packageAuthorizationMiddleware.RequestID)
-	packageSystemAPI.Router(mux, app.systemService, packageAuthorizationMiddleware.RequestID)
+	packageAuthorizationAPI.Router(mux, app.authorizationService, app.authorizationAPIMiddleware)
+	packageSystemAPI.Router(mux, app.systemService, app.authorizationAPIMiddleware)
 
 	app.httpServer = &http.Server{
 		Addr:           ":" + app.httpPort,

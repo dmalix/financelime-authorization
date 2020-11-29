@@ -44,7 +44,7 @@ func TestRequestAccessToken(t *testing.T) {
 		0,
 		0)
 
-	serviceConfig := Config{
+	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
 	}
@@ -59,7 +59,7 @@ func TestRequestAccessToken(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	_, _, err =
+	_, _, _, err =
 		newService.RequestAccessToken("email", "password", "PWA", "127.0.0.1", device)
 
 	if err != nil {

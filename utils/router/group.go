@@ -6,11 +6,11 @@ package router
 
 import "net/http"
 
-func Group(handler http.Handler, middlewareArray ...[]func(http.Handler) http.Handler) http.Handler {
+func Group(handler http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
 
-	if len(middlewareArray) > 0 {
-		for _, middleware := range middlewareArray[0] {
-			handler = middleware(handler)
+	if len(middleware) > 0 {
+		for _, middlewareOnceUseCase := range middleware {
+			handler = middlewareOnceUseCase(handler)
 		}
 	}
 	return handler
