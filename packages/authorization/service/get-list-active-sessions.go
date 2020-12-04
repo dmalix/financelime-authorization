@@ -30,7 +30,7 @@ func (s *Service) GetListActiveSessions(encryptedUserData []byte) ([]models.Sess
 		user              models.User
 	)
 
-	decryptedUserData, err = s.cryptographer.Decrypt([]byte(encryptedUserData))
+	decryptedUserData, err = s.cryptographer.Decrypt(encryptedUserData)
 	if err != nil {
 		return sessions,
 			errors.New(fmt.Sprintf("%s:%s[%s]",

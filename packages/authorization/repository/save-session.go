@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
@@ -16,7 +18,7 @@ import (
 				------------------------------------------------
 			    PROPS_REMOTE_ADDR: The remoteAddr param is not valid
 */
-func (r *Repository) SaveSession(userID int64, publicSessionID, clientID, remoteAddr string, device models.Device) error {
+func (r *Repository) SaveSession(userID int64, publicSessionID, refreshToken, clientID, remoteAddr string, device models.Device) error {
 
 	var (
 		err              error
@@ -32,12 +34,26 @@ func (r *Repository) SaveSession(userID int64, publicSessionID, clientID, remote
 	}
 	remoteAddr = remoteAddrSource.String()
 
+	hs := sha256.New()
+	_, err = hs.Write([]byte(
+		refreshToken +
+			r.config.CryptoSalt))
+	if err != nil {
+		errLabel := "6Eephtho"
+		return errors.New(fmt.Sprintf("%s:%s[%s]",
+			errLabel,
+			"Failed to generate hash for the Refresh Token",
+			err))
+	}
+
+	hashedRefreshToken := hex.EncodeToString(hs.Sum(nil))
+
 	err =
 		r.dbAuthMain.QueryRow(`
-	   		INSERT INTO "session" ( created_at, user_id, client_id, remote_addr, public_id )
+	   		INSERT INTO "session" ( created_at, user_id, client_id, remote_addr, public_id, hashed_refresh_token )
 			VALUES
-				( NOW( ), $1, $2, $3, $4  ) RETURNING "id"`,
-			userID, clientID, remoteAddr, publicSessionID).
+				( NOW( ), $1, $2, $3, $4, $5 ) RETURNING "id"`,
+			userID, clientID, remoteAddr, publicSessionID, hashedRefreshToken).
 			Scan(&sessionID)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%s:[%s]", "kM4BsYfY", err))

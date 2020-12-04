@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"hash"
-	"log"
 )
 
 /*
@@ -75,14 +74,6 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 			"user".password = $2 AND
 			"user".deleted_at IS NULL  
 			LIMIT 1`
-
-	log.Println("=================================================================================================")
-	log.Println("email")
-	log.Println(email)
-	log.Println("-------------------------------------------------------------------------------------------------")
-	log.Println("hashedPassword")
-	log.Println(hashedPassword)
-	log.Println("=================================================================================================")
 
 	dbRows, err = r.dbAuthRead.Query(query, email, hashedPassword)
 	if err != nil {

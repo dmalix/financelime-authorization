@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS "public"."session" (
 	"client_id" VARCHAR ( 32 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"remote_addr" VARCHAR ( 45 ) COLLATE "pg_catalog"."default" NOT NULL,
 	"public_id" VARCHAR ( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
+	"hashed_refresh_token" VARCHAR ( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 	CONSTRAINT "session_pkey" PRIMARY KEY ( "id" )
 );
 ALTER TABLE "public"."session" OWNER TO "financelime_user";

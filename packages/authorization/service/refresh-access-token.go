@@ -10,13 +10,11 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
-	"net/mail"
 	"strings"
-	"time"
 )
 
 /*
-	   	Request an access token
+	   	Refresh an access token
 	   		----------------
 	   		Return:
 				publicSessionID string
@@ -24,11 +22,10 @@ import (
 				jwtRefresh      string
 	   			err             error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
 					------------------------------------------------
-					PROPS:                    One or more of the input parameters are invalid
+					INVALID_REFRESH_TOKEN:    Failed to validate the Refresh Token (JWT)
 					USER_NOT_FOUND:           User is not found
 */
-func (s *Service) RequestAccessToken(email, password,
-	clientID, remoteAddr string, device models.Device) (string, string, string, error) {
+func (s *Service) RefreshAccessToken(refreshToken, remoteAddr string) (string, string, string, error) {
 
 	var (
 		err      error
@@ -38,21 +35,26 @@ func (s *Service) RequestAccessToken(email, password,
 		sourceUserData    []byte
 		encryptedUserData []byte
 
+		jwtData models.JwtData
+
 		publicSessionID string
 		jwtAccess       string
 		jwtRefresh      string
 	)
 
-	user, err = s.repository.GetUserByAuth(email, password)
+	jwtData, err = s.jwt.VerifyToken(refreshToken)
+	if err != nil {
+		return publicSessionID, jwtAccess, jwtRefresh,
+			errors.New(fmt.Sprintf("%s:%s[%s]",
+				"INVALID_REFRESH_TOKEN",
+				"Failed to validate the Refresh Token (JWT)",
+				err))
+	}
+
+	user, err = s.repository.GetUserByRefreshToken(refreshToken)
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
-		case "PROPS_EMAIL", "PROPS_PASSWORD", "PROPS_LANG":
-			return publicSessionID, jwtAccess, jwtRefresh,
-				errors.New(fmt.Sprintf("%s:%s[%s]",
-					"PROPS",
-					"One or more of the input parameters are invalid",
-					err))
 		case "USER_NOT_FOUND":
 			return publicSessionID, jwtAccess, jwtRefresh,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
@@ -60,7 +62,7 @@ func (s *Service) RequestAccessToken(email, password,
 					"User is not found",
 					err))
 		default:
-			errLabel = "3REuo5jS"
+			errLabel = "3o5jREuS"
 			return publicSessionID, jwtAccess, jwtRefresh,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
 					errLabel,
@@ -69,19 +71,11 @@ func (s *Service) RequestAccessToken(email, password,
 		}
 	}
 
-	publicSessionID, err = s.generatePublicID(user.ID)
-	if err != nil {
-		errLabel = "o53REujS"
-		return publicSessionID, jwtAccess, jwtRefresh,
-			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
-				"Failed to generate the publicSessionID value",
-				err))
-	}
+	publicSessionID = jwtData.Payload.PublicSessionID
 
 	sourceUserData, err = json.Marshal(user)
 	if err != nil {
-		errLabel = "j53EuRoS"
+		errLabel = "uj53ERoS"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
@@ -91,7 +85,7 @@ func (s *Service) RequestAccessToken(email, password,
 
 	encryptedUserData, err = s.cryptographer.Encrypt(sourceUserData)
 	if err != nil {
-		errLabel = "jEuRo53S"
+		errLabel = "53ERoujS"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
@@ -101,7 +95,7 @@ func (s *Service) RequestAccessToken(email, password,
 
 	jwtAccess, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeAccess)
 	if err != nil {
-		errLabel = "Ro53EujS"
+		errLabel = "Sohth5oo"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
@@ -111,7 +105,7 @@ func (s *Service) RequestAccessToken(email, password,
 
 	jwtRefresh, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeRefresh)
 	if err != nil {
-		errLabel = "D8JVbpWO"
+		errLabel = "Pee4ceik"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
@@ -119,36 +113,13 @@ func (s *Service) RequestAccessToken(email, password,
 				err))
 	}
 
-	err = s.repository.SaveSession(user.ID, publicSessionID, jwtRefresh, clientID, remoteAddr, device)
+	err = s.repository.UpdateSession(publicSessionID, refreshToken, remoteAddr)
 	if err != nil {
-		errLabel = "6QqPfJGg"
+		errLabel = "oH4aidoo"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,
 				"Failed to save the session",
-				err))
-	}
-
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		mail.Address{Address: email},
-		s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.Language]],
-		fmt.Sprintf(
-			s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.Language]],
-			time.Now().UTC().String(),
-			device.Platform,
-			remoteAddr,
-			s.config.DomainAPP),
-		fmt.Sprintf(
-			"<%s@%s>",
-			remoteAddr,
-			fmt.Sprintf("%s.%s", "request-access-token", s.config.DomainAPI)))
-	if err != nil {
-		errLabel = "XfCCWkb2"
-		return publicSessionID, jwtAccess, jwtRefresh,
-			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
-				"Failed to send message to the user",
 				err))
 	}
 

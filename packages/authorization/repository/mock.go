@@ -35,11 +35,20 @@ func (repo *MockDescription) GetUserByAuth(email, password string) (models.User,
 	return user, MockData.Expected.Error
 }
 
-func (repo *MockDescription) SaveSession(userID int64, publicSessionID, client_id, remoteAddr string, device models.Device) error {
+func (repo *MockDescription) SaveSession(userID int64, publicSessionID, refreshToken, client_id, remoteAddr string, device models.Device) error {
 	return MockData.Expected.Error
 }
 
 func (repo *MockDescription) GetListActiveSessions(userID int64) ([]models.Session, error) {
 	var sessions []models.Session
 	return sessions, MockData.Expected.Error
+}
+
+func (repo *MockDescription) UpdateSession(publicSessionID, refreshToken, remoteAddr string) error {
+	return MockData.Expected.Error
+}
+
+func (repo *MockDescription) GetUserByRefreshToken(RefreshToken string) (models.User, error) {
+	var user models.User
+	return user, MockData.Expected.Error
 }

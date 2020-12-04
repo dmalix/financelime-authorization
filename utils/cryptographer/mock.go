@@ -10,10 +10,10 @@ type MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var MockData MockDescription
 
-func (s *MockDescription) Encrypt(data []byte, secretKey string) ([]byte, error) {
+func (s *MockDescription) Encrypt(data []byte) ([]byte, error) {
 	return nil, MockData.Expected.Error
 }
 
-func (s *MockDescription) Decrypt(data []byte, secretKey string) ([]byte, error) {
+func (s *MockDescription) Decrypt(data []byte) ([]byte, error) {
 	return nil, MockData.Expected.Error
 }

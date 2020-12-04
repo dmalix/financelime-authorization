@@ -5,36 +5,40 @@
 package api
 
 import (
-	"context"
+	"bytes"
+	"encoding/json"
 	"github.com/dmalix/financelime-authorization/packages/authorization/service"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestGetListActiveSessions(t *testing.T) {
+func TestRefreshAccessToken(t *testing.T) {
 
 	service.MockData.Expected.Error = nil
 
+	props := map[string]interface{}{}
+
+	bytesRepresentation, err := json.Marshal(props)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	request, err := http.NewRequest(
-		http.MethodGet,
-		"/v1/oauth/sessions",
-		nil)
+		"",
+		"/",
+		bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		t.Fatal(err)
 	}
+	request.Header.Add("content-type", "application/json;charset=utf-8")
+
 	responseRecorder := httptest.NewRecorder()
 
 	authService := new(service.MockDescription)
 	newHandler := NewHandler(authService)
-	handler := newHandler.GetListActiveSessions()
-
-	ctx := request.Context()
-	ctx = context.WithValue(ctx,
-		ContextEncryptedUserData,
-		[]byte("test_data"))
-
-	request = request.WithContext(ctx)
+	handler := newHandler.RefreshAccessToken()
 
 	handler.ServeHTTP(responseRecorder, request)
 

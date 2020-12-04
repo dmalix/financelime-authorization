@@ -53,3 +53,7 @@ func (s *MockDescription) GetListActiveSessions(encryptedUserData []byte) ([]mod
 	var sessions []models.Session
 	return sessions, MockData.Expected.Error
 }
+
+func (s *MockDescription) RefreshAccessToken(refreshToken, remoteAddr string) (string, string, string, error) {
+	return "sessionID", "accessToken", "refreshToken", MockData.Expected.Error
+}

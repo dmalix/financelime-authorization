@@ -10,7 +10,7 @@
     - [4.2. Confirm User Email](#4-2)
     - ...
     - [4.5. Request Access Token](#4-5)
-    - ...
+    - [4.6. Refresh Access Token](#4-6)
     - [4.8. Get a list of active sessions](#4-8)
     
 ---
@@ -213,7 +213,7 @@ STATUS_CODE        | Description
 ### 4.5. Request Access Token 
 
 - Method: `POST` 
-- Endpoint:  `/v1/oauth/token/request`
+- Endpoint:  `/v1/oauth/token`
 
 #### Параметры:
 
@@ -224,7 +224,7 @@ Name        | Type   | Description
 `client_id` | string | User Client ID
 `device`    | object | User Device Specification
 
-** device object **
+**device object**
 
 Name        | Type   
 ------------|--------
@@ -249,9 +249,9 @@ Name            | Type     | Description
 curl -i -X POST \
 -H "content-type:application/json;charset=utf-8" \
 -H "request-id:K7800-H7625-Z5852-N1693-K1972" \
--d '{"email":"max@apivox.com","password":"12345", "client_id": "PWA_v0.0.1", \
+-d '{"email":"test.user@financelime.com","password":"12345", "client_id": "PWA_v0.0.1", \
 "device":{"platform":"Linux x86_64", "height":1920, "width":1060, "language":"en-US", "timezone":"2"}}' \
-"https://api.auth.financelime.com/v1/oauth/token/request"
+"https://api.auth.financelime.com/v1/oauth/token"
 ```
 #### Request Headers
 ```
@@ -261,8 +261,8 @@ request-id: REQUEST_ID
 #### Response Headers
 ```
 status: STATUS_CODE
-content-type:application/json;charset=utf-8 (в случае успеха) 
-content-type: text/plain; charset=utf-8 (в случае ошибки)
+content-type:application/json;charset=utf-8 (in case of success) 
+content-type: text/plain; charset=utf-8 (in case of error)
 ```
 ##### Status Code
 
@@ -276,6 +276,65 @@ Status Code        | Description
 ```
 {
    "sessionID":"46512f3a52cf8e6ddbe8ef34573f7b954086f8714b6a96f1df57234df8ee3735",
+   "accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6ImFjY2VzcyIsImlkIjoiMTZkN2RiNTM3MjQ3ZWFmMTEzZjRjOGFkNTllOWEyYTU4OWNlN2NhZjYxMzViY2Q3YmZlYzBiNTI1YWY0OGEyYSIsImlhdCI6MTU5NjgzNTM5OX0.d68bea3232f10c60483f838fff8d8c66661cb497b141213c9a006be2e7c9d723",
+   "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJpZCI6IjE2ZDdkYjUzNzI0N2VhZjExM2Y0YzhhZDU5ZTlhMmE1ODljZTdjYWY2MTM1YmNkN2JmZWMwYjUyNWFmNDhhMmEiLCJpYXQiOjE1OTY4MzUzOTl9.b88345d361482865f1a7af533d41d66e922dcca4c76c2d4b1fcfa65616679471"
+}
+```
+
+<a name="4-6"></a>
+### 4.6. Refresh Access Token
+
+- Method: `PUT` 
+- Endpoint:  `/v1/oauth/token`
+
+#### Параметры:
+
+Name            | Type   | Description
+----------------|--------|------------
+refreshToken    | string | Refresh Token
+
+#### Ответ
+The request will return an object with three attributes:
+
+Name            | Type     | Description
+----------------|----------|------------
+sessionID       | string   | Session ID
+accessToken     | string   | Access Token 
+refreshToken    | string   | Refresh Token 
+
+#### cURL Example
+```
+curl -i -X PUT \
+-H "content-type:application/json;charset=utf-8" \
+-H "request-id:K7800-H7625-Z5852-N1693-K1972" \
+-d '{"refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJpZCI6IjE2ZDdkYjUzNzI0N2VhZjExM2Y0YzhhZDU5ZTlhMmE1ODljZTdjYWY2MTM1YmNkN2JmZWMwYjUyNWFmNDhhMmEiLCJpYXQiOjE1OTY4MzUzOTl9.b88345d361482865f1a7af533d41d66e922dcca4c76c2d4b1fcfa65616679471"}' \
+"https://api.auth.financelime.com/v1/oauth/token"
+```
+#### Request Headers
+```
+content-type: application/json;charset=utf-8
+request-id: REQUEST_ID
+```
+#### Response Headers
+```
+status: STATUS_CODE
+content-type:application/json;charset=utf-8 (in case of success) 
+content-type: text/plain; charset=utf-8 (in case of error)
+```
+##### Status Code
+
+Status Code        | Description
+-------------------|----------------
+200 OK             | API successfully processed the request, returned JWT tokens
+401 Bad Request    | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
+403 Forbidden      | Invalid or expired refresh token 
+404 Not Found      | Account not found or deleted 
+
+#### Response Body
+
+```
+{
+   "sessionID":"16d7db537247eaf113f4c8ad59e9a2a589ce7caf6135bcd7bfec0b525af48a2a",
    "accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6ImFjY2VzcyIsImlkIjoiMTZkN2RiNTM3MjQ3ZWFmMTEzZjRjOGFkNTllOWEyYTU4OWNlN2NhZjYxMzViY2Q3YmZlYzBiNTI1YWY0OGEyYSIsImlhdCI6MTU5NjgzNTM5OX0.d68bea3232f10c60483f838fff8d8c66661cb497b141213c9a006be2e7c9d723",
    "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJpZCI6IjE2ZDdkYjUzNzI0N2VhZjExM2Y0YzhhZDU5ZTlhMmE1ODljZTdjYWY2MTM1YmNkN2JmZWMwYjUyNWFmNDhhMmEiLCJpYXQiOjE1OTY4MzUzOTl9.b88345d361482865f1a7af533d41d66e922dcca4c76c2d4b1fcfa65616679471"
 }

@@ -6,6 +6,7 @@
 - Confirm User Email
 - Request Access Token
 - Get a list of Active Sessions
+- Refresh Access Token
 
 **Changes:**
 - Add error labels.
