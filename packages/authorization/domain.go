@@ -20,6 +20,7 @@ type Service interface {
 	ConfirmUserEmail(confirmationKey string) (string, error)
 	RequestAccessToken(email, password, clientID, remoteAddr string, device models.Device) (string, string, string, error)
 	RefreshAccessToken(refreshToken, remoteAddr string) (string, string, string, error)
+	RevokeRefreshToken(encryptedUserData []byte, publicSessionID string) error
 	GetListActiveSessions(encryptedUserData []byte) ([]models.Session, error)
 }
 
@@ -30,6 +31,7 @@ type Repository interface {
 	GetUserByRefreshToken(RefreshToken string) (models.User, error)
 	SaveSession(userID int64, publicSessionID, refreshToken, clientID, remoteAddr string, device models.Device) error
 	UpdateSession(publicSessionID, refreshToken, remoteAddr string) error
+	DeleteSession(userID int64, publicSessionID string) error
 	GetListActiveSessions(userID int64) ([]models.Session, error)
 }
 

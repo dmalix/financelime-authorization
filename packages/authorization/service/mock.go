@@ -24,7 +24,6 @@ type MockDescription struct {
 	repository repository.MockDescription
 }
 
-//noinspection GoSnakeCaseUsage
 var MockData MockDescription
 
 func (s *MockDescription) SignUp(email, language, inviteCode, remoteAddr string) error {
@@ -56,4 +55,8 @@ func (s *MockDescription) GetListActiveSessions(encryptedUserData []byte) ([]mod
 
 func (s *MockDescription) RefreshAccessToken(refreshToken, remoteAddr string) (string, string, string, error) {
 	return "sessionID", "accessToken", "refreshToken", MockData.Expected.Error
+}
+
+func (s *MockDescription) RevokeRefreshToken(encryptedUserData []byte, publicSessionID string) error {
+	return MockData.Expected.Error
 }

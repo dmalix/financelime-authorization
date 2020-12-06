@@ -7,6 +7,7 @@
 - Request Access Token
 - Get a list of Active Sessions
 - Refresh Access Token
+- Revoke Refresh Token
 
 **Changes:**
 - Add error labels.

@@ -95,7 +95,9 @@ func (m *Middleware) Authorization(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(r.Context(), api.ContextEncryptedUserData, jwtData.Payload.UserData)
+		ctx = r.Context()
+		ctx = context.WithValue(ctx, api.ContextPublicSessionID, jwtData.Payload.PublicSessionID)
+		ctx = context.WithValue(ctx, api.ContextEncryptedUserData, jwtData.Payload.UserData)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

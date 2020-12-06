@@ -19,6 +19,8 @@ func NewHandler(service authorization.Service) *Handler {
 }
 
 const (
+	ContextPublicSessionID     = "publicSessionID"
 	ContextEncryptedUserData   = "encryptedUserData"
 	ContentTypeApplicationJson = "application/json;charset=utf-8"
+	ContentTypeTextPlain       = "text/plain;charset=utf-8"
 )

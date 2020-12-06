@@ -6,12 +6,13 @@
 - [3. System commands](#3-0)
     - [3.1. Get the current version of the service](#3-1) 
 - [4. Authorization](#4-0)
-    - [4.1. Sign up](#4-1)
+    - [4.1. Sign Up](#4-1)
     - [4.2. Confirm User Email](#4-2)
     - ...
-    - [4.5. Request Access Token](#4-5)
-    - [4.6. Refresh Access Token](#4-6)
-    - [4.8. Get a list of active sessions](#4-8)
+    - [4.5. Request Access Token (Domain Action: Log In)](#4-5)
+    - [4.6. Refresh Access Token (Domain Action: Renew Authorization)](#4-6)
+    - [4.7. Revoke Refresh Token (Domain Action: Log Out)](#4-7)
+    - [4.8. Get a list of Active Sessions](#4-8)
     
 ---
 <a name="1-0"></a>
@@ -210,7 +211,7 @@ STATUS_CODE        | Description
 `404 Not Found`    | Link not found
 
 <a name="4-5"></a>
-### 4.5. Request Access Token 
+### 4.5. Request Access Token (Domain Action: Log In)
 
 - Method: `POST` 
 - Endpoint:  `/v1/oauth/token`
@@ -282,7 +283,7 @@ Status Code        | Description
 ```
 
 <a name="4-6"></a>
-### 4.6. Refresh Access Token
+### 4.6. Refresh Access Token (Domain Action: Renew Authorization)
 
 - Method: `PUT` 
 - Endpoint:  `/v1/oauth/token`
@@ -327,8 +328,7 @@ Status Code        | Description
 -------------------|----------------
 200 OK             | API successfully processed the request, returned JWT tokens
 401 Bad Request    | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
-403 Forbidden      | Invalid or expired refresh token 
-404 Not Found      | Account not found or deleted 
+404 Not Found      | Invalid or expired `Refresh Token` or an account not found or deleted  
 
 #### Response Body
 
@@ -339,6 +339,47 @@ Status Code        | Description
    "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJpZCI6IjE2ZDdkYjUzNzI0N2VhZjExM2Y0YzhhZDU5ZTlhMmE1ODljZTdjYWY2MTM1YmNkN2JmZWMwYjUyNWFmNDhhMmEiLCJpYXQiOjE1OTY4MzUzOTl9.b88345d361482865f1a7af533d41d66e922dcca4c76c2d4b1fcfa65616679471"
 }
 ```
+
+<a name="4-7"></a>
+### 4.7. Revoke Refresh Token (Domain Action: Log Out)
+
+This request revoke the `Refresh Token` associated with the specified session. Thus, when the `Access Token` expires, it cannot be renewed. And only after that, the user will be log out. Be aware that this query is idempotent.
+
+- Method: `DELETE` 
+- Endpoint:  `/v1/oauth/sessions`
+
+#### Параметры:
+
+Name         | Type   | Description
+-------------|--------|------------
+`sessionID`    | `string` | Here you need to specify the `sessionID`, the `refresh token` of which you want to cancel. If no `sessionID` is specified, then the current session `refresh token` will be canceled. 
+
+#### cURL Example
+```
+curl -i -X DELETE \
+-H "content-type:application/json;charset=utf-8" \
+-H "request-id:K7800-H7625-Z5852-N1693-K1972" \
+-H "authorization:bearer ACCESS_TOKEN" \
+-d '{"sessionID":"870bd06be766720b7348f6baf946355b71d23401978f7199b8437f52377f62e1"}' \
+"https://api.auth.financelime.com/v1/oauth/sessions"
+```
+#### Request Headers
+```
+content-type: application/json;charset=utf-8
+request-id: REQUEST_ID
+authorization: ACCESS_TOKEN
+```
+#### Response Headers
+```
+status: STATUS_CODE
+content-type: text/plain; charset=utf-8
+```
+##### Status Code
+
+Status Code        | Description
+-------------------|----------------
+204 No Content     | API successfully processed the request
+401 Bad Request    | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
 
 <a name="4-8"></a>
 ### 4.8. Get a list of active sessions

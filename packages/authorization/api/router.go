@@ -35,8 +35,9 @@ func Router(mux *http.ServeMux, service authorization.Service, middleware author
 
 	mux.Handle("/v1/oauth/sessions",
 		router.Group(
-			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.GetListActiveSessions()}),
-			//router.EndPoint(router.Point{Method: http.MethodDelete, Handler: handler.RemoveSession()}),
+			router.EndPoint(
+				router.Point{Method: http.MethodGet, Handler: handler.GetListActiveSessions()},
+				router.Point{Method: http.MethodDelete, Handler: handler.RevokeRefreshToken()}),
 			middleware.Authorization,
 			middleware.RequestID,
 		))

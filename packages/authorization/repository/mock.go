@@ -52,3 +52,7 @@ func (repo *MockDescription) GetUserByRefreshToken(RefreshToken string) (models.
 	var user models.User
 	return user, MockData.Expected.Error
 }
+
+func (s *MockDescription) DeleteSession(userID int64, publicSessionID string) error {
+	return MockData.Expected.Error
+}

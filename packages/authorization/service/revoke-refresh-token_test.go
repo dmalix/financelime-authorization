@@ -13,9 +13,7 @@ import (
 	"testing"
 )
 
-func TestGetListActiveSessions(t *testing.T) {
-
-	var encryptedUserData []byte
+func TestRevokeRefreshToken(t *testing.T) {
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -60,10 +58,10 @@ func TestGetListActiveSessions(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	_, err = newService.GetListActiveSessions(encryptedUserData)
+	err = newService.RevokeRefreshToken([]byte("encryptedUserData"), "publicSessionID")
 
 	if err != nil {
-		t.Errorf("service returned wrong err value: got %v want %v",
+		t.Errorf("service returned wrong the err value: got %v want %v",
 			err, nil)
 	}
 }

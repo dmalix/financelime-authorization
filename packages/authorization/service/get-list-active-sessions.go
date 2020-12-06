@@ -32,6 +32,7 @@ func (s *Service) GetListActiveSessions(encryptedUserData []byte) ([]models.Sess
 
 	decryptedUserData, err = s.cryptographer.Decrypt(encryptedUserData)
 	if err != nil {
+		errLabel = "S3RH19AZ"
 		return sessions,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				errLabel,

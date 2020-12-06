@@ -1,5 +1,9 @@
 package cryptographer
 
+import (
+	"encoding/json"
+)
+
 type MockDescription struct {
 	Props    struct{}
 	Expected struct {
@@ -15,5 +19,9 @@ func (s *MockDescription) Encrypt(data []byte) ([]byte, error) {
 }
 
 func (s *MockDescription) Decrypt(data []byte) ([]byte, error) {
-	return nil, MockData.Expected.Error
+	result := map[string]interface{}{
+		"test_data": "test_data",
+	}
+	bytesRepresentation, _ := json.Marshal(result)
+	return bytesRepresentation, MockData.Expected.Error
 }
