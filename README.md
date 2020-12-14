@@ -185,12 +185,12 @@ DOMAIN_ERROR_CODE | Description
 - Method: `GET` 
 - Endpoint:  `/u/LINK_KEY`
 
-#### Параметры:
+#### Parameters:
 Name        | Type       | Description
 ------------|------------|------------
 `LINK_KEY`    | string     | confirmation key
 
-#### Ответ:
+#### Response:
 API returns HTML-page with a message (success or error).
 
 #### cURL Example
@@ -216,7 +216,7 @@ STATUS_CODE        | Description
 - Method: `POST` 
 - Endpoint:  `/v1/oauth/token`
 
-#### Параметры:
+#### Parameters:
 
 Name        | Type   | Description
 ------------|--------|------------
@@ -236,7 +236,7 @@ Name        | Type
 `timezone`    | string 
 
 
-#### Ответ
+#### Response
 The request will return an object with three attributes:
 
 Name            | Type     | Description
@@ -288,13 +288,13 @@ Status Code        | Description
 - Method: `PUT` 
 - Endpoint:  `/v1/oauth/token`
 
-#### Параметры:
+#### Parameters:
 
 Name            | Type   | Description
 ----------------|--------|------------
 refreshToken    | string | Refresh Token
 
-#### Ответ
+#### Response
 The request will return an object with three attributes:
 
 Name            | Type     | Description
@@ -348,7 +348,7 @@ This request revoke the `Refresh Token` associated with the specified session. T
 - Method: `DELETE` 
 - Endpoint:  `/v1/oauth/sessions`
 
-#### Параметры:
+#### Parameters:
 
 Name         | Type   | Description
 -------------|--------|------------
