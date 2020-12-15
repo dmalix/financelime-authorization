@@ -8,6 +8,7 @@
 - [4. Authorization](#4-0)
     - [4.1. Sign Up](#4-1)
     - [4.2. Confirm User Email](#4-2)
+    - [4.3. Request User Password reset](#4-3)
     - ...
     - [4.5. Request Access Token (Domain Action: Log In)](#4-5)
     - [4.6. Refresh Access Token (Domain Action: Renew Authorization)](#4-6)
@@ -209,6 +210,46 @@ STATUS_CODE        | Description
 -------------------|----------------
 `200 Ok`           | API returns HTML-page with a message
 `404 Not Found`    | Link not found
+
+<a name="4-3"></a>
+### 4.3. Request User Password reset 
+
+- Method: `POST` 
+- Endpoint:  `/v1/resetpassword`
+
+#### Параметры:
+Name        | Type   | Description
+------------|--------|------------
+email       | string | User Email
+
+#### Ответ:
+The service sends a confirmation link to the specified email.
+After confirmation, the service will send a new password for authorization.
+
+#### cURL Example
+```
+curl -i -X POST \
+-H "content-type:application/json;charset=utf-8" \
+-H "request-id:K7800-H7625-Z5852-N1693-K1972" \
+-d '{"email":"testuser@financelime.com"}' \
+"https://api.auth.financelime.com/v1/resetpassword"
+```
+#### Request Headers
+```
+content-type: application/json;charset=utf-8
+request-id: REQUEST_ID
+```
+#### Response Headers
+```
+status: STATUS_CODE
+```
+##### Status Code
+
+STATUS_CODE        | Description
+-------------------|----------------
+`204 Not Content`  | The API has successfully processed the request and the service sends a confirmation link to the specified email
+`400 Bad Request`  | The API did not accept the request because headers or parameters did not pass validation (detail in API logs)
+`404 Not Found`    | User not found
 
 <a name="4-5"></a>
 ### 4.5. Request Access Token (Domain Action: Log In)

@@ -8,6 +8,7 @@
 - Get a list of Active Sessions
 - Refresh Access Token
 - Revoke Refresh Token
+- Request User Password reset
 
 **Changes:**
 - Add error labels.

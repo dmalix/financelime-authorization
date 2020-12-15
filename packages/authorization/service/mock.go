@@ -60,3 +60,7 @@ func (s *MockDescription) RefreshAccessToken(refreshToken, remoteAddr string) (s
 func (s *MockDescription) RevokeRefreshToken(encryptedUserData []byte, publicSessionID string) error {
 	return MockData.Expected.Error
 }
+
+func (s *MockDescription) RequestUserPasswordReset(email string, remoteAddr string) error {
+	return MockData.Expected.Error
+}

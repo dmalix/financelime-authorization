@@ -25,6 +25,12 @@ func Router(mux *http.ServeMux, service authorization.Service, middleware author
 			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.ConfirmUserEmail()}),
 		))
 
+	mux.Handle("/v1/resetpassword",
+		router.Group(
+			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.RequestUserPasswordReset()}),
+			middleware.RequestID,
+		))
+
 	mux.Handle("/v1/oauth/token",
 		router.Group(
 			router.EndPoint(
@@ -41,5 +47,4 @@ func Router(mux *http.ServeMux, service authorization.Service, middleware author
 			middleware.Authorization,
 			middleware.RequestID,
 		))
-
 }
