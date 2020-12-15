@@ -98,7 +98,7 @@ func (h *Handler) RequestUserPasswordReset() http.Handler {
 				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
 				w.Header().Add("error-label", errLabel)
 				w.Header().Add("domain-error-code", domainErrorCode)
-				http.Error(w, "409 Conflict", http.StatusConflict)
+				http.Error(w, "404 Not Found", http.StatusNotFound)
 				return
 			default:
 				errLabel = "eaPav8uu"
