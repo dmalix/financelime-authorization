@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 	"net"
 	"regexp"
@@ -44,7 +45,6 @@ func (r *Repository) RequestUserPasswordReset(email, remoteAddr, confirmationKey
 		remoteAddrSource net.IP
 		confirmationID   int64
 		err              error
-		errLabel         string
 	)
 
 	// Check props
@@ -88,17 +88,15 @@ func (r *Repository) RequestUserPasswordReset(email, remoteAddr, confirmationKey
 
 	dbRows, err = r.dbAuthRead.Query(query, email)
 	if err != nil {
-		errLabel = "FiCuhv2g"
 		return user,
-			errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	for dbRows.Next() {
 		err = dbRows.Scan(&user.ID, &user.Email, &user.Language)
 		if err != nil {
-			errLabel = "RzZHe52q"
 			return user,
-				errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 
 		}
 	}
@@ -121,9 +119,8 @@ func (r *Repository) RequestUserPasswordReset(email, remoteAddr, confirmationKey
 			email, user.Language, confirmationKey, remoteAddr).
 			Scan(&confirmationID)
 	if err != nil {
-		errLabel = "d8A6m3WF"
 		return user,
-			errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	return user, nil

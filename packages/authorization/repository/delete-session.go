@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 )
 
@@ -15,8 +16,7 @@ import (
 func (r *Repository) DeleteSession(userID int64, publicSessionID string) error {
 
 	var (
-		err      error
-		errLabel string
+		err error
 	)
 
 	_, err =
@@ -27,8 +27,7 @@ func (r *Repository) DeleteSession(userID int64, publicSessionID string) error {
 					"session".public_id = $2`,
 			userID, html.EscapeString(publicSessionID))
 	if err != nil {
-		errLabel = "3R19ASHZ"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	return nil

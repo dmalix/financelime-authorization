@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"net"
 )
 
@@ -22,7 +23,6 @@ func (r *Repository) UpdateSession(publicSessionID, refreshToken, remoteAddr str
 
 	var (
 		err                error
-		errLabel           string
 		remoteAddrSource   net.IP
 		hashedRefreshToken string
 		result             string
@@ -40,8 +40,7 @@ func (r *Repository) UpdateSession(publicSessionID, refreshToken, remoteAddr str
 		refreshToken +
 			r.config.CryptoSalt))
 	if err != nil {
-		errLabel = "Eeph6tho"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	hashedRefreshToken = hex.EncodeToString(hs.Sum(nil))
@@ -59,8 +58,7 @@ func (r *Repository) UpdateSession(publicSessionID, refreshToken, remoteAddr str
 			RETURNING "session".public_id`,
 			remoteAddr, hashedRefreshToken, publicSessionID, hashedRefreshToken).Scan(&result)
 	if err != nil {
-		errLabel = "7AftRtCS"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	if len(result) == 0 {

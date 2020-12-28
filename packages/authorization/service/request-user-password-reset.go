@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/utils/random"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"net/mail"
 	"strings"
 )
@@ -27,7 +28,6 @@ func (s *Service) RequestUserPasswordReset(email, remoteAddr string) error {
 	var (
 		confirmationKey string
 		err             error
-		errLabel        string
 		user            models.User
 	)
 
@@ -48,9 +48,8 @@ func (s *Service) RequestUserPasswordReset(email, remoteAddr string) error {
 				"a user with the email you specified already exists",
 				err))
 		default:
-			errLabel = "ahXah3qu"
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"a system error was returned",
 				err))
 		}
@@ -68,9 +67,8 @@ func (s *Service) RequestUserPasswordReset(email, remoteAddr string) error {
 			confirmationKey,
 			fmt.Sprintf("%s.%s", "reset-password", s.config.DomainAPI)))
 	if err != nil {
-		errLabel = "bXfCCWk2"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to send message to the user",
 			err))
 	}

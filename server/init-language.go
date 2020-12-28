@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"io/ioutil"
 	"os"
 )
@@ -31,7 +32,7 @@ func initLanguageContent() (models.LanguageContent, error) {
 	if err != nil {
 		return languageContent,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"bHY3kazX",
+				trace.GetCurrentPoint(),
 				"Failed to read the content.json file",
 				err))
 	}
@@ -40,7 +41,7 @@ func initLanguageContent() (models.LanguageContent, error) {
 	if err != nil {
 		return languageContent,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"zY3XbHka",
+				trace.GetCurrentPoint(),
 				"Failed to convert the content.json file",
 				err))
 	}

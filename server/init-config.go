@@ -7,6 +7,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"net/mail"
 	"os"
 	"strconv"
@@ -77,14 +78,14 @@ func initConfig() (cfg, error) {
 	config.domain.app = os.Getenv("DOMAIN_APP")
 	if len(config.domain.app) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
-			"sd1Co8m0",
+			trace.GetCurrentPoint(),
 			"The DOMAIN_APP environment variable has empty value"))
 	}
 
 	config.domain.api = os.Getenv("DOMAIN_API")
 	if len(config.domain.api) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
-			"sd1Co8m0",
+			trace.GetCurrentPoint(),
 			"The DOMAIN_API environment variable has empty value"))
 	}
 
@@ -94,7 +95,7 @@ func initConfig() (cfg, error) {
 	config.http.port = os.Getenv("HTTP_SERVER_PORT")
 	if len(config.http.port) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
-			"o8sdm1C0",
+			trace.GetCurrentPoint(),
 			"The HTTP_SERVER_PORT environment variable has empty value"))
 	}
 
@@ -104,7 +105,7 @@ func initConfig() (cfg, error) {
 	config.auth.inviteCodeRequired, err = strconv.ParseBool(os.Getenv("AUTH_INVITE_CODE_REQUIRED"))
 	if err != nil {
 		return config, errors.New(fmt.Sprintf("%s: %s [%s]",
-			"8sdm1oC0",
+			trace.GetCurrentPoint(),
 			"The AUTH_INVITE_CODE_REQUIRED environment variable has no boolean value",
 			err.Error()))
 	}
@@ -122,7 +123,7 @@ func initConfig() (cfg, error) {
 		len(config.db.authMain.connect.sslMode) == 0 || len(config.db.authMain.connect.dbName) == 0 ||
 		len(config.db.authMain.connect.user) == 0 || len(config.db.authMain.connect.password) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
-			"HY3kabzX",
+			trace.GetCurrentPoint(),
 			"One or more environment variables are null [DB_AUTH_MAIN_CONNECT_*]"))
 	}
 
@@ -136,7 +137,7 @@ func initConfig() (cfg, error) {
 		len(config.db.authRead.connect.sslMode) == 0 || len(config.db.authRead.connect.dbName) == 0 ||
 		len(config.db.authRead.connect.user) == 0 || len(config.db.authRead.connect.password) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
-			"Y3kabHzX",
+			trace.GetCurrentPoint(),
 			"One or more environment variables are null [DB_AUTH_READ_CONNECT_*]"))
 	}
 
@@ -157,7 +158,7 @@ func initConfig() (cfg, error) {
 		len(config.db.blade.connect.sslMode) == 0 || len(config.db.blade.connect.dbName) == 0 ||
 		len(config.db.blade.connect.user) == 0 || len(config.db.blade.connect.password) == 0 {
 		return config, errors.New(fmt.Sprintf("%s: %s",
-			"zY3kabHX",
+			trace.GetCurrentPoint(),
 			"One or more environment variables are null [DB_AUTH_BLADE_CONNECT_*]"))
 	}
 
@@ -193,14 +194,14 @@ func initConfig() (cfg, error) {
 	config.jwt.accessTokenLifetime, err = strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_LIFETIME"))
 	if err != nil {
 		return config, errors.New(fmt.Sprintf("%s: %s [%s]",
-			"1oC8sdm0",
+			trace.GetCurrentPoint(),
 			"The JWT_ACCESS_TOKEN_LIFETIME environment variable has no integer type",
 			err.Error()))
 	}
 	config.jwt.refreshTokenLifetime, err = strconv.Atoi(os.Getenv("JWT_REFRESH_TOKEN_LIFETIME"))
 	if err != nil {
 		return config, errors.New(fmt.Sprintf("%s: %s [%s]",
-			"s1oC8dm0",
+			trace.GetCurrentPoint(),
 			"The JWT_REFRESH_TOKEN_LIFETIME environment variable has no integer type",
 			err.Error()))
 	}

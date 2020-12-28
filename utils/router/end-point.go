@@ -7,6 +7,7 @@ package router
 import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"net/http"
 )
@@ -33,21 +34,17 @@ func EndPoint(points ...Point) http.Handler {
 		}
 
 		if result != true {
-			errLabel := "226Pi8rl"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Methods Not Allowed [%s]",
 					responder.Message(r)))
-			w.Header().Add("error-label", errLabel)
 			http.Error(w, "405 Methods Not Allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
 		if handler == nil {
-			label := "bq31WdVJ"
-			log.Printf("FATAL [%s: %s]", label,
+			log.Printf("FATAL [%s: %s]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Handler Not Found [%s]",
 					responder.Message(r)))
-			w.Header().Add("error-label", label)
 			http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 			return
 		}

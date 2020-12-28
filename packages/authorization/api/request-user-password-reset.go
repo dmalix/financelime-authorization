@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,51 +30,42 @@ func (h *Handler) RequestUserPasswordReset() http.Handler {
 			contentType     string
 			remoteAddr      string
 			err             error
-			errLabel        string
 			domainErrorCode string
 			errorMessage    string
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			errLabel = "ohGh6zut"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			errLabel = "Loh2Aec1"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
 		err = r.Body.Close()
 		if err != nil {
-			errLabel = "quioYoo4"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 			return
 		}
 
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			errLabel = "ohbie0Ai"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
@@ -88,22 +80,16 @@ func (h *Handler) RequestUserPasswordReset() http.Handler {
 			errorMessage = "Failed to request a user password reset."
 			switch domainErrorCode {
 			case "PROPS": // one or more of the input parameters are invalid
-				errLabel = "OhyieD0a"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "400 Bad Request", http.StatusBadRequest)
 				return
 			case "USER_NOT_FOUND": // a user with the email specified not found
-				errLabel = "ioPhoo9c"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "404 Not Found", http.StatusNotFound)
 				return
 			default:
-				errLabel = "eaPav8uu"
-				log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 				return
 			}

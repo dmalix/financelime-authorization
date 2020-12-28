@@ -6,6 +6,7 @@ package api
 
 import (
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"github.com/dmalix/financelime-authorization/utils/url"
 	"log"
 	"net/http"
@@ -23,16 +24,13 @@ func (h *Handler) ConfirmUserEmail() http.Handler {
 			statusCode      int
 			contentType     string
 			err             error
-			errLabel        string
 			domainErrorCode string
 			errorMessage    string
 		)
 
 		confirmationKey, err = url.GetPathValue(r.URL.Path, 1)
 		if err != nil {
-			errLabel = "LVjInpo5"
-			log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "404 Not Found", http.StatusNotFound)
 			return
 		}
@@ -43,15 +41,11 @@ func (h *Handler) ConfirmUserEmail() http.Handler {
 			errorMessage = "failed to confirm user email"
 			switch domainErrorCode {
 			case "CONFIRMATION_KEY_NOT_VALID": // the confirmation key not valid
-				errLabel = "C2V0NqJm"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "404 Not Found", http.StatusNotFound)
 				return
 			default:
-				errLabel = "GBQV0Zc1"
-				log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 				return
 			}

@@ -5,14 +5,14 @@ import (
 	"crypto/cipher"
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 )
 
 func (c Cipher) Decrypt(data []byte) ([]byte, error) {
 
 	var (
-		err      error
-		errLabel string
-		result   []byte
+		err    error
+		result []byte
 
 		hashedKey   []byte
 		cipherBlock cipher.Block
@@ -23,18 +23,16 @@ func (c Cipher) Decrypt(data []byte) ([]byte, error) {
 	hashedKey = []byte(createHash(c.SecretKey))
 	cipherBlock, err = aes.NewCipher(hashedKey)
 	if err != nil {
-		errLabel = "RFc8sPf6"
 		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to create the new AES cipherBlock",
 			err))
 	}
 
 	cipherGCM, err = cipher.NewGCM(cipherBlock)
 	if err != nil {
-		errLabel = "SqIgjl3X"
 		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to create the new cipherGCM",
 			err))
 	}
@@ -43,9 +41,8 @@ func (c Cipher) Decrypt(data []byte) ([]byte, error) {
 	nonceUse, ciphertext := data[:nonceSize], data[nonceSize:]
 	result, err = cipherGCM.Open(nil, nonceUse, ciphertext, nil)
 	if err != nil {
-		errLabel = "QdBJojn3"
 		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to open decrypts",
 			err))
 	}

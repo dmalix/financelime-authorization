@@ -6,13 +6,13 @@ package main
 
 import (
 	"github.com/dmalix/financelime-authorization/server"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"math/rand"
 	"time"
 )
 
 func init() {
-	//log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetFlags(log.Llongfile)
 	rand.Seed(time.Now().UTC().UnixNano())
 }
@@ -23,10 +23,11 @@ func main() {
 
 	app, err := server.NewApp()
 	if err != nil {
-		log.Fatalf("FATAL [%s: Failed to get a new App [%s]]", "hiaX3GMR", err)
+		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to get a new App", err)
 	}
 
-	if err := app.Run(); err != nil {
-		log.Fatalf("FATAL [%s: Failed to run the App [%s]]", "kxXG0YqR", err)
+	err = app.Run()
+	if err != nil {
+		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to run the App", err)
 	}
 }

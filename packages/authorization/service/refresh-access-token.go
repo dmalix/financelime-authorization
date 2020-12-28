@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"strings"
 )
 
@@ -28,18 +29,14 @@ import (
 func (s *Service) RefreshAccessToken(refreshToken, remoteAddr string) (string, string, string, error) {
 
 	var (
-		err      error
-		errLabel string
-
+		err               error
 		user              models.User
 		sourceUserData    []byte
 		encryptedUserData []byte
-
-		jwtData models.JwtData
-
-		publicSessionID string
-		jwtAccess       string
-		jwtRefresh      string
+		jwtData           models.JwtData
+		publicSessionID   string
+		jwtAccess         string
+		jwtRefresh        string
 	)
 
 	jwtData, err = s.jwt.VerifyToken(refreshToken)
@@ -62,10 +59,9 @@ func (s *Service) RefreshAccessToken(refreshToken, remoteAddr string) (string, s
 					"User is not found",
 					err))
 		default:
-			errLabel = "3o5jREuS"
 			return publicSessionID, jwtAccess, jwtRefresh,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
-					errLabel,
+					trace.GetCurrentPoint(),
 					"A system error was returned",
 					err))
 		}
@@ -75,50 +71,45 @@ func (s *Service) RefreshAccessToken(refreshToken, remoteAddr string) (string, s
 
 	sourceUserData, err = json.Marshal(user)
 	if err != nil {
-		errLabel = "uj53ERoS"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to marshal the user struct",
 				err))
 	}
 
 	encryptedUserData, err = s.cryptographer.Encrypt(sourceUserData)
 	if err != nil {
-		errLabel = "53ERoujS"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to encrypt the user data",
 				err))
 	}
 
 	jwtAccess, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeAccess)
 	if err != nil {
-		errLabel = "Sohth5oo"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to generate an access token (JWT)",
 				err))
 	}
 
 	jwtRefresh, err = s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.PropsPurposeRefresh)
 	if err != nil {
-		errLabel = "Pee4ceik"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to generate an refresh token (JWT)",
 				err))
 	}
 
 	err = s.repository.UpdateSession(publicSessionID, refreshToken, remoteAddr)
 	if err != nil {
-		errLabel = "oH4aidoo"
 		return publicSessionID, jwtAccess, jwtRefresh,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to save the session",
 				err))
 	}

@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"hash"
 	"html"
 	"time"
@@ -26,7 +27,6 @@ func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpos
 		payloadBase64 string
 		valueByte     []byte
 		err           error
-		errLabel      string
 		jwt           string
 		signature     string
 		unsignedToken string
@@ -42,10 +42,9 @@ func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpos
 	jwtData.Headers.SigningAlgorithm = token.SigningAlgorithm
 	valueByte, err = json.Marshal(jwtData.Headers)
 	if err != nil {
-		errLabel = "dAvlTf6k"
 		return jwt,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed convert the jwtData.headers to JSON-format",
 				err))
 	}
@@ -58,10 +57,9 @@ func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpos
 	jwtData.Payload.Subject = token.Subject
 
 	if tokenPurpose != PropsPurposeAccess && tokenPurpose != PropsPurposeRefresh {
-		errLabel = "WLvUyEd3"
 		return jwt,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Invalid the tokenPurpose param",
 				err))
 	}
@@ -78,10 +76,9 @@ func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpos
 
 	valueByte, err = json.Marshal(jwtData.Payload)
 	if err != nil {
-		errLabel = "AIF7ghSm"
 		return jwt,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed convert the jwtData.Payload to JSON-format",
 				err))
 	}
@@ -97,10 +94,9 @@ func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpos
 	case PropsSigningAlgorithmHS512:
 		mac = hmac.New(sha512.New, []byte(token.SecretKey))
 	default:
-		errLabel = "sM4kzS1Z"
 		return jwt,
 			errors.New(fmt.Sprintf("%s:%s",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"invalid algorithm"))
 	}
 

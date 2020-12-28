@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 )
 
 type Config struct {
@@ -25,7 +26,7 @@ func NewPostgreDB(cfg Config) (*sql.DB, error) {
 			cfg.Host, cfg.Port, cfg.SSLMode, cfg.DBName, cfg.User, cfg.Password))
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("%s: %s [%s]",
-			"ShAjgNl8",
+			trace.GetCurrentPoint(),
 			"Failed to open DB connection",
 			err.Error()))
 	}
@@ -33,7 +34,7 @@ func NewPostgreDB(cfg Config) (*sql.DB, error) {
 	err = db.Ping()
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("%s: %s [%s]",
-			"soA0aQ3K",
+			trace.GetCurrentPoint(),
 			"Failed to ping to DB",
 			err.Error()))
 	}

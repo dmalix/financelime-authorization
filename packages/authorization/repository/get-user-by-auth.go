@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"hash"
 )
 
@@ -34,7 +35,6 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 		hs             hash.Hash
 		hashedPassword string
 		err            error
-		errLabel       string
 	)
 
 	// Check Props
@@ -58,7 +58,7 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 	hs = sha256.New()
 	_, err = hs.Write([]byte(password + r.config.CryptoSalt))
 	if err != nil {
-		return user, errors.New(fmt.Sprintf("%s:[%s]", "XAacJE73", err))
+		return user, errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 	hashedPassword = hex.EncodeToString(hs.Sum(nil))
 
@@ -77,17 +77,15 @@ func (r *Repository) GetUserByAuth(email, password string) (models.User, error) 
 
 	dbRows, err = r.dbAuthRead.Query(query, email, hashedPassword)
 	if err != nil {
-		errLabel = "hv2FiCug"
 		return user,
-			errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	for dbRows.Next() {
 		err = dbRows.Scan(&user.ID, &user.Email, &user.Language)
 		if err != nil {
-			errLabel = "ZHe5Rz2q"
 			return user,
-				errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 
 		}
 	}

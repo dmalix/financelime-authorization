@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -37,49 +38,40 @@ func (h *Handler) RefreshAccessToken() http.Handler {
 			contentType     string
 			remoteAddr      string
 			err             error
-			errLabel        string
 			domainErrorCode string
 			errorMessage    string
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			errLabel = "oC7ohCie"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			errLabel = "aiGee8Ei"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 		err = r.Body.Close()
 		if err != nil {
-			errLabel = "Jiek7ooM"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 			return
 		}
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			errLabel = "aiBein9e"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
@@ -95,16 +87,12 @@ func (h *Handler) RefreshAccessToken() http.Handler {
 			errorMessage = "failed to request an access token"
 			switch domainErrorCode {
 			case "INVALID_REFRESH_TOKEN", "USER_NOT_FOUND": // One or more of the input parameters are invalid
-				errLabel = "RtueOfg6"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "404 Not Found", http.StatusNotFound)
 				return
 			default:
-				errLabel = "wCnUTP27"
-				log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 				return
 			}
@@ -112,9 +100,7 @@ func (h *Handler) RefreshAccessToken() http.Handler {
 
 		responseBody, err = json.Marshal(response)
 		if err != nil {
-			errLabel = "vWu8wbXv"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}

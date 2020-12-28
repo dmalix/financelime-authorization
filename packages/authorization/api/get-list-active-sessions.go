@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"net/http"
 )
@@ -22,19 +23,16 @@ func (h *Handler) GetListActiveSessions() http.Handler {
 			statusCode        int
 			contentType       string
 			err               error
-			errLabel          string
 			errorMessage      string
 			encryptedUserData []byte
 			sessions          []models.Session
 		)
 
 		if r.Context().Value(ContextEncryptedUserData) == nil {
-			errLabel = "a7wC583O"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to get Context from the request [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 			return
 		}
 
@@ -42,18 +40,14 @@ func (h *Handler) GetListActiveSessions() http.Handler {
 
 		sessions, err = h.service.GetListActiveSessions(encryptedUserData)
 		if err != nil {
-			errLabel = "8XvWuwbv"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}
 
 		responseBody, err = json.Marshal(sessions)
 		if err != nil {
-			errLabel = "XvWu8wbv"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}

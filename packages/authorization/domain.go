@@ -15,6 +15,16 @@ type APIMiddleware interface {
 	Authorization(next http.Handler) http.Handler
 }
 
+type API interface {
+	SignUp() http.Handler
+	ConfirmUserEmail() http.Handler
+	RequestUserPasswordReset() http.Handler
+	RefreshAccessToken() http.Handler
+	RequestAccessToken() http.Handler
+	GetListActiveSessions() http.Handler
+	RevokeRefreshToken() http.Handler
+}
+
 type Service interface {
 	SignUp(email, language, inviteCode, remoteAddr string) error
 	ConfirmUserEmail(confirmationKey string) (string, error)

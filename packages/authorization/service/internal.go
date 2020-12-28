@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/random"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"hash"
 	"strconv"
 	"time"
@@ -15,7 +16,6 @@ func (s *Service) generatePublicID(privateID int64) (string, error) {
 
 	var (
 		err             error
-		errLabel        string
 		hs              hash.Hash
 		publicSessionID string
 	)
@@ -27,8 +27,7 @@ func (s *Service) generatePublicID(privateID int64) (string, error) {
 			time.Now().String() +
 			s.config.CryptoSalt))
 	if err != nil {
-		errLabel = "7ZHDXTE3"
-		return publicSessionID, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return publicSessionID, errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	publicSessionID = hex.EncodeToString(hs.Sum(nil))

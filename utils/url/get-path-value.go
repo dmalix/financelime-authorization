@@ -7,6 +7,7 @@ package url
 import (
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 	"strings"
 )
@@ -31,10 +32,9 @@ func GetPathValue(url string, valueNumber int) (string, error) {
 	urlValues = strings.SplitN(urlPathRequest, "/", valueNumber+3)
 
 	if len(urlValues) < (valueNumber + 2) {
-		errLabel := "AF1ukVV8"
 		return urlValue,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel, "the value doesn't found", html.EscapeString(url)))
+				trace.GetCurrentPoint(), "the value doesn't found", html.EscapeString(url)))
 	}
 	urlValue = urlValues[1+valueNumber]
 

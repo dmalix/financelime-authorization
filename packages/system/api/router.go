@@ -11,9 +11,7 @@ import (
 	"net/http"
 )
 
-func Router(mux *http.ServeMux, service system.Service, middleware authorization.APIMiddleware) {
-
-	handler := NewHandler(service)
+func Router(mux *http.ServeMux, handler system.API, middleware authorization.APIMiddleware) {
 
 	mux.Handle("/v1/dist",
 		router.Group(

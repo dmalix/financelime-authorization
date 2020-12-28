@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 	"net"
 	"regexp"
@@ -66,7 +67,6 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 		remoteAddrSource        net.IP
 		remoteAddrResult        string
 		err                     error
-		errLabel                string
 	)
 
 	// Check props
@@ -116,16 +116,14 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 
 	dbTransactionAuthMain, err = r.dbAuthMain.Begin()
 	if err != nil {
-		errLabel = "W0wfephh"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 	//noinspection GoUnhandledErrorResult
 	defer dbTransactionAuthMain.Rollback()
 
 	dbTransactionBlade, err = r.dbBlade.Begin()
 	if err != nil {
-		errLabel = "FSvBG7Dr"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 	//noinspection GoUnhandledErrorResult
 	defer dbTransactionBlade.Rollback()
@@ -138,16 +136,14 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 		invite_code,
 		invite_code_issued IN SHARE ROW EXCLUSIVE MODE`)
 	if err != nil {
-		errLabel = "AA21lFGV"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	_, err = dbTransactionBlade.Exec(`
 		LOCK TABLE confirmation_create_new_user,
 		invite_code_reserved IN SHARE ROW EXCLUSIVE MODE`)
 	if err != nil {
-		errLabel = "KThpwB0c"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	if len(props.inviteCode) > 0 {
@@ -172,15 +168,13 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 				LIMIT 1`,
 				props.inviteCode)
 		if err != nil {
-			errLabel = "Chl5xLDp"
-			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 
 		for dbRowsAuthMaster.Next() {
 			err = dbRowsAuthMaster.Scan(&inviteCodeRecord.ID, &inviteCodeRecord.NumberLimit, &inviteCodeRecord.UserID)
 			if err != nil {
-				errLabel = "cWqgt3VB"
-				return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 			}
 		}
 
@@ -208,15 +202,13 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 				AND invite_code.expires_at > NOW( )`,
 				inviteCodeRecord.ID)
 		if err != nil {
-			errLabel = "P4BJAxNp"
-			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 
 		for dbRowsAuthMaster.Next() {
 			err = dbRowsAuthMaster.Scan(&countInviteCodeIssued)
 			if err != nil {
-				errLabel = "qooV4YZa"
-				return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 			}
 		}
 
@@ -235,15 +227,13 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 				AND confirmation_create_new_user.expires_at > NOW( )`,
 				inviteCodeRecord.ID)
 		if err != nil {
-			errLabel = "K8bddqeW"
-			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 
 		for dbRowsBlade.Next() {
 			err = dbRowsBlade.Scan(&countInviteCodeReserved)
-			errLabel = "exm38bTK"
 			if err != nil {
-				return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 			}
 		}
 
@@ -277,15 +267,13 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 			LIMIT 1`,
 			props.email)
 	if err != nil {
-		errLabel = "sKc1YXnv"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	for dbRowsAuthMaster.Next() {
 		err = dbRowsAuthMaster.Scan(&userID)
-		errLabel = "ygw0wRNX"
 		if err != nil {
-			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 	}
 
@@ -302,15 +290,13 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 		LIMIT 1`,
 			props.email)
 	if err != nil {
-		errLabel = "JJkxUbO7"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	for dbRowsBlade.Next() {
 		err = dbRowsBlade.Scan(&confirmationID)
 		if err != nil {
-			errLabel = "f8GLmoWc"
-			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 	}
 
@@ -334,8 +320,7 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 				( NOW( ), $1, $2, $3, $4, NOW( ) + INTERVAL '1440 minute' ) RETURNING "id"`,
 			props.email, props.language, props.confirmationKey, remoteAddrResult).Scan(&confirmationID)
 	if err != nil {
-		errLabel = "tC7ftRAS"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	if len(props.inviteCode) > 0 && !inviteCodesIsRunOut {
@@ -350,8 +335,7 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 					( NOW( ), $1, $2, $3 ) RETURNING "id"`,
 				inviteCodeRecord.ID, props.email, confirmationID).Scan(&inviteCodeReservedID)
 		if err != nil {
-			errLabel = "MANT4no8"
-			return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 	}
 
@@ -360,14 +344,12 @@ func (r *Repository) CreateUser(email, language, inviteCode, remoteAddr, confirm
 
 	err = dbTransactionAuthMain.Commit()
 	if err != nil {
-		errLabel = "dnG1foyV"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	err = dbTransactionBlade.Commit()
 	if err != nil {
-		errLabel = "Dv3qdcSW"
-		return errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	return nil

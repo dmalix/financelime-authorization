@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/random"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"net/mail"
 	"strings"
 )
@@ -30,7 +31,6 @@ func (s *Service) SignUp(email, language, inviteCode, remoteAddr string) error {
 	var (
 		confirmationKey string
 		err             error
-		errLabel        string
 	)
 
 	confirmationKey = random.StringRand(16, 16, true)
@@ -61,9 +61,8 @@ func (s *Service) SignUp(email, language, inviteCode, remoteAddr string) error {
 				err))
 
 		default:
-			errLabel = "4PtDRMCQ"
 			return errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"a system error was returned",
 				err))
 		}
@@ -81,9 +80,8 @@ func (s *Service) SignUp(email, language, inviteCode, remoteAddr string) error {
 			confirmationKey,
 			fmt.Sprintf("%s.%s", "sign-up", s.config.DomainAPI)))
 	if err != nil {
-		errLabel = "XfCCWkb2"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to send message to the user",
 			err))
 	}

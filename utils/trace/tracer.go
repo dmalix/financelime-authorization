@@ -2,14 +2,23 @@
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
-package system
+package trace
 
-import "net/http"
-
-type API interface {
-	Dist() http.Handler
+type GetCurrentLocation interface {
+	GetCurrentLocation() string
 }
 
-type Service interface {
-	Dist() (string, string, error)
+type Config struct {
+	Mod string
+}
+
+type Tracer struct {
+	config Config
+}
+
+func NewTracer(
+	config Config) *Tracer {
+	return &Tracer{
+		config: config,
+	}
 }

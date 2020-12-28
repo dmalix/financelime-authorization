@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"net/mail"
 	"strings"
 )
@@ -25,10 +26,9 @@ import (
 func (s *Service) ConfirmUserEmail(confirmationKey string) (string, error) {
 
 	var (
-		user     models.User
-		err      error
-		errLabel string
-		message  string
+		user    models.User
+		err     error
+		message string
 	)
 
 	user, err = s.repository.ConfirmUserEmail(confirmationKey)
@@ -44,10 +44,9 @@ func (s *Service) ConfirmUserEmail(confirmationKey string) (string, error) {
 					err))
 
 		default:
-			errLabel = "gB7M0bJK"
 			return message,
 				errors.New(fmt.Sprintf("%s:%s[%s]",
-					errLabel,
+					trace.GetCurrentPoint(),
 					"a system error was returned",
 					err))
 		}
@@ -66,10 +65,9 @@ func (s *Service) ConfirmUserEmail(confirmationKey string) (string, error) {
 			fmt.Sprintf("%s.%s", "confirm-user-email", s.config.DomainAPI)))
 
 	if err != nil {
-		errLabel = "XfCCWkb2"
 		return message,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to send message to the user",
 				err))
 	}

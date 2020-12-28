@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 )
 
 /*
@@ -20,36 +21,31 @@ import (
 func (s *Service) RevokeRefreshToken(encryptedUserData []byte, publicSessionID string) error {
 
 	var (
-		err      error
-		errLabel string
-
+		err               error
 		user              models.User
 		decryptedUserData []byte
 	)
 
 	decryptedUserData, err = s.cryptographer.Decrypt(encryptedUserData)
 	if err != nil {
-		errLabel = "1S3RH9AZ"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to decrypt the user data",
 			err))
 	}
 
 	err = json.Unmarshal(decryptedUserData, &user)
 	if err != nil {
-		errLabel = "AZRH9S31"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to unmarshal the decryptedUserData value to struct [%s]",
 			err))
 	}
 
 	err = s.repository.DeleteSession(user.ID, publicSessionID)
 	if err != nil {
-		errLabel = "SAZRH931"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to detele the session [%s]",
 			err))
 	}

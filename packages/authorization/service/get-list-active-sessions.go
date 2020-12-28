@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 )
 
 /*
@@ -24,7 +25,6 @@ func (s *Service) GetListActiveSessions(encryptedUserData []byte) ([]models.Sess
 
 	var (
 		err               error
-		errLabel          string
 		sessions          []models.Session
 		decryptedUserData []byte
 		user              models.User
@@ -32,30 +32,27 @@ func (s *Service) GetListActiveSessions(encryptedUserData []byte) ([]models.Sess
 
 	decryptedUserData, err = s.cryptographer.Decrypt(encryptedUserData)
 	if err != nil {
-		errLabel = "S3RH19AZ"
 		return sessions,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to decrypt the user data",
 				err))
 	}
 
 	err = json.Unmarshal(decryptedUserData, &user)
 	if err != nil {
-		errLabel = "9AZS3RH1"
 		return sessions,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"Failed to unmarshal the decryptedUserData value to struct [%s]",
 				err))
 	}
 
 	sessions, err = s.repository.GetListActiveSessions(user.ID)
 	if err != nil {
-		errLabel = "3RAZSH91"
 		return sessions,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
-				errLabel,
+				trace.GetCurrentPoint(),
 				"a system error was returned",
 				err))
 	}

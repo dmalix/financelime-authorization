@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,7 +30,6 @@ func (h *Handler) RevokeRefreshToken() http.Handler {
 			statusCode        int
 			contentType       string
 			err               error
-			errLabel          string
 			errorMessage      string
 			body              []byte
 			publicSessionID   string
@@ -38,53 +38,43 @@ func (h *Handler) RevokeRefreshToken() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			errLabel = "826Pi2rl"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			errLabel = "8w5a7C3O"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 		err = r.Body.Close()
 		if err != nil {
-			errLabel = "7C8w5a3O"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 			return
 		}
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			errLabel = "F0jlgeit"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
 		if r.Context().Value(ContextEncryptedUserData) == nil {
-			errLabel = "wC83a75O"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to get ContextEncryptedUserData from the request [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 			return
 		}
 
@@ -92,12 +82,10 @@ func (h *Handler) RevokeRefreshToken() http.Handler {
 
 		if len(props.PublicSessionID) == 0 {
 			if r.Context().Value(ContextPublicSessionID) == nil {
-				errLabel = "83a75wCO"
-				log.Printf("ERROR [%s: %s [%s]]", errLabel,
+				log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 					fmt.Sprintf("Failed to get ContextPublicSessionID from the request [%s]", responder.Message(r)),
 					err)
-				w.Header().Add("error-label", errLabel)
-				http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 				return
 			}
 			publicSessionID = r.Context().Value(ContextPublicSessionID).(string)
@@ -107,18 +95,14 @@ func (h *Handler) RevokeRefreshToken() http.Handler {
 
 		err = h.service.RevokeRefreshToken(encryptedUserData, publicSessionID)
 		if err != nil {
-			errLabel = "vWbuw8Xv"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}
 
 		responseBody, err = json.Marshal(sessions)
 		if err != nil {
-			errLabel = "8wbXvWuv"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}

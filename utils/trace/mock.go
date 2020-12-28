@@ -2,14 +2,15 @@
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
-package system
+package trace
 
-import "net/http"
-
-type API interface {
-	Dist() http.Handler
+type MockDescription struct {
+	Props    struct{}
+	Expected struct {
+		Error error
+	}
 }
 
-type Service interface {
-	Dist() (string, string, error)
+func (s *MockDescription) GetCurrentLocation() string {
+	return "value"
 }

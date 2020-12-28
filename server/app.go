@@ -21,6 +21,7 @@ import (
 	"github.com/dmalix/financelime-authorization/utils/cryptographer"
 	"github.com/dmalix/financelime-authorization/utils/email"
 	"github.com/dmalix/financelime-authorization/utils/jwt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"net/http"
 	"os"
@@ -36,17 +37,15 @@ var (
 	compiler  = "unset"
 )
 
-type emailSenderDaemon interface {
-	Run()
-}
-
 type App struct {
 	httpPort                   string
-	emailMessageSenderDaemon   emailSenderDaemon
+	emailMessageSenderDaemon   email.EmailSenderDaemon
 	httpServer                 *http.Server
 	authorizationAPIMiddleware packageAuthorization.APIMiddleware
 	authorizationService       packageAuthorization.Service
+	authorizationAPI           packageAuthorization.API
 	systemService              packageSystem.Service
+	systemAPI                  packageSystem.API
 }
 
 func NewApp() (*App, error) {
@@ -69,7 +68,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"1oC8sdm0",
+				trace.GetCurrentPoint(),
 				"Configuration initialization error",
 				err.Error()))
 	}
@@ -77,8 +76,8 @@ func NewApp() (*App, error) {
 	languageContent, err = initLanguageContent()
 	if err != nil {
 		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"d1oC8sm0",
+			errors.New(fmt.Sprintf("%s %s [%s]",
+				trace.GetCurrentPoint(),
 				"Error initializing language content",
 				err.Error()))
 	}
@@ -97,7 +96,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"Xp0kMb0D",
+				trace.GetCurrentPoint(),
 				"Failed to init the AuthMain DB",
 				err.Error()))
 	}
@@ -113,7 +112,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"tqNC8euP",
+				trace.GetCurrentPoint(),
 				"Failed to init the AuthRead DB",
 				err.Error()))
 	}
@@ -129,7 +128,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"kACb3m8t",
+				trace.GetCurrentPoint(),
 				"Failed to init the Blade DB",
 				err.Error()))
 	}
@@ -141,7 +140,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"sd1oC8m0",
+				trace.GetCurrentPoint(),
 				"Failed to migrate the AuthMain DB",
 				err.Error()))
 	}
@@ -153,7 +152,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return app,
 			errors.New(fmt.Sprintf("%s: %s [%s]",
-				"uzFsIl4o",
+				trace.GetCurrentPoint(),
 				"Failed to migrate the Blade DB",
 				err.Error()))
 	}
@@ -226,6 +225,9 @@ func NewApp() (*App, error) {
 		cryptoManager,
 		jwtManager)
 
+	authorizationAPI := packageAuthorizationAPI.NewHandler(
+		authorizationService)
+
 	// System
 	// --------------
 
@@ -235,6 +237,9 @@ func NewApp() (*App, error) {
 		commit,
 		compiler)
 
+	systemAPI := packageSystemAPI.NewHandler(
+		systemService)
+
 	// Implementation of prepared objects into the REST-API application
 	// ----------------------------------------------------------------
 
@@ -243,7 +248,9 @@ func NewApp() (*App, error) {
 		emailMessageSenderDaemon:   emailMessageSenderDaemon,
 		authorizationAPIMiddleware: authorizationAPIMiddleware,
 		authorizationService:       authorizationService,
+		authorizationAPI:           authorizationAPI,
 		systemService:              systemService,
+		systemAPI:                  systemAPI,
 	}
 
 	return app, nil
@@ -261,8 +268,8 @@ func (app *App) Run() error {
 
 	mux := http.NewServeMux()
 
-	packageAuthorizationAPI.Router(mux, app.authorizationService, app.authorizationAPIMiddleware)
-	packageSystemAPI.Router(mux, app.systemService, app.authorizationAPIMiddleware)
+	packageAuthorizationAPI.Router(mux, app.authorizationAPI, app.authorizationAPIMiddleware)
+	packageSystemAPI.Router(mux, app.systemAPI, app.authorizationAPIMiddleware)
 
 	app.httpServer = &http.Server{
 		Addr:           ":" + app.httpPort,
@@ -274,7 +281,7 @@ func (app *App) Run() error {
 
 	go func() {
 		if err := app.httpServer.ListenAndServe(); err != nil {
-			log.Fatalf("FATAL [D49VshMa: Failed to listen and serve: [%v]]", err)
+			log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to listen and serve", err)
 		}
 	}()
 
@@ -287,16 +294,16 @@ func (app *App) Run() error {
 	killSignal := <-interrupt
 	switch killSignal {
 	case os.Interrupt:
-		log.Print("Got SIGINT...")
+		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Got SIGINT...")
 	case syscall.SIGTERM:
-		log.Print("Got SIGTERM...")
+		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Got SIGTERM...")
 	}
-	log.Print("The service is shutting down...")
+	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "The service is shutting down...")
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdown()
 	err := app.httpServer.Shutdown(ctx)
-	if err != nil {
-		log.Print("Done")
+	if err == nil {
+		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Done")
 	}
 
 	return err

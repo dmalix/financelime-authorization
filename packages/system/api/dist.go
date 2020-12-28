@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"net/http"
 )
@@ -20,7 +21,6 @@ func (handler *Handler) Dist() http.Handler {
 			statusCode   int
 			contentType  string
 			err          error
-			errLabel     string
 			errorMessage string
 			dist         models.Dist
 			distJSON     []byte
@@ -29,9 +29,7 @@ func (handler *Handler) Dist() http.Handler {
 		dist.Version, dist.Build, err = handler.service.Dist()
 		if err != nil {
 			errorMessage = "failed to get Dist"
-			errLabel = "3YlJekHc"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}
@@ -39,9 +37,7 @@ func (handler *Handler) Dist() http.Handler {
 		distJSON, err = json.Marshal(&dist)
 		if err != nil {
 			errorMessage = "failed to convert the dist data to JSON-format"
-			errLabel = "Je3YlkHc"
-			log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-			w.Header().Add("error-label", errLabel)
+			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 			return
 		}

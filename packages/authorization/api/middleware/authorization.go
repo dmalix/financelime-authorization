@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
 	"github.com/dmalix/financelime-authorization/packages/authorization/api"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 	"log"
 	"net/http"
@@ -19,7 +20,6 @@ func (m *Middleware) Authorization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
-			errLabel      string
 			err           error
 			authorization string
 			jwtTokenArr   []string
@@ -31,14 +31,12 @@ func (m *Middleware) Authorization(next http.Handler) http.Handler {
 
 		authorization = r.Header.Get("authorization")
 		if len(authorization) == 0 {
-			errLabel = "NUV9WZfq"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
 				fmt.Sprintf("The 'authorization' header has not founded [%s]",
 					fmt.Sprintf("%s %s",
 						html.EscapeString(r.Method),
 						html.EscapeString(r.URL.Path))))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("401 Unauthorized [%s]", errLabel), http.StatusUnauthorized)
+			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -46,52 +44,44 @@ func (m *Middleware) Authorization(next http.Handler) http.Handler {
 
 		jwtTokenArr = strings.Split(strings.TrimSpace(html.EscapeString(authorization)), " ")
 		if len(jwtTokenArr) != 2 {
-			errLabel = "9ZNUVWfq"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
 				fmt.Sprintf("The 'authorization' header has not founded [%s]",
 					fmt.Sprintf("%s %s",
 						html.EscapeString(r.Method),
 						html.EscapeString(r.URL.Path))))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("401 Unauthorized [%s]", errLabel), http.StatusUnauthorized)
+			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		if strings.ToLower(jwtTokenArr[0]) != "bearer" {
-			errLabel = "u5FCvHqa"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
 				fmt.Sprintf("Invalid JWT-Token [%s]",
 					fmt.Sprintf("%s %s",
 						html.EscapeString(r.Method),
 						html.EscapeString(r.URL.Path))))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("401 Unauthorized [%s]", errLabel), http.StatusUnauthorized)
+			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		jwtData, err = m.jwt.VerifyToken(jwtTokenArr[1])
 		if err != nil {
-			errLabel = "hk7LCW2T"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("%s: %s %s [%s]", "ERROR", trace.GetCurrentPoint(),
 				fmt.Sprintf("Invalid JWT-Token [%s]",
 					fmt.Sprintf("%s %s",
 						html.EscapeString(r.Method),
 						html.EscapeString(r.URL.Path))),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("401 Unauthorized [%s]", errLabel), http.StatusUnauthorized)
+			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		if jwtData.Payload.Purpose != "access" {
-			errLabel = "2vRqSqVa"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
 				fmt.Sprintf("Invalid JWT-Token [%s]",
 					fmt.Sprintf("%s %s",
 						html.EscapeString(r.Method),
 						html.EscapeString(r.URL.Path))))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("401 Unauthorized [%s]", errLabel), http.StatusUnauthorized)
+			http.Error(w, "401 Unauthorized [%s]", http.StatusUnauthorized)
 			return
 		}
 

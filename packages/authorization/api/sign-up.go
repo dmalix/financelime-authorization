@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,49 +33,40 @@ func (h *Handler) SignUp() http.Handler {
 			contentType     string
 			remoteAdrr      string
 			err             error
-			errLabel        string
 			domainErrorCode string
 			errorMessage    string
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != "application/json;charset=utf-8" {
-			errLabel = "26Pi82rl"
-			log.Printf("ERROR [%s: %s]", errLabel,
+			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Header 'content-type:application/json;charset=utf-8' not found [%s]",
 					responder.Message(r)))
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
-			errLabel = "w5a7C38O"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 		err = r.Body.Close()
 		if err != nil {
-			errLabel = "8w5a7C3O"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("500 Internal Server Error [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("500 Internal Server Error"), http.StatusBadRequest)
 			return
 		}
 		err = json.Unmarshal(body, &props)
 		if err != nil {
-			errLabel = "jlgeF0it"
-			log.Printf("ERROR [%s: %s [%s]]", errLabel,
+			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
 				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
 				err)
-			w.Header().Add("error-label", errLabel)
-			http.Error(w, fmt.Sprintf("400 Bad Request [%s]", errLabel), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("400 Bad Request"), http.StatusBadRequest)
 			return
 		}
 
@@ -89,36 +81,26 @@ func (h *Handler) SignUp() http.Handler {
 			errorMessage = "failed to Sign Up"
 			switch domainErrorCode {
 			case "PROPS": // one or more of the input parameters are invalid
-				errLabel = "jInpoLV5"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "400 Bad Request", http.StatusBadRequest)
 				return
 			case "USER_ALREADY_EXIST": // a user with the email you specified already exists
-				errLabel = "5Ig7X4Sv"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
 			case "INVITE_NOT_EXIST_EXPIRED": // the invite code does not exist or is expired
-				errLabel = "61H2IR2f"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
 			case "INVITE_LIMIT": // the limit for issuing this invite code has been exhausted
-				errLabel = "pZ4fgc9k"
-				log.Printf("ERROR [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				w.Header().Add("domain-error-code", domainErrorCode)
 				http.Error(w, "409 Conflict", http.StatusConflict)
 				return
 			default:
-				errLabel = "e3YlkJHc"
-				log.Printf("FATAL [%s:%s[%s]]", errLabel, errorMessage, err)
-				w.Header().Add("error-label", errLabel)
+				log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 				http.Error(w, "500 Server Internal Error", http.StatusInternalServerError)
 				return
 			}

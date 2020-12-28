@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"hash"
 )
 
@@ -33,7 +34,6 @@ func (r *Repository) GetUserByRefreshToken(refreshToken string) (models.User, er
 		hs                 hash.Hash
 		hashedRefreshToken string
 		err                error
-		errLabel           string
 	)
 
 	hs = sha256.New()
@@ -41,8 +41,7 @@ func (r *Repository) GetUserByRefreshToken(refreshToken string) (models.User, er
 		refreshToken +
 			r.config.CryptoSalt))
 	if err != nil {
-		errLabel = "thEeph6o"
-		return user, errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+		return user, errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	hashedRefreshToken = hex.EncodeToString(hs.Sum(nil))
@@ -60,17 +59,15 @@ func (r *Repository) GetUserByRefreshToken(refreshToken string) (models.User, er
 
 	dbRows, err = r.dbAuthRead.Query(query, hashedRefreshToken)
 	if err != nil {
-		errLabel = "iCuhv2Fg"
 		return user,
-			errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	for dbRows.Next() {
 		err = dbRows.Scan(&user.ID, &user.Email, &user.Language)
 		if err != nil {
-			errLabel = "koshae7S"
 			return user,
-				errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 	}
 

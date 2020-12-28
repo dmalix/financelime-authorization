@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	_ "github.com/lib/pq"
 	"io/ioutil"
 )
@@ -23,14 +24,14 @@ func migrate(db *sql.DB, dropFile, createFile, insertFile string) error {
 		body, err = ioutil.ReadFile(dropFile)
 		if err != nil {
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"F1eut9GP",
+				trace.GetCurrentPoint(),
 				"Failed to read the 'drop' file",
 				err.Error()))
 		}
 		_, err = db.Exec(string(body))
 		if err != nil {
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"pPb8wN3J",
+				trace.GetCurrentPoint(),
 				"Failed to complete the request",
 				err.Error()))
 		}
@@ -40,14 +41,14 @@ func migrate(db *sql.DB, dropFile, createFile, insertFile string) error {
 		body, err = ioutil.ReadFile(createFile)
 		if err != nil {
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"VrftP0sD",
+				trace.GetCurrentPoint(),
 				"Failed to read the 'create' file",
 				err.Error()))
 		}
 		_, err = db.Exec(string(body))
 		if err != nil {
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"ktaE1fhC",
+				trace.GetCurrentPoint(),
 				"Failed to complete the request",
 				err.Error()))
 		}
@@ -57,14 +58,14 @@ func migrate(db *sql.DB, dropFile, createFile, insertFile string) error {
 		body, err = ioutil.ReadFile(insertFile)
 		if err != nil {
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"IKKp3jAJ",
+				trace.GetCurrentPoint(),
 				"Failed to read the 'insert' file",
 				err.Error()))
 		}
 		_, err = db.Exec(string(body))
 		if err != nil {
 			return errors.New(fmt.Sprintf("%s: %s [%s]",
-				"mF0TOjBm",
+				trace.GetCurrentPoint(),
 				"Failed to complete the request",
 				err.Error()))
 		}

@@ -9,6 +9,10 @@ import (
 	"net/mail"
 )
 
+type EmailSenderDaemon interface {
+	Run()
+}
+
 type Daemon struct {
 	AuthSMTPUser     string
 	AuthSMTPPassword string

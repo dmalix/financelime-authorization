@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 	"net"
 )
@@ -39,9 +40,8 @@ func (r *Repository) SaveSession(userID int64, publicSessionID, refreshToken, cl
 		refreshToken +
 			r.config.CryptoSalt))
 	if err != nil {
-		errLabel := "6Eephtho"
 		return errors.New(fmt.Sprintf("%s:%s[%s]",
-			errLabel,
+			trace.GetCurrentPoint(),
 			"Failed to generate hash for the Refresh Token",
 			err))
 	}
@@ -56,7 +56,7 @@ func (r *Repository) SaveSession(userID int64, publicSessionID, refreshToken, cl
 			userID, clientID, remoteAddr, publicSessionID, hashedRefreshToken).
 			Scan(&sessionID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%s:[%s]", "kM4BsYfY", err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	err =
@@ -73,7 +73,7 @@ func (r *Repository) SaveSession(userID int64, publicSessionID, refreshToken, cl
 			html.EscapeString(device.UserAgent)).
 			Scan(&deviceID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%s:[%s]", "wU3fcOtz", err))
+		return errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	return nil

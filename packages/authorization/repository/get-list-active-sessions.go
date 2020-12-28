@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/models"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"strconv"
 	"strings"
 )
@@ -27,7 +28,6 @@ func (r *Repository) GetListActiveSessions(userID int64) ([]models.Session, erro
 		sessions []models.Session
 		session  models.Session
 		err      error
-		errLabel string
 	)
 
 	query = strings.Replace(`
@@ -54,9 +54,8 @@ func (r *Repository) GetListActiveSessions(userID int64) ([]models.Session, erro
 	dbRows, err = r.dbAuthRead.Query(query, userID)
 
 	if err != nil {
-		errLabel = "lFAA21GV"
 		return sessions,
-			errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+			errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 	}
 
 	//noinspection GoUnhandledErrorResult
@@ -69,9 +68,8 @@ func (r *Repository) GetListActiveSessions(userID int64) ([]models.Session, erro
 			&session.UpdatedAt,
 		)
 		if err != nil {
-			errLabel = "dqoZZ4fR"
 			return sessions,
-				errors.New(fmt.Sprintf("%s:[%s]", errLabel, err))
+				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 
 		sessions = append(sessions, session)

@@ -6,6 +6,7 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/dmalix/financelime-authorization/utils/trace"
 	"html"
 	"log"
 	"net/http"
@@ -22,7 +23,7 @@ func (m *Middleware) RequestID(next http.Handler) http.Handler {
 		if isRequired {
 			requestID := r.Header.Get("request-id")
 			if len(requestID) == 0 {
-				log.Printf("ERROR [%s: %s]", "UV9WNZfq",
+				log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
 					fmt.Sprintf("The 'request-id' header has not founded [%s]",
 						fmt.Sprintf("%s %s",
 							html.EscapeString(r.Method),
@@ -32,7 +33,7 @@ func (m *Middleware) RequestID(next http.Handler) http.Handler {
 			}
 			if toCheck {
 				if len(requestID) != 29 {
-					log.Printf("ERROR [%s: %s]", "FXZ5Jc1t",
+					log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
 						fmt.Sprintf("The 'request-id' header has an invalid value [%s]",
 							fmt.Sprintf("%s %s %s",
 								html.EscapeString(r.Method),
