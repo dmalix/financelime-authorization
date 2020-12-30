@@ -15,17 +15,29 @@ func GetCurrentPoint() string {
 	const postfix = "-repo"
 	const mod = "github.com/dmalix/financelime-authorization"
 	var location string
+	var fileName string
+	var functionName string
 
 	pc := make([]uintptr, 15)
 	callers := runtime.Callers(2, pc)
 	frames := runtime.CallersFrames(pc[:callers])
-	frame, more := frames.Next()
-	file := strings.Split(frame.File, postfix)
-	function := strings.Split(frame.Function, mod)
-	fmt.Println(function)
+	frame, _ := frames.Next()
 
-	if len(file) != 0 && len(function) != 0 && more != false {
-		location = fmt.Sprintf("%s:%d %s", file[1], frame.Line, function[len(function)-1])
+	if strings.Contains(frame.File, postfix) {
+		file := strings.Split(frame.File, postfix)
+		fileName = file[1]
+	} else {
+		fileName = frame.File
 	}
+
+	if strings.Contains(frame.Function, mod) {
+		function := strings.Split(frame.Function, mod)
+		functionName = function[len(function)-1]
+	} else {
+		functionName = frame.Function
+	}
+
+	location = fmt.Sprintf("%s:%d %s", fileName, frame.Line, functionName)
+
 	return location
 }
