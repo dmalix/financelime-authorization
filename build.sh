@@ -18,4 +18,4 @@ set -e
 export GOFLAGS="-mod=vendor"
 go build \
   -ldflags="-s -w -X '${PROJECT}/server.version=${VERSION}' -X '${PROJECT}/server.commit=${COMMIT}' -X '${PROJECT}/server.buildTime=${BUILD_TIME}' -X '${PROJECT}/server.compiler=${COMPILER}'" \
-  -o bin/financelime-auth main/main.go
+  -o bin/financelime-auth cmd/main/main.go
