@@ -7,6 +7,7 @@ package responder
 import (
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/trace"
+	"html"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,10 +19,10 @@ func Response(w http.ResponseWriter, r *http.Request, responseBody []byte, statu
 		errorDetails error
 		errorCode    int
 	)
-	message := "" /*fmt.Sprintf("%s %s %s",
-	html.EscapeString(r.Method),
-	html.EscapeString(r.URL.Path),
-	html.EscapeString(r.Header.Get("request-id")))*/
+	message := fmt.Sprintf("%s %s %s",
+		html.EscapeString(r.Method),
+		html.EscapeString(r.URL.Path),
+		html.EscapeString(r.Header.Get("request-id")))
 	additionalInformation := fmt.Sprintf(
 		"%s",
 		strconv.Itoa(statusCode))
@@ -33,12 +34,12 @@ func Response(w http.ResponseWriter, r *http.Request, responseBody []byte, statu
 	w.WriteHeader(statusCode)
 	errorCode, errorDetails = w.Write(responseBody)
 	if errorDetails != nil {
-		log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
+		log.Printf("ERROR %s %s [%s]", trace.GetCurrentPoint(),
 			fmt.Sprintf("Failed response (errorCode:%s): %s", strconv.Itoa(errorCode), message),
 			errorDetails)
 	}
 
-	log.Printf("OK [%s: %s [%s]]", trace.GetCurrentPoint(), message, additionalInformation)
+	log.Printf("OK %s %s [%s]", trace.GetCurrentPoint(), message, additionalInformation)
 
 	return
 }

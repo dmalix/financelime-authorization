@@ -14,10 +14,9 @@ func Message(request *http.Request) string {
 	var message string
 	if request != nil {
 		message = fmt.Sprintf(
-			"%s %s %s",
+			"%s %s",
 			html.EscapeString(request.Method),
-			html.EscapeString(request.URL.Path),
-			html.EscapeString(request.Header.Get("Request-ID")))
+			html.EscapeString(request.URL.Path))
 	}
 	return message
 }
