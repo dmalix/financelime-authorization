@@ -25,7 +25,7 @@ func GetCurrentPoint() string {
 
 	if strings.Contains(frame.File, postfix) {
 		file := strings.Split(frame.File, postfix)
-		fileName = file[1]
+		fileName = file[len(file)-1]
 	} else {
 		fileName = frame.File
 	}

@@ -8,7 +8,15 @@ import (
 	"net/http"
 )
 
-func handlerMock() http.Handler {
+func handlerMock1() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		//noinspection GoUnhandledErrorResult
+		w.Write(nil)
+	})
+}
+
+func handlerMock2() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		//noinspection GoUnhandledErrorResult

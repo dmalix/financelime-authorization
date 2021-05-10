@@ -11,6 +11,8 @@ import (
 func exampleRouter(mux *http.ServeMux) {
 	mux.Handle("/test",
 		Group(
-			EndPoint(Point{Method: http.MethodPost, Handler: handlerMock()}),
+			EndPoint(
+				Point{Method: http.MethodPost, Handler: handlerMock1()},
+				Point{Method: http.MethodPut, Handler: handlerMock2()}),
 		))
 }
