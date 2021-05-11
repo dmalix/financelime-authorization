@@ -8,11 +8,6 @@ import (
 	"net/http"
 )
 
-type APIMiddleware interface {
-	requestID(next http.Handler) http.Handler
-	authorization(next http.Handler) http.Handler
-}
-
 type API interface {
 	signUp() http.Handler
 	confirmUserEmail() http.Handler

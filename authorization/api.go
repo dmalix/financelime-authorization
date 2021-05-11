@@ -7,12 +7,13 @@ package authorization
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/utils/responder"
+	"github.com/dmalix/financelime-authorization/packages/middleware"
 	"github.com/dmalix/financelime-authorization/utils/trace"
-	"github.com/dmalix/financelime-authorization/utils/url"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -23,8 +24,6 @@ func NewAPI(service Service) *api {
 }
 
 const (
-	contextPublicSessionID     = "publicSessionID"
-	contextEncryptedUserData   = "encryptedUserData"
 	contentTypeApplicationJson = "application/json;charset=utf-8"
 	contentTypeTextPlain       = "text/plain;charset=utf-8"
 )
@@ -54,10 +53,11 @@ func (api *api) signUp() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != contentTypeApplicationJson {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Header 'content-type:%s' not found [%s]",
-					contentTypeApplicationJson,
-					responder.Message(r)))
+				fmt.Sprintf("Header 'content-type:%s' not found",
+					contentTypeApplicationJson))
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
@@ -65,7 +65,9 @@ func (api *api) signUp() http.Handler {
 		requestBody, err = ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get a requestBody [%s]", responder.Message(r)),
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
+				fmt.Sprintf("Failed to get a requestBody"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -73,7 +75,9 @@ func (api *api) signUp() http.Handler {
 		err = r.Body.Close()
 		if err != nil {
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to close a requestBody [%s]", responder.Message(r)),
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
+				fmt.Sprintf("Failed to close a requestBody"),
 				err)
 			http.Error(w, httpErrorTextInternalServerError, http.StatusInternalServerError)
 			return
@@ -81,7 +85,9 @@ func (api *api) signUp() http.Handler {
 		err = json.Unmarshal(requestBody, &requestInput)
 		if err != nil {
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to convert a requestBody requestInput to struct [%s]", responder.Message(r)),
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
+				fmt.Sprintf("Failed to convert a requestBody requestInput to struct"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -117,7 +123,7 @@ func (api *api) signUp() http.Handler {
 			}
 		}
 
-		responder.Response(w, r, nil, http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	})
 }
@@ -131,25 +137,22 @@ func (api *api) signUp() http.Handler {
 // @Success 200 "Successful operation"
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
-// @Router /u/{confirmationKey} [get]
+// @Router /v1/u/{confirmationKey} [get]
 func (api *api) confirmUserEmail() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
-			message         string
-			err             error
-			domainErrorCode string
-			errorMessage    string
+			vars                = mux.Vars(r)
+			confirmationKey     string
+			confirmationMessage string
+			err                 error
+			domainErrorCode     string
+			errorMessage        string
 		)
 
-		message, err = url.GetPathValue(r.URL.Path, 1)
-		if err != nil {
-			log.Printf("ERROR [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
-			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
-			return
-		}
+		confirmationKey = vars["confirmationKey"]
 
-		message, err = api.service.confirmUserEmail(message)
+		confirmationMessage, err = api.service.confirmUserEmail(confirmationKey)
 		if err != nil {
 			domainErrorCode = strings.Split(err.Error(), ":")[0]
 			errorMessage = "failed to confirm user email"
@@ -165,7 +168,14 @@ func (api *api) confirmUserEmail() http.Handler {
 			}
 		}
 
-		responder.Response(w, r, []byte(message), http.StatusOK, contentTypeTextPlain)
+		w.Header().Set("content-type", contentTypeTextPlain)
+		w.WriteHeader(http.StatusOK)
+		if errorCode, err := w.Write([]byte(confirmationMessage)); err != nil {
+			log.Printf("ERROR %s %s [%s]", trace.GetCurrentPoint(),
+				fmt.Sprintf("Failed response [errorCode:%s]", strconv.Itoa(errorCode)),
+				err)
+		}
+
 		return
 	})
 }
@@ -177,7 +187,7 @@ func (api *api) confirmUserEmail() http.Handler {
 // @Accept application/json;charset=utf-8
 // @Produce application/json;charset=utf-8
 // @Param apiCreateAccessTokenRequest body apiCreateAccessTokenRequest true "Data for creating a new token"
-// @Success 200 "Successful operation"
+// @Success 200 {object} apiAccessTokenResponse "Successful operation"
 // @Failure 400 {object} apiCommonFailure
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
@@ -197,34 +207,41 @@ func (api *api) createAccessToken() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != contentTypeApplicationJson {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Header 'content-type:%s' not found [%s]",
-					contentTypeApplicationJson,
-					responder.Message(r)))
+				fmt.Sprintf("Header 'content-type:%s' not found",
+					contentTypeApplicationJson))
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 
 		requestBody, err = ioutil.ReadAll(r.Body)
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to get a body"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 		err = r.Body.Close()
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to close a body"),
 				err)
 			http.Error(w, httpErrorTextInternalServerError, http.StatusInternalServerError)
 			return
 		}
 		err = json.Unmarshal(requestBody, &requestInput)
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to convert a body requestInput to struct [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to convert a body requestInput to struct"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -276,7 +293,14 @@ func (api *api) createAccessToken() http.Handler {
 			return
 		}
 
-		responder.Response(w, r, responseBody, http.StatusOK, contentTypeApplicationJson)
+		w.Header().Set("content-type", contentTypeApplicationJson)
+		w.WriteHeader(http.StatusOK)
+		if errorCode, err := w.Write(responseBody); err != nil {
+			log.Printf("ERROR %s %s [%s]", trace.GetCurrentPoint(),
+				fmt.Sprintf("Failed response [errorCode:%s]", strconv.Itoa(errorCode)),
+				err)
+		}
+
 		return
 	})
 }
@@ -288,7 +312,7 @@ func (api *api) createAccessToken() http.Handler {
 // @Accept application/json;charset=utf-8
 // @Produce application/json;charset=utf-8
 // @Param apiRefreshAccessTokenRequest body apiRefreshAccessTokenRequest true "Data for refreshing the access token"
-// @Success 200 "Successful operation"
+// @Success 200 {object} apiAccessTokenResponse "Successful operation"
 // @Failure 400 {object} apiCommonFailure
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
@@ -308,10 +332,11 @@ func (api *api) refreshAccessToken() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != contentTypeApplicationJson {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Header 'content-type:%s' not found [%s]",
-					contentTypeApplicationJson,
-					responder.Message(r)))
+				fmt.Sprintf("Header 'content-type:%s' not found",
+					contentTypeApplicationJson))
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
@@ -319,7 +344,9 @@ func (api *api) refreshAccessToken() http.Handler {
 		requestBody, err = ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
+				fmt.Sprintf("Failed to get a body"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -327,7 +354,9 @@ func (api *api) refreshAccessToken() http.Handler {
 		err = r.Body.Close()
 		if err != nil {
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
+				fmt.Sprintf("Failed to close a body"),
 				err)
 			http.Error(w, httpErrorTextInternalServerError, http.StatusInternalServerError)
 			return
@@ -335,7 +364,9 @@ func (api *api) refreshAccessToken() http.Handler {
 		err = json.Unmarshal(requestBody, &requestInput)
 		if err != nil {
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to convert a body requestInput to struct [%s]", responder.Message(r)),
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
+				fmt.Sprintf("Failed to convert a body requestInput to struct"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -378,7 +409,13 @@ func (api *api) refreshAccessToken() http.Handler {
 			return
 		}
 
-		responder.Response(w, r, responseBody, http.StatusOK, contentTypeApplicationJson)
+		w.Header().Set("content-type", contentTypeApplicationJson)
+		w.WriteHeader(http.StatusOK)
+		if errorCode, err := w.Write(responseBody); err != nil {
+			log.Printf("ERROR %s %s [%s]", trace.GetCurrentPoint(),
+				fmt.Sprintf("Failed response [errorCode:%s]", strconv.Itoa(errorCode)),
+				err)
+		}
 		return
 	})
 }
@@ -409,58 +446,69 @@ func (api *api) revokeRefreshToken() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != contentTypeApplicationJson {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Header 'content-type:%s' not found [%s]",
-					contentTypeApplicationJson,
-					responder.Message(r)))
+				fmt.Sprintf("Header 'content-type:%s' not found",
+					contentTypeApplicationJson))
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to get a body"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 		err = r.Body.Close()
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to close a body"),
 				err)
 			http.Error(w, httpErrorTextInternalServerError, http.StatusInternalServerError)
 			return
 		}
 		err = json.Unmarshal(body, &requestInput)
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to convert a body props to struct"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 
-		if r.Context().Value(contextEncryptedUserData) == nil {
+		if r.Context().Value(middleware.ContextEncryptedUserData) == nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get ContextEncryptedUserData from the request [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to get ContextEncryptedUserData from the request"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 
-		encryptedUserData = r.Context().Value(contextEncryptedUserData).([]byte)
+		encryptedUserData = r.Context().Value(middleware.ContextEncryptedUserData).([]byte)
 
 		if len(requestInput.PublicSessionID) == 0 {
-			if r.Context().Value(contextPublicSessionID) == nil {
+			if r.Context().Value(middleware.ContextPublicSessionID) == nil {
+				// TODO Add RequestID from context
+				// TODO Add PublicSessionID from context
 				log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-					fmt.Sprintf("Failed to get ContextPublicSessionID from the request [%s]", responder.Message(r)),
+					fmt.Sprintf("Failed to get ContextPublicSessionID from the request"),
 					err)
 				http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 				return
 			}
-			publicSessionID = r.Context().Value(contextPublicSessionID).(string)
+			publicSessionID = r.Context().Value(middleware.ContextPublicSessionID).(string)
 		} else {
 			publicSessionID = requestInput.PublicSessionID
 		}
@@ -475,7 +523,7 @@ func (api *api) revokeRefreshToken() http.Handler {
 			return
 		}
 
-		responder.Response(w, r, nil, http.StatusNoContent, contentTypeTextPlain)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	})
 }
@@ -504,18 +552,21 @@ func (api *api) requestUserPasswordReset() http.Handler {
 		)
 
 		if strings.ToLower(r.Header.Get("content-type")) != contentTypeApplicationJson {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Header 'content-type:%s' not found [%s]",
-					contentTypeApplicationJson,
-					responder.Message(r)))
+				fmt.Sprintf("Header 'content-type:%s' not found",
+					contentTypeApplicationJson))
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 
 		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get a body [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to get a body"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -523,8 +574,10 @@ func (api *api) requestUserPasswordReset() http.Handler {
 
 		err = r.Body.Close()
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to close a body [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to close a body"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -532,8 +585,10 @@ func (api *api) requestUserPasswordReset() http.Handler {
 
 		err = json.Unmarshal(body, &requestInput)
 		if err != nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to convert a body props to struct [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to convert a body props to struct"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
@@ -566,7 +621,7 @@ func (api *api) requestUserPasswordReset() http.Handler {
 			}
 		}
 
-		responder.Response(w, r, nil, http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	})
 }
@@ -577,7 +632,7 @@ func (api *api) requestUserPasswordReset() http.Handler {
 // @ID get_list_active_sessions
 // @Security authorization
 // @Produce application/json;charset=utf-8
-// @Success 200 "Successful operation"
+// @Success 200 {object} []session "Successful operation"
 // @Failure 401 {object} apiCommonFailure
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
@@ -593,15 +648,17 @@ func (api *api) getListActiveSessions() http.Handler {
 			sessions          []session
 		)
 
-		if r.Context().Value(contextEncryptedUserData) == nil {
+		if r.Context().Value(middleware.ContextEncryptedUserData) == nil {
+			// TODO Add RequestID from context
+			// TODO Add PublicSessionID from context
 			log.Printf("ERROR [%s: %s [%s]]", trace.GetCurrentPoint(),
-				fmt.Sprintf("Failed to get Context from the request [%s]", responder.Message(r)),
+				fmt.Sprintf("Failed to get Context from the request"),
 				err)
 			http.Error(w, httpErrorTextNotFound, http.StatusNotFound)
 			return
 		}
 
-		encryptedUserData = r.Context().Value(contextEncryptedUserData).([]byte)
+		encryptedUserData = r.Context().Value(middleware.ContextEncryptedUserData).([]byte)
 
 		sessions, err = api.service.getListActiveSessions(encryptedUserData)
 		if err != nil {
@@ -617,7 +674,13 @@ func (api *api) getListActiveSessions() http.Handler {
 			return
 		}
 
-		responder.Response(w, r, responseBody, http.StatusOK, contentTypeApplicationJson)
+		w.Header().Set("content-type", contentTypeApplicationJson)
+		w.WriteHeader(http.StatusOK)
+		if errorCode, err := w.Write(responseBody); err != nil {
+			log.Printf("ERROR %s %s [%s]", trace.GetCurrentPoint(),
+				fmt.Sprintf("Failed response [errorCode:%s]", strconv.Itoa(errorCode)),
+				err)
+		}
 		return
 	})
 }

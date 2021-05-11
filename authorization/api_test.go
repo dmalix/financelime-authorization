@@ -8,8 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"github.com/dmalix/financelime-authorization/packages/middleware"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -37,21 +36,18 @@ func TestAPISignUp(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest(
-		"POST",
-		"/authorization/signup",
-		bytes.NewBuffer(bytesRepresentation))
+	request, err := http.NewRequest(http.MethodPost, "/v1/signup", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Header.Add("content-type", "application/json;charset=utf-8")
+	request.Header.Add("content-type", contentTypeApplicationJson)
 	request.Header.Add("X-Real-IP", ServiceMockData.Props.RemoteAddr)
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.signUp()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.signUp()
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -61,7 +57,7 @@ func TestAPISignUp(t *testing.T) {
 	}
 }
 
-func TestAPIConfirmUserEmail_200(t *testing.T) {
+func TestAPIConfirmUserEmail(t *testing.T) {
 
 	ServiceMockData.Expected.Error = nil
 
@@ -72,16 +68,16 @@ func TestAPIConfirmUserEmail_200(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest("", "/acue/12345", bytes.NewBuffer(propsByte))
+	request, err := http.NewRequest(http.MethodGet, "/v1/u/key", bytes.NewBuffer(propsByte))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.confirmUserEmail()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.confirmUserEmail()
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -91,100 +87,7 @@ func TestAPIConfirmUserEmail_200(t *testing.T) {
 	}
 }
 
-func TestAPIConfirmUserEmail_500(t *testing.T) {
-
-	ServiceMockData.Expected.Error = errors.New("SERVICE_ERROR")
-
-	props := map[string]interface{}{}
-
-	propsByte, err := json.Marshal(props)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	request, err := http.NewRequest("", "/acue/12345", bytes.NewBuffer(propsByte))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	responseRecorder := httptest.NewRecorder()
-
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.confirmUserEmail()
-
-	handler.ServeHTTP(responseRecorder, request)
-
-	if status := responseRecorder.Code; status != http.StatusInternalServerError {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusInternalServerError)
-	}
-}
-
-func TestAPIConfirmUserEmail_404__CONFIRMATION_KEY_NOT_FOUND(t *testing.T) {
-
-	ServiceMockData.Expected.Error = nil
-
-	props := map[string]interface{}{}
-
-	propsByte, err := json.Marshal(props)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	request, err := http.NewRequest("", "/acue", bytes.NewBuffer(propsByte))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	responseRecorder := httptest.NewRecorder()
-
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.confirmUserEmail()
-
-	handler.ServeHTTP(responseRecorder, request)
-
-	if status := responseRecorder.Code; status != http.StatusNotFound {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusNotFound)
-	}
-}
-
-func TestAPIConfirmUserEmail_404__CONFIRMATION_KEY_NOT_VALID(t *testing.T) {
-
-	errorMessage := "failed to confirm user email"
-	errLabel := "oLjInpV5"
-	err := errors.New("SERVICE_ERROR")
-	ServiceMockData.Expected.Error = errors.New(fmt.Sprintf("ERROR [%s:%s[%v]]", errLabel, errorMessage, err))
-
-	props := map[string]interface{}{}
-
-	propsByte, err := json.Marshal(props)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	request, err := http.NewRequest("", "/acue", bytes.NewBuffer(propsByte))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	responseRecorder := httptest.NewRecorder()
-
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.confirmUserEmail()
-
-	handler.ServeHTTP(responseRecorder, request)
-
-	if status := responseRecorder.Code; status != http.StatusNotFound {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusNotFound)
-	}
-}
-
-func TestAPIRequestAccessToken(t *testing.T) {
+func TestAPICreateAccessToken(t *testing.T) {
 
 	ServiceMockData.Expected.Error = nil
 
@@ -195,20 +98,17 @@ func TestAPIRequestAccessToken(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest(
-		"",
-		"/",
-		bytes.NewBuffer(bytesRepresentation))
+	request, err := http.NewRequest(http.MethodPost, "/v1/oauth/token", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Header.Add("content-type", "application/json;charset=utf-8")
+	request.Header.Add("content-type", contentTypeApplicationJson)
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.createAccessToken()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.createAccessToken()
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -229,20 +129,17 @@ func TestAPIRefreshAccessToken(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest(
-		"",
-		"/",
-		bytes.NewBuffer(bytesRepresentation))
+	request, err := http.NewRequest(http.MethodPut, "/v1/oauth/token", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Header.Add("content-type", "application/json;charset=utf-8")
+	request.Header.Add("content-type", contentTypeApplicationJson)
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.refreshAccessToken()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.refreshAccessToken()
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -265,25 +162,22 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest(
-		http.MethodDelete,
-		"/v1/oauth/sessions",
-		bytes.NewBuffer(bytesRepresentation))
+	request, err := http.NewRequest(http.MethodDelete, "/v1/oauth/sessions", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	request.Header.Add("content-type", "application/json;charset=utf-8")
+	request.Header.Add("content-type", contentTypeApplicationJson)
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.revokeRefreshToken()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.revokeRefreshToken()
 
 	ctx := request.Context()
-	ctx = context.WithValue(ctx, contextPublicSessionID, "PublicSessionID")
-	ctx = context.WithValue(ctx, contextEncryptedUserData, []byte("EncryptedUserData"))
+	ctx = context.WithValue(ctx, middleware.ContextPublicSessionID, "PublicSessionID")
+	ctx = context.WithValue(ctx, middleware.ContextEncryptedUserData, []byte("EncryptedUserData"))
 
 	request = request.WithContext(ctx)
 
@@ -306,17 +200,18 @@ func TestAPIRequestUserPasswordReset(t *testing.T) {
 		log.Fatalln(err)
 	}
 
-	request, err := http.NewRequest("", "/", bytes.NewBuffer(bytesRepresentation))
+	request, err := http.NewRequest(http.MethodPost, "/resetpassword", bytes.NewBuffer(bytesRepresentation))
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Header.Add("content-type", "application/json;charset=utf-8")
+
+	request.Header.Add("content-type", contentTypeApplicationJson)
 
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.requestUserPasswordReset()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.requestUserPasswordReset()
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -330,22 +225,19 @@ func TestAPIGetListActiveSessions(t *testing.T) {
 
 	ServiceMockData.Expected.Error = nil
 
-	request, err := http.NewRequest(
-		http.MethodGet,
-		"/v1/oauth/sessions",
-		nil)
+	request, err := http.NewRequest(http.MethodGet, "/v1/oauth/sessions", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	responseRecorder := httptest.NewRecorder()
 
-	authService := new(ServiceMockDescription)
-	newHandler := NewAPI(authService)
-	handler := newHandler.getListActiveSessions()
+	service := new(ServiceMockDescription)
+	api := NewAPI(service)
+	handler := api.getListActiveSessions()
 
 	ctx := request.Context()
 	ctx = context.WithValue(ctx,
-		contextEncryptedUserData,
+		middleware.ContextEncryptedUserData,
 		[]byte("test_data"))
 
 	request = request.WithContext(ctx)

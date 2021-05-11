@@ -35,15 +35,7 @@ func TestServiceSignUp(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Confirm.Body = append(languageContent.Data.User.Signup.Email.Confirm.Body, "%s%s")
 
 	cryptographerManager := cryptographer2.NewCryptographer("6368616e676520746869732070617373")
-
-	jwtManager := jwt2.NewToken(
-		"",
-		"",
-		"",
-		"",
-		0,
-		0)
-
+	jwtManager := &jwt2.Token{}
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -94,17 +86,8 @@ func TestServiceConfirmUserEmail_Success(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Password.Body = append(languageContent.Data.User.Signup.Email.Password.Body, "%s%s")
 	languageContent.Data.User.Signup.Page.Text = append(languageContent.Data.User.Signup.Page.Text, "text")
 
-	cryptographerManager := cryptographer2.NewCryptographer(
-		"")
-
-	jwtManager := jwt2.NewToken(
-		"",
-		"",
-		"",
-		"",
-		0,
-		0)
-
+	cryptographerManager := &cryptographer2.Cipher{}
+	jwtManager := &jwt2.Token{}
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -154,17 +137,8 @@ func TestServiceConfirmUserEmail_Error(t *testing.T) {
 	languageContent.Data.User.Signup.Email.Password.Body = append(languageContent.Data.User.Signup.Email.Password.Body, "%s%s")
 	languageContent.Data.User.Signup.Page.Text = append(languageContent.Data.User.Signup.Page.Text, "text")
 
-	cryptographerManager := cryptographer2.NewCryptographer(
-		"")
-
-	jwtManager := jwt2.NewToken(
-		"",
-		"",
-		"",
-		"",
-		0,
-		0)
-
+	cryptographerManager := &cryptographer2.Cipher{}
+	jwtManager := &jwt2.Token{}
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -209,16 +183,8 @@ func TestServiceRequestAccessToken(t *testing.T) {
 	languageContent.Data.User.Login.Email.Subject = append(languageContent.Data.User.Login.Email.Subject, "subject")
 	languageContent.Data.User.Login.Email.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
-	cryptographerManager := cryptographer2.NewCryptographer("")
-
-	jwtManager := jwt2.NewToken(
-		"12345",
-		jwt2.PropsSigningAlgorithmHS256,
-		"",
-		"",
-		0,
-		0)
-
+	cryptographerManager := &cryptographer2.Cipher{}
+	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -271,9 +237,7 @@ func TestServiceRefreshAccessToken(t *testing.T) {
 	languageContent.Data.User.Login.Email.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
 	cryptographerManager := new(cryptographer2.MockDescription)
-
 	jwtManager := new(jwt2.MockDescription)
-
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -321,15 +285,7 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 	languageContent.Data.User.Login.Email.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
 	cryptographerManager := new(cryptographer2.MockDescription)
-
-	jwtManager := jwt2.NewToken(
-		"12345",
-		jwt2.PropsSigningAlgorithmHS256,
-		"",
-		"",
-		0,
-		0)
-
+	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -376,15 +332,7 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 	languageContent.Data.User.ResetPassword.Email.Request.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
 	cryptographerManager := cryptographer2.NewCryptographer("")
-
-	jwtManager := jwt2.NewToken(
-		"12345",
-		jwt2.PropsSigningAlgorithmHS256,
-		"",
-		"",
-		0,
-		0)
-
+	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -431,15 +379,7 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 	languageContent.Data.User.Login.Email.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
 	cryptographerManager := new(cryptographer2.MockDescription)
-
-	jwtManager := jwt2.NewToken(
-		"12345",
-		jwt2.PropsSigningAlgorithmHS256,
-		"",
-		"",
-		0,
-		0)
-
+	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,

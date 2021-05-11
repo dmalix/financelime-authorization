@@ -19,9 +19,9 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-// @title Financelime authorization
+// @title Financelime Authorization
 // @version v0.2.0-alpha
-// @description Financelime authorization RESTful API service
+// @description Financelime Authorization RESTful API service
 // @contact.name API Support
 // @contact.email dmalix@financelime.com
 // @license.name GNU General Public License v3.0

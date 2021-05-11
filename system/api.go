@@ -6,10 +6,11 @@ package system
 
 import (
 	"encoding/json"
-	"github.com/dmalix/financelime-authorization/utils/responder"
+	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type api struct {
@@ -21,6 +22,11 @@ func NewAPI(service Service) *api {
 		Service: service,
 	}
 }
+
+const (
+	contentTypeApplicationJson = "application/json;charset=utf-8"
+	contentTypeTextPlain       = "text/plain;charset=utf-8"
+)
 
 // version
 // @Summary Get the Service version
@@ -55,11 +61,14 @@ func (api *api) version() http.Handler {
 			return
 		}
 
-		statusCode := http.StatusOK
-		contentType := "application/json;charset=utf-8"
-		responseBody := versionResponseJSON
+		w.Header().Set("content-type", contentTypeApplicationJson)
+		w.WriteHeader(http.StatusOK)
+		if errorCode, err := w.Write(versionResponseJSON); err != nil {
+			log.Printf("ERROR %s %s [%s]", trace.GetCurrentPoint(),
+				fmt.Sprintf("Failed response [errorCode:%s]", strconv.Itoa(errorCode)),
+				err)
+		}
 
-		responder.Response(w, r, responseBody, statusCode, contentType)
 		return
 	})
 }

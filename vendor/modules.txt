@@ -19,6 +19,9 @@ github.com/go-openapi/jsonreference
 github.com/go-openapi/spec
 # github.com/go-openapi/swag v0.19.12
 github.com/go-openapi/swag
+# github.com/gorilla/mux v1.7.3
+## explicit
+github.com/gorilla/mux
 # github.com/josharian/intern v1.0.0
 github.com/josharian/intern
 # github.com/lib/pq v1.8.0

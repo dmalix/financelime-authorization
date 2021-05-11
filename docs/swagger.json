@@ -4,8 +4,8 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Financelime authorization RESTful API service",
-        "title": "Financelime authorization",
+        "description": "Financelime Authorization RESTful API service",
+        "title": "Financelime Authorization",
         "contact": {
             "name": "API Support",
             "email": "dmalix@financelime.com"
@@ -19,42 +19,6 @@
     "host": "api.auth.dev.financelime.com",
     "basePath": "/",
     "paths": {
-        "/u/{confirmationKey}": {
-            "get": {
-                "description": "API returns HTML-page with a message (success or error).",
-                "produces": [
-                    "text/plain;charset=utf-8"
-                ],
-                "summary": "Confirm User Email",
-                "operationId": "confirm_user_email",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Confirmation Key",
-                        "name": "confirmationKey",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/authorization.apiCommonFailure"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/authorization.apiCommonFailure"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/oauth/sessions": {
             "get": {
                 "security": [
@@ -70,7 +34,13 @@
                 "operationId": "get_list_active_sessions",
                 "responses": {
                     "200": {
-                        "description": "Successful operation"
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/authorization.session"
+                            }
+                        }
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -170,7 +140,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful operation"
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/authorization.apiAccessTokenResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -215,7 +188,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful operation"
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/authorization.apiAccessTokenResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -332,6 +308,42 @@
                 }
             }
         },
+        "/v1/u/{confirmationKey}": {
+            "get": {
+                "description": "API returns HTML-page with a message (success or error).",
+                "produces": [
+                    "text/plain;charset=utf-8"
+                ],
+                "summary": "Confirm User Email",
+                "operationId": "confirm_user_email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Confirmation Key",
+                        "name": "confirmationKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/authorization.apiCommonFailure"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/authorization.apiCommonFailure"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/version": {
             "get": {
                 "description": "Get Version",
@@ -352,6 +364,20 @@
         }
     },
     "definitions": {
+        "authorization.apiAccessTokenResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "type": "string"
+                },
+                "sessionID": {
+                    "type": "string"
+                }
+            }
+        },
         "authorization.apiCommonFailure": {
             "type": "object",
             "properties": {
@@ -493,6 +519,20 @@
                 "width": {
                     "type": "integer",
                     "example": 1060
+                }
+            }
+        },
+        "authorization.session": {
+            "type": "object",
+            "properties": {
+                "platform": {
+                    "type": "string"
+                },
+                "sessionID": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },

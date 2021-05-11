@@ -120,7 +120,7 @@ func (r *repository) createUser(param repoCreateUserParam) error {
 	}
 	props.remoteAddr = remoteAddrSource.String()
 
-	props.confirmationKey = html.EscapeString(string(param.confirmationKey))
+	props.confirmationKey = html.EscapeString(param.confirmationKey)
 	paramValueRegexp = regexp.MustCompile(`^[abcefghijkmnopqrtuvwxyz23479]{16}$`)
 	if !paramValueRegexp.MatchString(props.confirmationKey) {
 		return errors.New(fmt.Sprintf("%s:%s",
@@ -402,10 +402,10 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 	)
 
 	propsValueRegexp = regexp.MustCompile(`^[abcefghijkmnopqrtuvwxyz23479]{16}$`)
-	if !propsValueRegexp.MatchString(string(confirmationKey)) {
+	if !propsValueRegexp.MatchString(confirmationKey) {
 		return user,
 			errors.New(fmt.Sprintf("%s:%s",
-				domainErrorCodeBadParamConfirmationKey, html.EscapeString(string(confirmationKey))))
+				domainErrorCodeBadParamConfirmationKey, html.EscapeString(confirmationKey)))
 	}
 
 	// Check the confirmationKey in Database
@@ -437,7 +437,7 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 	defer dbRows.Close()
 
 	for dbRows.Next() {
-		err = dbRows.Scan(&confirmationID, &user.email, &user.language)
+		err = dbRows.Scan(&confirmationID, &user.Email, &user.Language)
 		if err != nil {
 			errLabel = "h6PjQzPW"
 			return user,
@@ -449,7 +449,7 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 		return user,
 			errors.New(fmt.Sprintf("%s:%s",
 				domainErrorCodeConfirmationKeyNotFound,
-				html.EscapeString(string(confirmationKey))))
+				html.EscapeString(confirmationKey)))
 	}
 
 	// Begin the transaction
@@ -508,7 +508,7 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 				"user".email = $1 
 				AND "user".deleted_at IS NULL 
 				LIMIT 1`,
-			user.email)
+			user.Email)
 	if err != nil {
 		errLabel = "Dtv3CkDF"
 		return user,
@@ -612,9 +612,9 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 	// Create the new confirmed user in the Auth DB
 	// --------------------------------------------
 
-	user.password = random.StringRand(16, 16, false)
+	user.Password = random.StringRand(16, 16, false)
 	hs := sha256.New()
-	_, err = hs.Write([]byte(user.password + r.config.CryptoSalt))
+	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
 	if err != nil {
 		errLabel = "Jhc7OYxi"
 		return user,
@@ -627,8 +627,8 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 	   		INSERT INTO "user" ( created_at, email, "language", "password" )
 			VALUES
 				( NOW( ), $1, $2, $3 ) RETURNING "id"`,
-			user.email, user.language, hashedPassword).
-			Scan(&user.id)
+			user.Email, user.Language, hashedPassword).
+			Scan(&user.ID)
 	if err != nil {
 		errLabel = "Annm39Zs"
 		return user,
@@ -645,7 +645,7 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 	   		INSERT INTO invite_code_issued ( created_at, invite_code_id, user_id )
 			VALUES
 				( NOW( ), $1, $2 ) RETURNING "id"`,
-				inviteCodeID, user.id).
+				inviteCodeID, user.ID).
 				Scan(&inviteCodeIssuedID)
 		if err != nil {
 			errLabel = "p3He5f9l"
@@ -730,7 +730,7 @@ func (r *repository) getUserByAuth(param repoGetUserByAuthParam) (user, error) {
 	}
 
 	for dbRows.Next() {
-		err = dbRows.Scan(&user.id, &user.email, &user.language)
+		err = dbRows.Scan(&user.ID, &user.Email, &user.Language)
 		if err != nil {
 			return user,
 				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
@@ -738,7 +738,7 @@ func (r *repository) getUserByAuth(param repoGetUserByAuthParam) (user, error) {
 		}
 	}
 
-	if user.id == 0 {
+	if user.ID == 0 {
 		return user,
 			errors.New(fmt.Sprintf("%s:%s",
 				domainErrorCodeUserNotFound, param.password))
@@ -796,14 +796,14 @@ func (r *repository) getUserByRefreshToken(refreshToken string) (user, error) {
 	}
 
 	for dbRows.Next() {
-		err = dbRows.Scan(&user.id, &user.email, &user.language)
+		err = dbRows.Scan(&user.ID, &user.Email, &user.Language)
 		if err != nil {
 			return user,
 				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
 		}
 	}
 
-	if user.id == 0 {
+	if user.ID == 0 {
 		return user,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				"USER_NOT_FOUND", "User is not found", hashedRefreshToken))
@@ -989,7 +989,7 @@ func (r *repository) requestUserPasswordReset(param repoRequestUserPasswordReset
 	}
 
 	for dbRows.Next() {
-		err = dbRows.Scan(&user.id, &user.email, &user.language)
+		err = dbRows.Scan(&user.ID, &user.Email, &user.Language)
 		if err != nil {
 			return user,
 				errors.New(fmt.Sprintf("%s:[%s]", trace.GetCurrentPoint(), err))
@@ -997,7 +997,7 @@ func (r *repository) requestUserPasswordReset(param repoRequestUserPasswordReset
 		}
 	}
 
-	if user.id == 0 {
+	if user.ID == 0 {
 		return user,
 			errors.New(fmt.Sprintf("%s:%s",
 				domainErrorCodeUserNotFound, param.email))
@@ -1012,7 +1012,7 @@ func (r *repository) requestUserPasswordReset(param repoRequestUserPasswordReset
            	INTO confirmation_reset_password (created_at, email, "language", confirmation_key, remote_addr, expires_at)
            		VALUES (NOW(), $1, $2, $3, $4, NOW() + interval '15 minute')
             RETURNING "id"`,
-			param.email, user.language, param.confirmationKey, param.remoteAddr).
+			param.email, user.Language, param.confirmationKey, param.remoteAddr).
 			Scan(&confirmationID)
 	if err != nil {
 		return user,

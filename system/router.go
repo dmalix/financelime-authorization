@@ -5,15 +5,11 @@
 package system
 
 import (
-	authorization2 "github.com/dmalix/financelime-authorization/authorization"
-	"github.com/dmalix/financelime-authorization/utils/router"
+	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func Router(mux *http.ServeMux, handler API, middleware authorization2.APIMiddleware) {
-
-	mux.Handle("/v1/version",
-		router.Group(
-			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.version()}),
-		))
+func Router(router *mux.Router, handler API, _ middleware.APIMiddleware) {
+	router.Handle("/version", handler.version()).Methods(http.MethodGet)
 }

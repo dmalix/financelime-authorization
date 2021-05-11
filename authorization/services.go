@@ -147,7 +147,8 @@ func (s *service) confirmUserEmail(confirmationKey string) (string, error) {
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
-		case domainErrorCodeBadParamConfirmationKey, domainErrorCodeConfirmationKeyNotFound, domainErrorCodeConfirmationKeyAlreadyConfirmed:
+		case domainErrorCodeBadParamConfirmationKey, domainErrorCodeConfirmationKeyNotFound,
+			domainErrorCodeConfirmationKeyAlreadyConfirmed:
 			return "",
 				errors.New(fmt.Sprintf("%s:%s[%s]",
 					domainErrorCodeBadConfirmationKey,
@@ -165,14 +166,14 @@ func (s *service) confirmUserEmail(confirmationKey string) (string, error) {
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: user.email},
-		s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.language]],
+		mail.Address{Address: user.Email},
+		s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.Language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.Signup.Email.Password.Body[s.languageContent.Language[user.language]],
-			user.password),
+			s.languageContent.Data.User.Signup.Email.Password.Body[s.languageContent.Language[user.Language]],
+			user.Password),
 		fmt.Sprintf(
 			"<%s@%s>",
-			user.password,
+			user.Password,
 			fmt.Sprintf("%s.%s", "confirm-user-email", s.config.DomainAPI)))
 
 	if err != nil {
@@ -183,7 +184,7 @@ func (s *service) confirmUserEmail(confirmationKey string) (string, error) {
 				err))
 	}
 
-	confirmationMessage := s.languageContent.Data.User.Signup.Page.Text[s.languageContent.Language[user.language]]
+	confirmationMessage := s.languageContent.Data.User.Signup.Page.Text[s.languageContent.Language[user.Language]]
 
 	return confirmationMessage, nil
 }
@@ -226,7 +227,7 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 		}
 	}
 
-	publicSessionID, err = s.generatePublicID(user.id)
+	publicSessionID, err = s.generatePublicID(user.ID)
 	if err != nil {
 		return serviceAccessTokenReturn{},
 			errors.New(fmt.Sprintf("%s:%s[%s]",
@@ -272,7 +273,7 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 	}
 
 	err = s.repository.saveSession(repoSaveSessionParam{
-		userID:          user.id,
+		userID:          user.ID,
 		publicSessionID: publicSessionID,
 		refreshToken:    refreshJWT,
 		clientID:        param.clientID,
@@ -291,9 +292,9 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
 		mail.Address{Address: param.email},
-		s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.language]],
+		s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.Language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.language]],
+			s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.Language]],
 			time.Now().UTC().String(),
 			param.device.Platform,
 			param.remoteAddr,
@@ -444,7 +445,7 @@ func (s *service) revokeRefreshToken(param serviceRevokeRefreshTokenParam) error
 	}
 
 	err = s.repository.deleteSession(repoDeleteSessionParam{
-		userID:          user.id,
+		userID:          user.ID,
 		publicSessionID: param.publicSessionID,
 	})
 	if err != nil {
@@ -493,9 +494,9 @@ func (s *service) requestUserPasswordReset(param serviceRequestUserPasswordReset
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
 		mail.Address{Address: param.email},
-		s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.language]],
+		s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.language]],
+			s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
 			param.remoteAddr, s.config.DomainAPI, confirmationKey),
 		fmt.Sprintf(
 			"<%s@%s>",
@@ -522,7 +523,7 @@ func (s *service) getListActiveSessions(encryptedUserData []byte) ([]session, er
 
 	decryptedUserData, err = s.cryptographer.Decrypt(encryptedUserData)
 	if err != nil {
-		return sessions,
+		return nil,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				trace.GetCurrentPoint(),
 				"Failed to decrypt the user data",
@@ -531,16 +532,16 @@ func (s *service) getListActiveSessions(encryptedUserData []byte) ([]session, er
 
 	err = json.Unmarshal(decryptedUserData, &user)
 	if err != nil {
-		return sessions,
+		return nil,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				trace.GetCurrentPoint(),
 				"Failed to unmarshal the decryptedUserData value to struct [%s]",
 				err))
 	}
 
-	sessions, err = s.repository.getListActiveSessions(user.id)
+	sessions, err = s.repository.getListActiveSessions(user.ID)
 	if err != nil {
-		return sessions,
+		return nil,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				trace.GetCurrentPoint(),
 				"a system error was returned",
