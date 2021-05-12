@@ -43,16 +43,17 @@ type App struct {
 	sysService               system.Service
 }
 
-func New() (*App, error) {
+func NewApp() (*App, error) {
 
 	var (
-		app               *App
-		err               error
-		dbAuthMain        *sql.DB
-		dbAuthRead        *sql.DB
-		dbBlade           *sql.DB
-		config            cfg
-		languageContent   authorization.LanguageContent
+		app             *App
+		err             error
+		dbAuthMain      *sql.DB
+		dbAuthRead      *sql.DB
+		dbBlade         *sql.DB
+		config          cfg
+		languageContent authorization.LanguageContent
+		// TODO Move the number of messages in the queue to configs
 		emailMessageQueue = make(chan email.EmailMessage, 300)
 	)
 
@@ -264,14 +265,13 @@ func New() (*App, error) {
 	return app, nil
 }
 
-func (app *App) Run() error {
+func (app *App) Run(ctx context.Context) error {
 
 	/*****************************************************\
 	|             Start the Mail-Sender daemon            |
 	\*****************************************************/
 
-	// TODO Add context to stop
-	go app.emailMessageSenderDaemon.Run()
+	go app.emailMessageSenderDaemon.Run(ctx)
 
 	/*****************************************************\
 	|                  Start application                  |
@@ -281,8 +281,8 @@ func (app *App) Run() error {
 	router.Use(app.authAPIMiddleware.Logging())
 	routerV1 := router.PathPrefix("/v1").Subrouter()
 
-	authorization.Router(routerV1, app.authAPI, app.authAPIMiddleware)
-	system.Router(routerV1, app.sysAPI, app.authAPIMiddleware)
+	authorization.Router(ctx, routerV1, app.authAPI, app.authAPIMiddleware)
+	system.Router(ctx, routerV1, app.sysAPI, app.authAPIMiddleware)
 
 	app.httpServer = &http.Server{
 		Addr:           ":" + app.httpPort,

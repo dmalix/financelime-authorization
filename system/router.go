@@ -5,11 +5,12 @@
 package system
 
 import (
+	"context"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func Router(router *mux.Router, handler API, _ middleware.APIMiddleware) {
-	router.Handle("/version", handler.version()).Methods(http.MethodGet)
+func Router(ctx context.Context, router *mux.Router, handler API, _ middleware.APIMiddleware) {
+	router.Handle("/version", handler.version(ctx)).Methods(http.MethodGet)
 }

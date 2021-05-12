@@ -5,7 +5,8 @@
 package main
 
 import (
-	authApp "github.com/dmalix/financelime-authorization/app"
+	"context"
+	authorizationapp "github.com/dmalix/financelime-authorization/app"
 	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"math/rand"
@@ -37,12 +38,14 @@ func main() {
 
 	var err error
 
-	app, err := authApp.New()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	app, err := authorizationapp.NewApp()
 	if err != nil {
 		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to get a new App", err)
 	}
-	// TODO Add context to stop
-	err = app.Run()
+	err = app.Run(ctx)
 	if err != nil {
 		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to run the App", err)
 	}

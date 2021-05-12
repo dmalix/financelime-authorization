@@ -5,6 +5,7 @@
 package system
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/utils/trace"
@@ -35,7 +36,7 @@ const (
 // @Produce application/json;charset=utf-8
 // @Success 200 {object} versionResponse "Successful operation"
 // @Router /v1/version [get]
-func (api *api) version() http.Handler {
+func (api *api) version(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -45,7 +46,7 @@ func (api *api) version() http.Handler {
 			versionResponseJSON []byte
 		)
 
-		versionResponse.Number, versionResponse.Build, err = api.Service.version()
+		versionResponse.Number, versionResponse.Build, err = api.Service.version(ctx)
 		if err != nil {
 			errorMessage = "failed to get version"
 			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)

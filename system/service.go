@@ -4,7 +4,10 @@
 
 package system
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 type service struct {
 	VersionNumber    string
@@ -26,7 +29,7 @@ func NewService(
 	}
 }
 
-func (service *service) version() (string, string, error) {
+func (service *service) version(_ context.Context) (string, string, error) {
 
 	versionNumber := service.VersionNumber
 	versionBuild := fmt.Sprintf("%s [%s]", service.VersionCommit, service.VersionBuildTime)

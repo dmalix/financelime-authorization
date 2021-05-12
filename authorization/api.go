@@ -5,6 +5,7 @@
 package authorization
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
@@ -40,7 +41,7 @@ const (
 // @Failure 409 {object} apiSignUpFailure409
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/signup [post]
-func (api *api) signUp() http.Handler {
+func (api *api) signUp(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -98,7 +99,7 @@ func (api *api) signUp() http.Handler {
 			remoteAddr = r.RemoteAddr
 		}
 
-		err = api.service.signUp(serviceSignUpParam{
+		err = api.service.signUp(ctx, serviceSignUpParam{
 			email:      requestInput.Email,
 			language:   requestInput.Language,
 			inviteCode: requestInput.InviteCode,
@@ -138,7 +139,7 @@ func (api *api) signUp() http.Handler {
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/u/{confirmationKey} [get]
-func (api *api) confirmUserEmail() http.Handler {
+func (api *api) confirmUserEmail(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -152,7 +153,7 @@ func (api *api) confirmUserEmail() http.Handler {
 
 		confirmationKey = vars["confirmationKey"]
 
-		confirmationMessage, err = api.service.confirmUserEmail(confirmationKey)
+		confirmationMessage, err = api.service.confirmUserEmail(ctx, confirmationKey)
 		if err != nil {
 			domainErrorCode = strings.Split(err.Error(), ":")[0]
 			errorMessage = "failed to confirm user email"
@@ -192,7 +193,7 @@ func (api *api) confirmUserEmail() http.Handler {
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/oauth/token [post]
-func (api *api) createAccessToken() http.Handler {
+func (api *api) createAccessToken(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -253,7 +254,7 @@ func (api *api) createAccessToken() http.Handler {
 		}
 
 		accessTokenReturn, err =
-			api.service.createAccessToken(serviceCreateAccessTokenParam{
+			api.service.createAccessToken(ctx, serviceCreateAccessTokenParam{
 				email:      requestInput.Email,
 				password:   requestInput.Password,
 				clientID:   requestInput.ClientID,
@@ -317,7 +318,7 @@ func (api *api) createAccessToken() http.Handler {
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/oauth/token [put]
-func (api *api) refreshAccessToken() http.Handler {
+func (api *api) refreshAccessToken(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -379,7 +380,7 @@ func (api *api) refreshAccessToken() http.Handler {
 
 		//response.PublicSessionID, response.AccessJWT, response.RefreshJWT, err =
 		accessTokenReturn, err =
-			api.service.refreshAccessToken(serviceRefreshAccessTokenParam{
+			api.service.refreshAccessToken(ctx, serviceRefreshAccessTokenParam{
 				refreshToken: requestInput.RefreshToken,
 				remoteAddr:   remoteAddr,
 			})
@@ -433,7 +434,7 @@ func (api *api) refreshAccessToken() http.Handler {
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/oauth/sessions [delete]
-func (api *api) revokeRefreshToken() http.Handler {
+func (api *api) revokeRefreshToken(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -513,7 +514,7 @@ func (api *api) revokeRefreshToken() http.Handler {
 			publicSessionID = requestInput.PublicSessionID
 		}
 
-		err = api.service.revokeRefreshToken(serviceRevokeRefreshTokenParam{
+		err = api.service.revokeRefreshToken(ctx, serviceRevokeRefreshTokenParam{
 			encryptedUserData: encryptedUserData,
 			publicSessionID:   publicSessionID,
 		})
@@ -539,7 +540,7 @@ func (api *api) revokeRefreshToken() http.Handler {
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/resetpassword [post]
-func (api *api) requestUserPasswordReset() http.Handler {
+func (api *api) requestUserPasswordReset(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -599,7 +600,7 @@ func (api *api) requestUserPasswordReset() http.Handler {
 			remoteAddr = r.RemoteAddr
 		}
 
-		err = api.service.requestUserPasswordReset(serviceRequestUserPasswordResetParam{
+		err = api.service.requestUserPasswordReset(ctx, serviceRequestUserPasswordResetParam{
 			email:      requestInput.Email,
 			remoteAddr: remoteAddr})
 		if err != nil {
@@ -637,7 +638,7 @@ func (api *api) requestUserPasswordReset() http.Handler {
 // @Failure 404 {object} apiCommonFailure
 // @Failure 500 {object} apiCommonFailure
 // @Router /v1/oauth/sessions [get]
-func (api *api) getListActiveSessions() http.Handler {
+func (api *api) getListActiveSessions(ctx context.Context) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
@@ -660,7 +661,7 @@ func (api *api) getListActiveSessions() http.Handler {
 
 		encryptedUserData = r.Context().Value(middleware.ContextEncryptedUserData).([]byte)
 
-		sessions, err = api.service.getListActiveSessions(encryptedUserData)
+		sessions, err = api.service.getListActiveSessions(ctx, encryptedUserData)
 		if err != nil {
 			log.Printf("FATAL [%s:%s[%s]]", trace.GetCurrentPoint(), errorMessage, err)
 			http.Error(w, httpErrorTextInternalServerError, http.StatusInternalServerError)

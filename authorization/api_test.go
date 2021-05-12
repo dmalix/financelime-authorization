@@ -17,6 +17,9 @@ import (
 
 func TestAPISignUp(t *testing.T) {
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	ServiceMockData.Props.Email = "user@domain.com"
 	ServiceMockData.Props.InviteCode = "invite_code"
 	ServiceMockData.Props.Language = "abc"
@@ -47,7 +50,7 @@ func TestAPISignUp(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.signUp()
+	handler := api.signUp(ctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -58,6 +61,9 @@ func TestAPISignUp(t *testing.T) {
 }
 
 func TestAPIConfirmUserEmail(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ServiceMockData.Expected.Error = nil
 
@@ -77,7 +83,7 @@ func TestAPIConfirmUserEmail(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.confirmUserEmail()
+	handler := api.confirmUserEmail(ctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -88,6 +94,9 @@ func TestAPIConfirmUserEmail(t *testing.T) {
 }
 
 func TestAPICreateAccessToken(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ServiceMockData.Expected.Error = nil
 
@@ -108,7 +117,7 @@ func TestAPICreateAccessToken(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.createAccessToken()
+	handler := api.createAccessToken(ctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -119,6 +128,9 @@ func TestAPICreateAccessToken(t *testing.T) {
 }
 
 func TestAPIRefreshAccessToken(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ServiceMockData.Expected.Error = nil
 
@@ -139,7 +151,7 @@ func TestAPIRefreshAccessToken(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.refreshAccessToken()
+	handler := api.refreshAccessToken(ctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -150,6 +162,9 @@ func TestAPIRefreshAccessToken(t *testing.T) {
 }
 
 func TestAPIRevokeRefreshToken(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ServiceMockData.Expected.Error = nil
 
@@ -173,13 +188,13 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.revokeRefreshToken()
+	handler := api.revokeRefreshToken(ctx)
 
-	ctx := request.Context()
-	ctx = context.WithValue(ctx, middleware.ContextPublicSessionID, "PublicSessionID")
-	ctx = context.WithValue(ctx, middleware.ContextEncryptedUserData, []byte("EncryptedUserData"))
+	rctx := request.Context()
+	rctx = context.WithValue(rctx, middleware.ContextPublicSessionID, "PublicSessionID")
+	rctx = context.WithValue(rctx, middleware.ContextEncryptedUserData, []byte("EncryptedUserData"))
 
-	request = request.WithContext(ctx)
+	request = request.WithContext(rctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -190,6 +205,9 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 }
 
 func TestAPIRequestUserPasswordReset(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ServiceMockData.Expected.Error = nil
 
@@ -211,7 +229,7 @@ func TestAPIRequestUserPasswordReset(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.requestUserPasswordReset()
+	handler := api.requestUserPasswordReset(ctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -223,6 +241,9 @@ func TestAPIRequestUserPasswordReset(t *testing.T) {
 
 func TestAPIGetListActiveSessions(t *testing.T) {
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	ServiceMockData.Expected.Error = nil
 
 	request, err := http.NewRequest(http.MethodGet, "/v1/oauth/sessions", nil)
@@ -233,14 +254,12 @@ func TestAPIGetListActiveSessions(t *testing.T) {
 
 	service := new(ServiceMockDescription)
 	api := NewAPI(service)
-	handler := api.getListActiveSessions()
+	handler := api.getListActiveSessions(ctx)
 
-	ctx := request.Context()
-	ctx = context.WithValue(ctx,
-		middleware.ContextEncryptedUserData,
-		[]byte("test_data"))
+	rctx := request.Context()
+	rctx = context.WithValue(rctx, middleware.ContextEncryptedUserData, []byte("test_data"))
 
-	request = request.WithContext(ctx)
+	request = request.WithContext(rctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 

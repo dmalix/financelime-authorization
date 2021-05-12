@@ -5,11 +5,12 @@
 package email
 
 import (
+	"context"
 	"net/mail"
 )
 
 type EmailSenderDaemon interface {
-	Run()
+	Run(ctx context.Context)
 }
 
 type Daemon struct {

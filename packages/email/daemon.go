@@ -5,11 +5,12 @@
 package email
 
 import (
+	"context"
 	"log"
 	"time"
 )
 
-func (daemon Daemon) Run() {
+func (daemon Daemon) Run(ctx context.Context) {
 
 	var message EmailMessage
 	var err error
@@ -18,23 +19,25 @@ func (daemon Daemon) Run() {
 
 		select {
 
+		case <-ctx.Done():
+			return
+
 		case message = <-daemon.MessageQueue:
-
-			for {
-				err = daemon.smtpSender(message.To, message.From, message.Subject, message.Body, message.MessageID)
-				if err == nil {
-					break
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					default:
+						err = daemon.smtpSender(message.To, message.From, message.Subject, message.Body, message.MessageID)
+						if err == nil {
+							log.Printf("FATAL [%s: Failed to send a email message [%s]]", "a3GXhiMR", err)
+							time.Sleep(time.Second * time.Duration(3))
+						}
+					}
 				}
-
-				log.Printf("FATAL [%s: Failed to send a email message [%s]]", "a3GXhiMR", err)
-
-				time.Sleep(time.Second * time.Duration(5))
-			}
-
-			time.Sleep(time.Second * time.Duration(3))
-
-		default:
-
+			}()
+			time.Sleep(time.Second * time.Duration(1))
 		}
 	}
 }

@@ -5,6 +5,7 @@
 package authorization
 
 import (
+	"context"
 	"errors"
 	cryptographer2 "github.com/dmalix/financelime-authorization/packages/cryptographer"
 	email2 "github.com/dmalix/financelime-authorization/packages/email"
@@ -13,6 +14,9 @@ import (
 )
 
 func TestServiceSignUp(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -36,6 +40,7 @@ func TestServiceSignUp(t *testing.T) {
 
 	cryptographerManager := cryptographer2.NewCryptographer("6368616e676520746869732070617373")
 	jwtManager := &jwt2.Token{}
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -51,7 +56,7 @@ func TestServiceSignUp(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	err = newService.signUp(serviceSignUpParam{
+	err = newService.signUp(ctx, serviceSignUpParam{
 		email:      props.Email,
 		language:   props.Language,
 		inviteCode: props.InviteCode,
@@ -65,6 +70,9 @@ func TestServiceSignUp(t *testing.T) {
 }
 
 func TestServiceConfirmUserEmail_Success(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -88,6 +96,7 @@ func TestServiceConfirmUserEmail_Success(t *testing.T) {
 
 	cryptographerManager := &cryptographer2.Cipher{}
 	jwtManager := &jwt2.Token{}
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -103,7 +112,7 @@ func TestServiceConfirmUserEmail_Success(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	message, err = newService.confirmUserEmail("12345")
+	message, err = newService.confirmUserEmail(ctx, "12345")
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",
@@ -117,6 +126,9 @@ func TestServiceConfirmUserEmail_Success(t *testing.T) {
 }
 
 func TestServiceConfirmUserEmail_Error(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -139,6 +151,7 @@ func TestServiceConfirmUserEmail_Error(t *testing.T) {
 
 	cryptographerManager := &cryptographer2.Cipher{}
 	jwtManager := &jwt2.Token{}
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -154,7 +167,7 @@ func TestServiceConfirmUserEmail_Error(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	_, err = newService.confirmUserEmail("12345")
+	_, err = newService.confirmUserEmail(ctx, "12345")
 
 	if err == nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",
@@ -163,6 +176,9 @@ func TestServiceConfirmUserEmail_Error(t *testing.T) {
 }
 
 func TestServiceRequestAccessToken(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -185,6 +201,7 @@ func TestServiceRequestAccessToken(t *testing.T) {
 
 	cryptographerManager := &cryptographer2.Cipher{}
 	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -201,7 +218,7 @@ func TestServiceRequestAccessToken(t *testing.T) {
 		jwtManager)
 
 	_, err =
-		newService.createAccessToken(serviceCreateAccessTokenParam{
+		newService.createAccessToken(ctx, serviceCreateAccessTokenParam{
 			email:      "email",
 			password:   "password",
 			clientID:   "PWA",
@@ -217,6 +234,9 @@ func TestServiceRequestAccessToken(t *testing.T) {
 }
 
 func TestServiceRefreshAccessToken(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -238,6 +258,7 @@ func TestServiceRefreshAccessToken(t *testing.T) {
 
 	cryptographerManager := new(cryptographer2.MockDescription)
 	jwtManager := new(jwt2.MockDescription)
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -253,7 +274,7 @@ func TestServiceRefreshAccessToken(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	_, err = newService.refreshAccessToken(serviceRefreshAccessTokenParam{
+	_, err = newService.refreshAccessToken(ctx, serviceRefreshAccessTokenParam{
 		refreshToken: "refreshToken",
 		remoteAddr:   "127.0.0.1",
 	})
@@ -265,6 +286,9 @@ func TestServiceRefreshAccessToken(t *testing.T) {
 }
 
 func TestServiceRevokeRefreshToken(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -286,6 +310,7 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 
 	cryptographerManager := new(cryptographer2.MockDescription)
 	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -301,7 +326,7 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	err = newService.revokeRefreshToken(serviceRevokeRefreshTokenParam{
+	err = newService.revokeRefreshToken(ctx, serviceRevokeRefreshTokenParam{
 		[]byte("encryptedUserData"),
 		"publicSessionID"})
 
@@ -312,6 +337,9 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 }
 
 func TestServiceRequestUserPasswordReset(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var (
 		configDomainAPI              = "domain.com"
@@ -333,6 +361,7 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 
 	cryptographerManager := cryptographer2.NewCryptographer("")
 	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -348,7 +377,7 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	err = newService.requestUserPasswordReset(serviceRequestUserPasswordResetParam{"email", "127.0.0.1"})
+	err = newService.requestUserPasswordReset(ctx, serviceRequestUserPasswordResetParam{"email", "127.0.0.1"})
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",
@@ -357,6 +386,9 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 }
 
 func TestServiceGetListActiveSessions(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var encryptedUserData []byte
 
@@ -380,6 +412,7 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 
 	cryptographerManager := new(cryptographer2.MockDescription)
 	jwtManager := jwt2.NewToken("12345", jwt2.PropsSigningAlgorithmHS256, "", "", 0, 0)
+	//goland:noinspection GoBoolExpressions
 	serviceConfig := ConfigService{
 		DomainAPI:              configDomainAPI,
 		AuthInviteCodeRequired: configAuthInviteCodeRequired,
@@ -395,7 +428,7 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	_, err = newService.getListActiveSessions(encryptedUserData)
+	_, err = newService.getListActiveSessions(ctx, encryptedUserData)
 
 	if err != nil {
 		t.Errorf("service returned wrong err value: got %v want %v",

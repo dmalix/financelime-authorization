@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"context"
 	"errors"
 )
 
@@ -25,7 +26,7 @@ type ServiceMockDescription struct {
 
 var ServiceMockData ServiceMockDescription
 
-func (s *ServiceMockDescription) signUp(param serviceSignUpParam) error {
+func (s *ServiceMockDescription) signUp(_ context.Context, param serviceSignUpParam) error {
 
 	if ServiceMockData.Expected.Error != nil {
 		return ServiceMockData.Expected.Error
@@ -39,11 +40,11 @@ func (s *ServiceMockDescription) signUp(param serviceSignUpParam) error {
 	return ServiceMockData.Expected.Error
 }
 
-func (s *ServiceMockDescription) confirmUserEmail(_ string) (string, error) {
+func (s *ServiceMockDescription) confirmUserEmail(_ context.Context, _ string) (string, error) {
 	return "", ServiceMockData.Expected.Error
 }
 
-func (s *ServiceMockDescription) createAccessToken(_ serviceCreateAccessTokenParam) (serviceAccessTokenReturn, error) {
+func (s *ServiceMockDescription) createAccessToken(_ context.Context, _ serviceCreateAccessTokenParam) (serviceAccessTokenReturn, error) {
 	return serviceAccessTokenReturn{
 		publicSessionID: "sessionID",
 		accessJWT:       "accessToken",
@@ -51,12 +52,12 @@ func (s *ServiceMockDescription) createAccessToken(_ serviceCreateAccessTokenPar
 	}, ServiceMockData.Expected.Error
 }
 
-func (s *ServiceMockDescription) getListActiveSessions(encryptedUserData []byte) ([]session, error) {
+func (s *ServiceMockDescription) getListActiveSessions(_ context.Context, _ []byte) ([]session, error) {
 	var sessions []session
 	return sessions, ServiceMockData.Expected.Error
 }
 
-func (s *ServiceMockDescription) refreshAccessToken(_ serviceRefreshAccessTokenParam) (serviceAccessTokenReturn, error) {
+func (s *ServiceMockDescription) refreshAccessToken(_ context.Context, _ serviceRefreshAccessTokenParam) (serviceAccessTokenReturn, error) {
 	return serviceAccessTokenReturn{
 			publicSessionID: "sessionID",
 			accessJWT:       "accessToken",
@@ -64,10 +65,10 @@ func (s *ServiceMockDescription) refreshAccessToken(_ serviceRefreshAccessTokenP
 		ServiceMockData.Expected.Error
 }
 
-func (s *ServiceMockDescription) revokeRefreshToken(_ serviceRevokeRefreshTokenParam) error {
+func (s *ServiceMockDescription) revokeRefreshToken(_ context.Context, _ serviceRevokeRefreshTokenParam) error {
 	return ServiceMockData.Expected.Error
 }
 
-func (s *ServiceMockDescription) requestUserPasswordReset(_ serviceRequestUserPasswordResetParam) error {
+func (s *ServiceMockDescription) requestUserPasswordReset(_ context.Context, _ serviceRequestUserPasswordResetParam) error {
 	return ServiceMockData.Expected.Error
 }

@@ -5,6 +5,7 @@
 package authorization
 
 import (
+	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -55,7 +56,7 @@ func NewRepository(
 	}
 }
 
-func (r *repository) createUser(param repoCreateUserParam) error {
+func (r *repository) createUser(_ context.Context, param repoCreateUserParam) error {
 
 	type incomingProps struct {
 		email              string
@@ -371,20 +372,7 @@ func (r *repository) createUser(param repoCreateUserParam) error {
 	return nil
 }
 
-/*
-	Confirm user email
-		---------
-		Return:
-			user  models.User
-			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
-			        ------------------------------------------------
-			        PROPS_CONFIRMATION_KEY: The confirmationKey param is not valid
-			        CONFIRMATION_KEY_NOT_FOUND_EXPIRED: The confirmation key hasn't found or expired.
-			        CONFIRMATION_KEY_ALREADY_CONFIRMED: The user email is already confirmed.
-*/
-// Related interfaces:
-//	packages/authorization/domain.go
-func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
+func (r *repository) confirmUserEmail(_ context.Context, confirmationKey string) (user, error) {
 
 	var (
 		dbTransactionAuthMain *sql.Tx
@@ -674,7 +662,7 @@ func (r *repository) confirmUserEmail(confirmationKey string) (user, error) {
 	return user, nil
 }
 
-func (r *repository) getUserByAuth(param repoGetUserByAuthParam) (user, error) {
+func (r *repository) getUserByAuth(_ context.Context, param repoGetUserByAuthParam) (user, error) {
 
 	var (
 		user           user
@@ -747,17 +735,7 @@ func (r *repository) getUserByAuth(param repoGetUserByAuthParam) (user, error) {
 	return user, nil
 }
 
-/*
-	Get User by Refresh Token
-		----------------
-		Return:
-			user models.User
-			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
-				------------------------------------------------
-			    USER_NOT_FOUND: User is not found
-*/
-
-func (r *repository) getUserByRefreshToken(refreshToken string) (user, error) {
+func (r *repository) getUserByRefreshToken(_ context.Context, refreshToken string) (user, error) {
 
 	var (
 		user               user
@@ -812,7 +790,7 @@ func (r *repository) getUserByRefreshToken(refreshToken string) (user, error) {
 	return user, nil
 }
 
-func (r *repository) saveSession(param repoSaveSessionParam) error {
+func (r *repository) saveSession(_ context.Context, param repoSaveSessionParam) error {
 
 	var (
 		err              error
@@ -872,17 +850,7 @@ func (r *repository) saveSession(param repoSaveSessionParam) error {
 	return nil
 }
 
-/*
-	Update the session
-		----------------
-		Return:
-			error  - system or domain error code (format DOMAIN_ERROR_CODE:description[details]):
-				------------------------------------------------
-			    PROPS_REMOTE_ADDR: The remoteAddr param is not valid
-				SESSION_NOT_FOUND: The case (the session + hashedRefreshToken) does not exist
-*/
-
-func (r *repository) updateSession(param repoUpdateSessionParam) error {
+func (r *repository) updateSession(_ context.Context, param repoUpdateSessionParam) error {
 
 	var (
 		err    error
@@ -931,7 +899,7 @@ func (r *repository) updateSession(param repoUpdateSessionParam) error {
 	return nil
 }
 
-func (r *repository) requestUserPasswordReset(param repoRequestUserPasswordResetParam) (user, error) {
+func (r *repository) requestUserPasswordReset(_ context.Context, param repoRequestUserPasswordResetParam) (user, error) {
 
 	var (
 		user             user
@@ -1022,7 +990,7 @@ func (r *repository) requestUserPasswordReset(param repoRequestUserPasswordReset
 	return user, nil
 }
 
-func (r *repository) getListActiveSessions(userID int64) ([]session, error) {
+func (r *repository) getListActiveSessions(_ context.Context, userID int64) ([]session, error) {
 	var (
 		dbRows   *sql.Rows
 		query    string
@@ -1079,7 +1047,7 @@ func (r *repository) getListActiveSessions(userID int64) ([]session, error) {
 	return sessions, nil
 }
 
-func (r *repository) deleteSession(param repoDeleteSessionParam) error {
+func (r *repository) deleteSession(_ context.Context, param repoDeleteSessionParam) error {
 
 	var (
 		err error

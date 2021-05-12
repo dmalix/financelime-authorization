@@ -1,5 +1,7 @@
 package system
 
+import "context"
+
 //noinspection GoSnakeCaseUsage
 type MockDescription struct {
 	Props struct {
@@ -12,6 +14,6 @@ type MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var MockData MockDescription
 
-func (a *MockDescription) version() (string, string, error) {
+func (a *MockDescription) version(ctx context.Context) (string, string, error) {
 	return "version", "build", MockData.Expected.Error
 }

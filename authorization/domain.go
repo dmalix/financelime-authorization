@@ -5,37 +5,38 @@
 package authorization
 
 import (
+	"context"
 	"net/http"
 )
 
 type API interface {
-	signUp() http.Handler
-	confirmUserEmail() http.Handler
-	requestUserPasswordReset() http.Handler
-	refreshAccessToken() http.Handler
-	createAccessToken() http.Handler
-	getListActiveSessions() http.Handler
-	revokeRefreshToken() http.Handler
+	signUp(ctx context.Context) http.Handler
+	confirmUserEmail(ctx context.Context) http.Handler
+	requestUserPasswordReset(ctx context.Context) http.Handler
+	refreshAccessToken(ctx context.Context) http.Handler
+	createAccessToken(ctx context.Context) http.Handler
+	getListActiveSessions(ctx context.Context) http.Handler
+	revokeRefreshToken(ctx context.Context) http.Handler
 }
 
 type Service interface {
-	signUp(serviceSignUpParam) error
-	confirmUserEmail(confirmationKey string) (string, error)
-	createAccessToken(serviceCreateAccessTokenParam) (serviceAccessTokenReturn, error)
-	refreshAccessToken(serviceRefreshAccessTokenParam) (serviceAccessTokenReturn, error)
-	revokeRefreshToken(serviceRevokeRefreshTokenParam) error
-	getListActiveSessions(encryptedUserData []byte) ([]session, error)
-	requestUserPasswordReset(serviceRequestUserPasswordResetParam) error
+	signUp(ctx context.Context, param serviceSignUpParam) error
+	confirmUserEmail(ctx context.Context, confirmationKey string) (string, error)
+	createAccessToken(ctx context.Context, param serviceCreateAccessTokenParam) (serviceAccessTokenReturn, error)
+	refreshAccessToken(ctx context.Context, param serviceRefreshAccessTokenParam) (serviceAccessTokenReturn, error)
+	revokeRefreshToken(ctx context.Context, param serviceRevokeRefreshTokenParam) error
+	getListActiveSessions(ctx context.Context, encryptedUserData []byte) ([]session, error)
+	requestUserPasswordReset(ctx context.Context, param serviceRequestUserPasswordResetParam) error
 }
 
 type Repository interface {
-	createUser(repoCreateUserParam) error
-	confirmUserEmail(confirmationKey string) (user, error)
-	getUserByAuth(repoGetUserByAuthParam) (user, error)
-	getUserByRefreshToken(refreshToken string) (user, error)
-	saveSession(repoSaveSessionParam) error
-	updateSession(repoUpdateSessionParam) error
-	deleteSession(repoDeleteSessionParam) error
-	getListActiveSessions(userID int64) ([]session, error)
-	requestUserPasswordReset(repoRequestUserPasswordResetParam) (user, error)
+	createUser(ctx context.Context, param repoCreateUserParam) error
+	confirmUserEmail(ctx context.Context, confirmationKey string) (user, error)
+	getUserByAuth(ctx context.Context, param repoGetUserByAuthParam) (user, error)
+	getUserByRefreshToken(ctx context.Context, refreshToken string) (user, error)
+	saveSession(ctx context.Context, param repoSaveSessionParam) error
+	updateSession(ctx context.Context, param repoUpdateSessionParam) error
+	deleteSession(ctx context.Context, param repoDeleteSessionParam) error
+	getListActiveSessions(ctx context.Context, userID int64) ([]session, error)
+	requestUserPasswordReset(ctx context.Context, param repoRequestUserPasswordResetParam) (user, error)
 }
