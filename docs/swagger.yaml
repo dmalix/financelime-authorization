@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  authorization.apiAccessTokenResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+      sessionID:
+        type: string
+    type: object
   authorization.apiCommonFailure:
     properties:
       code:
@@ -103,6 +112,15 @@ definitions:
         example: 1060
         type: integer
     type: object
+  authorization.session:
+    properties:
+      platform:
+        type: string
+      sessionID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   system.versionResponse:
     properties:
       build:
@@ -117,37 +135,13 @@ info:
   contact:
     email: dmalix@financelime.com
     name: API Support
-  description: Financelime authorization RESTful API service
+  description: Financelime Authorization RESTful API service
   license:
     name: GNU General Public License v3.0
     url: https://www.gnu.org/licenses/gpl-3.0.html
-  title: Financelime authorization
+  title: Financelime Authorization
   version: v0.2.0-alpha
 paths:
-  /u/{confirmationKey}:
-    get:
-      description: API returns HTML-page with a message (success or error).
-      operationId: confirm_user_email
-      parameters:
-      - description: Confirmation Key
-        in: path
-        name: confirmationKey
-        required: true
-        type: string
-      produces:
-      - text/plain;charset=utf-8
-      responses:
-        "200":
-          description: Successful operation
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/authorization.apiCommonFailure'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/authorization.apiCommonFailure'
-      summary: Confirm User Email
   /v1/oauth/sessions:
     delete:
       consumes:
@@ -191,6 +185,10 @@ paths:
       responses:
         "200":
           description: Successful operation
+          schema:
+            items:
+              $ref: '#/definitions/authorization.session'
+            type: array
         "401":
           description: Unauthorized
           schema:
@@ -224,6 +222,8 @@ paths:
       responses:
         "200":
           description: Successful operation
+          schema:
+            $ref: '#/definitions/authorization.apiAccessTokenResponse'
         "400":
           description: Bad Request
           schema:
@@ -254,6 +254,8 @@ paths:
       responses:
         "200":
           description: Successful operation
+          schema:
+            $ref: '#/definitions/authorization.apiAccessTokenResponse'
         "400":
           description: Bad Request
           schema:
@@ -329,6 +331,30 @@ paths:
           schema:
             $ref: '#/definitions/authorization.apiCommonFailure'
       summary: Create new user
+  /v1/u/{confirmationKey}:
+    get:
+      description: API returns HTML-page with a message (success or error).
+      operationId: confirm_user_email
+      parameters:
+      - description: Confirmation Key
+        in: path
+        name: confirmationKey
+        required: true
+        type: string
+      produces:
+      - text/plain;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/authorization.apiCommonFailure'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/authorization.apiCommonFailure'
+      summary: Confirm User Email
   /v1/version:
     get:
       description: Get Version

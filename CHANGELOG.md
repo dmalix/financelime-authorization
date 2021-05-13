@@ -1,3 +1,10 @@
+## Pre-Release v0.2.0-alpha
+
+**Changes:**
+- Implemented the generation of the OpenAPI spec. 
+- Added context to some functions.
+- Changed the graceful shutdown.
+
 ## Pre-Release v0.1.5-alpha
 
 **New Features:**

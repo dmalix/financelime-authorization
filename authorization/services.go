@@ -5,6 +5,7 @@
 package authorization
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -41,7 +42,7 @@ func NewService(
 	}
 }
 
-func (s *service) generatePublicID(privateID int64) (string, error) {
+func (s *service) generatePublicID(_ context.Context, privateID int64) (string, error) {
 
 	var (
 		err             error
@@ -64,7 +65,7 @@ func (s *service) generatePublicID(privateID int64) (string, error) {
 	return publicSessionID, nil
 }
 
-func (s *service) signUp(param serviceSignUpParam) error {
+func (s *service) signUp(ctx context.Context, param serviceSignUpParam) error {
 
 	var (
 		confirmationKey string
@@ -73,7 +74,7 @@ func (s *service) signUp(param serviceSignUpParam) error {
 
 	confirmationKey = random.StringRand(16, 16, true)
 
-	err = s.repository.createUser(repoCreateUserParam{
+	err = s.repository.createUser(ctx, repoCreateUserParam{
 		email:              param.email,
 		language:           param.language,
 		inviteCode:         param.inviteCode,
@@ -135,19 +136,20 @@ func (s *service) signUp(param serviceSignUpParam) error {
 	return nil
 }
 
-func (s *service) confirmUserEmail(confirmationKey string) (string, error) {
+func (s *service) confirmUserEmail(ctx context.Context, confirmationKey string) (string, error) {
 
 	var (
 		user user
 		err  error
 	)
 
-	user, err = s.repository.confirmUserEmail(confirmationKey)
+	user, err = s.repository.confirmUserEmail(ctx, confirmationKey)
 
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
-		case domainErrorCodeBadParamConfirmationKey, domainErrorCodeConfirmationKeyNotFound, domainErrorCodeConfirmationKeyAlreadyConfirmed:
+		case domainErrorCodeBadParamConfirmationKey, domainErrorCodeConfirmationKeyNotFound,
+			domainErrorCodeConfirmationKeyAlreadyConfirmed:
 			return "",
 				errors.New(fmt.Sprintf("%s:%s[%s]",
 					domainErrorCodeBadConfirmationKey,
@@ -165,14 +167,14 @@ func (s *service) confirmUserEmail(confirmationKey string) (string, error) {
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: user.email},
-		s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.language]],
+		mail.Address{Address: user.Email},
+		s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.Language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.Signup.Email.Password.Body[s.languageContent.Language[user.language]],
-			user.password),
+			s.languageContent.Data.User.Signup.Email.Password.Body[s.languageContent.Language[user.Language]],
+			user.Password),
 		fmt.Sprintf(
 			"<%s@%s>",
-			user.password,
+			user.Password,
 			fmt.Sprintf("%s.%s", "confirm-user-email", s.config.DomainAPI)))
 
 	if err != nil {
@@ -183,12 +185,12 @@ func (s *service) confirmUserEmail(confirmationKey string) (string, error) {
 				err))
 	}
 
-	confirmationMessage := s.languageContent.Data.User.Signup.Page.Text[s.languageContent.Language[user.language]]
+	confirmationMessage := s.languageContent.Data.User.Signup.Page.Text[s.languageContent.Language[user.Language]]
 
 	return confirmationMessage, nil
 }
 
-func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (serviceAccessTokenReturn, error) {
+func (s *service) createAccessToken(ctx context.Context, param serviceCreateAccessTokenParam) (serviceAccessTokenReturn, error) {
 
 	var (
 		err               error
@@ -200,7 +202,7 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 		refreshJWT        string
 	)
 
-	user, err = s.repository.getUserByAuth(repoGetUserByAuthParam{
+	user, err = s.repository.getUserByAuth(ctx, repoGetUserByAuthParam{
 		email:    param.email,
 		password: param.password,
 	})
@@ -226,7 +228,7 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 		}
 	}
 
-	publicSessionID, err = s.generatePublicID(user.id)
+	publicSessionID, err = s.generatePublicID(ctx, user.ID)
 	if err != nil {
 		return serviceAccessTokenReturn{},
 			errors.New(fmt.Sprintf("%s:%s[%s]",
@@ -271,8 +273,8 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 				err))
 	}
 
-	err = s.repository.saveSession(repoSaveSessionParam{
-		userID:          user.id,
+	err = s.repository.saveSession(ctx, repoSaveSessionParam{
+		userID:          user.ID,
 		publicSessionID: publicSessionID,
 		refreshToken:    refreshJWT,
 		clientID:        param.clientID,
@@ -291,9 +293,9 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
 		mail.Address{Address: param.email},
-		s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.language]],
+		s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.Language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.language]],
+			s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.Language]],
 			time.Now().UTC().String(),
 			param.device.Platform,
 			param.remoteAddr,
@@ -317,7 +319,7 @@ func (s *service) createAccessToken(param serviceCreateAccessTokenParam) (servic
 	}, nil
 }
 
-func (s *service) refreshAccessToken(param serviceRefreshAccessTokenParam) (serviceAccessTokenReturn, error) {
+func (s *service) refreshAccessToken(ctx context.Context, param serviceRefreshAccessTokenParam) (serviceAccessTokenReturn, error) {
 
 	var (
 		err               error
@@ -338,7 +340,7 @@ func (s *service) refreshAccessToken(param serviceRefreshAccessTokenParam) (serv
 				err))
 	}
 
-	user, err = s.repository.getUserByRefreshToken(param.refreshToken)
+	user, err = s.repository.getUserByRefreshToken(ctx, param.refreshToken)
 	if err != nil {
 		domainErrorCode := strings.Split(err.Error(), ":")[0]
 		switch domainErrorCode {
@@ -394,7 +396,7 @@ func (s *service) refreshAccessToken(param serviceRefreshAccessTokenParam) (serv
 				err))
 	}
 
-	err = s.repository.updateSession(repoUpdateSessionParam{
+	err = s.repository.updateSession(ctx, repoUpdateSessionParam{
 		publicSessionID: publicSessionID,
 		refreshToken:    param.refreshToken,
 		remoteAddr:      param.remoteAddr,
@@ -413,13 +415,7 @@ func (s *service) refreshAccessToken(param serviceRefreshAccessTokenParam) (serv
 		refreshJWT:      jwtRefresh}, nil
 }
 
-/*
-	Revoke Access Token
-		----------------
-		Return:
-			err             error  - system error
-*/
-func (s *service) revokeRefreshToken(param serviceRevokeRefreshTokenParam) error {
+func (s *service) revokeRefreshToken(ctx context.Context, param serviceRevokeRefreshTokenParam) error {
 
 	var (
 		err               error
@@ -443,8 +439,8 @@ func (s *service) revokeRefreshToken(param serviceRevokeRefreshTokenParam) error
 			err))
 	}
 
-	err = s.repository.deleteSession(repoDeleteSessionParam{
-		userID:          user.id,
+	err = s.repository.deleteSession(ctx, repoDeleteSessionParam{
+		userID:          user.ID,
 		publicSessionID: param.publicSessionID,
 	})
 	if err != nil {
@@ -457,7 +453,7 @@ func (s *service) revokeRefreshToken(param serviceRevokeRefreshTokenParam) error
 	return nil
 }
 
-func (s *service) requestUserPasswordReset(param serviceRequestUserPasswordResetParam) error {
+func (s *service) requestUserPasswordReset(ctx context.Context, param serviceRequestUserPasswordResetParam) error {
 
 	var (
 		confirmationKey string
@@ -467,7 +463,7 @@ func (s *service) requestUserPasswordReset(param serviceRequestUserPasswordReset
 
 	confirmationKey = random.StringRand(16, 16, true)
 
-	user, err = s.repository.requestUserPasswordReset(repoRequestUserPasswordResetParam{
+	user, err = s.repository.requestUserPasswordReset(ctx, repoRequestUserPasswordResetParam{
 		email:           param.email,
 		remoteAddr:      param.remoteAddr,
 		confirmationKey: confirmationKey})
@@ -493,9 +489,9 @@ func (s *service) requestUserPasswordReset(param serviceRequestUserPasswordReset
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
 		mail.Address{Address: param.email},
-		s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.language]],
+		s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
 		fmt.Sprintf(
-			s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.language]],
+			s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
 			param.remoteAddr, s.config.DomainAPI, confirmationKey),
 		fmt.Sprintf(
 			"<%s@%s>",
@@ -511,7 +507,7 @@ func (s *service) requestUserPasswordReset(param serviceRequestUserPasswordReset
 	return nil
 }
 
-func (s *service) getListActiveSessions(encryptedUserData []byte) ([]session, error) {
+func (s *service) getListActiveSessions(ctx context.Context, encryptedUserData []byte) ([]session, error) {
 
 	var (
 		err               error
@@ -522,7 +518,7 @@ func (s *service) getListActiveSessions(encryptedUserData []byte) ([]session, er
 
 	decryptedUserData, err = s.cryptographer.Decrypt(encryptedUserData)
 	if err != nil {
-		return sessions,
+		return nil,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				trace.GetCurrentPoint(),
 				"Failed to decrypt the user data",
@@ -531,16 +527,16 @@ func (s *service) getListActiveSessions(encryptedUserData []byte) ([]session, er
 
 	err = json.Unmarshal(decryptedUserData, &user)
 	if err != nil {
-		return sessions,
+		return nil,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				trace.GetCurrentPoint(),
 				"Failed to unmarshal the decryptedUserData value to struct [%s]",
 				err))
 	}
 
-	sessions, err = s.repository.getListActiveSessions(user.id)
+	sessions, err = s.repository.getListActiveSessions(ctx, user.ID)
 	if err != nil {
-		return sessions,
+		return nil,
 			errors.New(fmt.Sprintf("%s:%s[%s]",
 				trace.GetCurrentPoint(),
 				"a system error was returned",

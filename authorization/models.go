@@ -18,10 +18,10 @@ type device struct {
 }
 
 type user struct {
-	id       int64
-	email    string
-	password string
-	language string
+	ID       int64
+	Email    string
+	Password string
+	Language string
 }
 
 type session struct {

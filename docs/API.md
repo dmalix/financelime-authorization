@@ -1,8 +1,8 @@
 
 
 
-# Financelime authorization
-Financelime authorization RESTful API service
+# Financelime Authorization
+Financelime Authorization RESTful API service
   
 
 ## Informations
@@ -47,7 +47,7 @@ API Support dmalix@financelime.com
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
-| GET | /u/{confirmationKey} | [confirm user email](#confirm-user-email) | Confirm User Email |
+| GET | /v1/u/{confirmationKey} | [confirm user email](#confirm-user-email) | Confirm User Email |
 | POST | /v1/oauth/token | [create access token](#create-access-token) | Create Access Token (Domain Action: Log In) |
 | POST | /v1/signup | [create new user](#create-new-user) | Create new user |
 | GET | /v1/oauth/sessions | [get list active sessions](#get-list-active-sessions) | Get a list of active sessions |
@@ -63,7 +63,7 @@ API Support dmalix@financelime.com
 ### <span id="confirm-user-email"></span> Confirm User Email (*confirm_user_email*)
 
 ```
-GET /u/{confirmationKey}
+GET /v1/u/{confirmationKey}
 ```
 
 API returns HTML-page with a message (success or error).
@@ -145,6 +145,10 @@ Create Access Token
 Status: OK
 
 ###### <span id="create-access-token-200-schema"></span> Schema
+   
+  
+
+[AuthorizationAPIAccessTokenResponse](#authorization-api-access-token-response)
 
 ##### <span id="create-access-token-400"></span> 400 - Bad Request
 Status: Bad Request
@@ -272,6 +276,10 @@ Get a list of active sessions
 Status: OK
 
 ###### <span id="get-list-active-sessions-200-schema"></span> Schema
+   
+  
+
+[][AuthorizationSession](#authorization-session)
 
 ##### <span id="get-list-active-sessions-401"></span> 401 - Unauthorized
 Status: Unauthorized
@@ -363,6 +371,10 @@ Refresh Access Token
 Status: OK
 
 ###### <span id="refresh-access-token-200-schema"></span> Schema
+   
+  
+
+[AuthorizationAPIAccessTokenResponse](#authorization-api-access-token-response)
 
 ##### <span id="refresh-access-token-400"></span> 400 - Bad Request
 Status: Bad Request
@@ -526,6 +538,23 @@ Status: Internal Server Error
 
 ## Models
 
+### <span id="authorization-api-access-token-response"></span> authorization.apiAccessTokenResponse
+
+
+  
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| accessToken | string| `string` |  | |  |  |
+| refreshToken | string| `string` |  | |  |  |
+| sessionID | string| `string` |  | |  |  |
+
+
+
 ### <span id="authorization-api-common-failure"></span> authorization.apiCommonFailure
 
 
@@ -654,6 +683,23 @@ Status: Internal Server Error
 | platform | string| `string` |  | |  | `Linux x86_64` |
 | timezone | string| `string` |  | |  | `2` |
 | width | integer| `int64` |  | |  | `1060` |
+
+
+
+### <span id="authorization-session"></span> authorization.session
+
+
+  
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| platform | string| `string` |  | |  |  |
+| sessionID | string| `string` |  | |  |  |
+| updatedAt | string| `string` |  | |  |  |
 
 
 

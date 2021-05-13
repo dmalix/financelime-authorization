@@ -5,38 +5,26 @@
 package authorization
 
 import (
-	"github.com/dmalix/financelime-authorization/utils/router"
+	"context"
+	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func Router(mux *http.ServeMux, handler API, middleware APIMiddleware) {
+func Router(ctx context.Context, router *mux.Router, handler API, middleware middleware.APIMiddleware) {
 
-	mux.Handle("/v1/signup",
-		router.Group(
-			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.signUp()})))
+	router.Handle("/signup", handler.signUp(ctx)).Methods(http.MethodPost)
 
-	mux.Handle("/u/",
-		router.Group(
-			router.EndPoint(router.Point{Method: http.MethodGet, Handler: handler.confirmUserEmail()}),
-		))
+	router.Handle("/u/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
+		handler.confirmUserEmail(ctx)).Methods(http.MethodGet)
 
-	mux.Handle("/v1/resetpassword",
-		router.Group(
-			router.EndPoint(router.Point{Method: http.MethodPost, Handler: handler.requestUserPasswordReset()}),
-		))
+	router.Handle("/resetpassword", handler.requestUserPasswordReset(ctx)).Methods(http.MethodPost)
 
-	mux.Handle("/v1/oauth/token",
-		router.Group(
-			router.EndPoint(
-				router.Point{Method: http.MethodPost, Handler: handler.createAccessToken()},
-				router.Point{Method: http.MethodPut, Handler: handler.refreshAccessToken()}),
-		))
+	router.Handle("/oauth/token", handler.createAccessToken(ctx)).Methods(http.MethodPost)
+	router.Handle("/oauth/token", handler.refreshAccessToken(ctx)).Methods(http.MethodPut)
 
-	mux.Handle("/v1/oauth/sessions",
-		router.Group(
-			router.EndPoint(
-				router.Point{Method: http.MethodGet, Handler: handler.getListActiveSessions()},
-				router.Point{Method: http.MethodDelete, Handler: handler.revokeRefreshToken()}),
-			middleware.authorization,
-		))
+	routerSession := router.PathPrefix("/oauth/sessions").Subrouter()
+	routerSession.Use(middleware.Authorization)
+	routerSession.Handle("", handler.getListActiveSessions(ctx)).Methods(http.MethodGet)
+	routerSession.Handle("", handler.revokeRefreshToken(ctx)).Methods(http.MethodDelete)
 }

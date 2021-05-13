@@ -13,8 +13,10 @@ import (
 	"github.com/dmalix/financelime-authorization/packages/cryptographer"
 	"github.com/dmalix/financelime-authorization/packages/email"
 	"github.com/dmalix/financelime-authorization/packages/jwt"
+	"github.com/dmalix/financelime-authorization/packages/middleware"
 	"github.com/dmalix/financelime-authorization/system"
 	"github.com/dmalix/financelime-authorization/utils/trace"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -35,27 +37,29 @@ type App struct {
 	emailMessageSenderDaemon email.EmailSenderDaemon
 	httpServer               *http.Server
 	authAPI                  authorization.API
-	authAPIMiddleware        authorization.APIMiddleware
+	authAPIMiddleware        middleware.APIMiddleware
 	authService              authorization.Service
 	sysAPI                   system.API
 	sysService               system.Service
 }
 
-func New() (*App, error) {
+func NewApp() (*App, error) {
 
 	var (
-		app               *App
-		err               error
-		dbAuthMain        *sql.DB
-		dbAuthRead        *sql.DB
-		dbBlade           *sql.DB
-		config            cfg
-		languageContent   authorization.LanguageContent
+		app             *App
+		err             error
+		dbAuthMain      *sql.DB
+		dbAuthRead      *sql.DB
+		dbBlade         *sql.DB
+		config          cfg
+		languageContent authorization.LanguageContent
+		// TODO Move the number of messages in the queue to configs
 		emailMessageQueue = make(chan email.EmailMessage, 300)
 	)
 
-	// Init the Config and the Language Content
-	// ----------------------------------------
+	/*****************************************************\
+	|           Init Config and Language Content          |
+	\*****************************************************/
 
 	config, err = initConfig()
 	if err != nil {
@@ -75,8 +79,9 @@ func New() (*App, error) {
 				err.Error()))
 	}
 
-	// Databases
-	// ---------
+	/*****************************************************\
+	|                     Databases                       |
+	\*****************************************************/
 
 	dbAuthMain, err = authorization.NewPostgreDB(authorization.ConfigPostgreDB{
 		Host:     config.db.authMain.connect.host,
@@ -150,13 +155,15 @@ func New() (*App, error) {
 				err.Error()))
 	}
 
-	//    Cryptographer
-	// --------------------
+	/*****************************************************\
+	|                    Cryptographer                    |
+	\*****************************************************/
 
 	cryptoManager := cryptographer.NewCryptographer(config.jwt.secretKey)
 
-	//    JWT
-	// -----------
+	/*****************************************************\
+	|                         JWT                         |
+	\*****************************************************/
 
 	jwtManager := jwt.NewToken(
 		config.jwt.secretKey,
@@ -166,8 +173,9 @@ func New() (*App, error) {
 		config.jwt.accessTokenLifetime,
 		config.jwt.refreshTokenLifetime)
 
-	// Email Message
-	// -------------
+	/*****************************************************\
+	|                     Email Message                   |
+	\*****************************************************/
 
 	emailMessageSenderDaemon := email.NewSenderDaemon(
 		config.smtp.user,
@@ -179,17 +187,22 @@ func New() (*App, error) {
 	emailMessageManager := email.NewManager(
 		config.mailMessage.from)
 
-	// authorization
-	// ------------------------
+	/*****************************************************\
+	|                     Middleware                      |
+	\*****************************************************/
 
-	authorizationAPIMiddlewareConfig := authorization.ConfigMiddleware{
+	middlewareConfig := middleware.ConfigMiddleware{
 		RequestIDRequired: true,
 		RequestIDCheck:    true,
 	}
 
-	authAPIMiddleware := authorization.NewMiddleware(
-		authorizationAPIMiddlewareConfig,
+	commonMiddleware := middleware.NewMiddleware(
+		middlewareConfig,
 		jwtManager)
+
+	/*****************************************************\
+	|                     Authorization                   |
+	\*****************************************************/
 
 	authRepoConfig := authorization.ConfigRepository{
 		CryptoSalt:              config.crypto.salt,
@@ -221,8 +234,9 @@ func New() (*App, error) {
 	authAPI := authorization.NewAPI(
 		authService)
 
-	// System
-	// --------------
+	/*****************************************************\
+	|                       System                        |
+	\*****************************************************/
 
 	systemService := system.NewService(
 		versionNumber,
@@ -233,14 +247,16 @@ func New() (*App, error) {
 	systemAPI := system.NewAPI(
 		systemService)
 
-	// Implementation of prepared objects into the REST-API application
-	// ----------------------------------------------------------------
+	/*****************************************************\
+	|          Implementation of prepared objects         |
+	|                 into the application                |
+	\*****************************************************/
 
 	app = &App{
 		httpPort:                 config.http.port,
 		emailMessageSenderDaemon: emailMessageSenderDaemon,
 		authAPI:                  authAPI,
-		authAPIMiddleware:        authAPIMiddleware,
+		authAPIMiddleware:        commonMiddleware,
 		authService:              authService,
 		sysAPI:                   systemAPI,
 		sysService:               systemService,
@@ -249,25 +265,28 @@ func New() (*App, error) {
 	return app, nil
 }
 
-func (app *App) Run() error {
+func (app *App) Run(ctx context.Context) error {
 
-	// Start the Mail-Sender daemon
-	// ----------------------------
-	// TODO Add context to stop
-	go app.emailMessageSenderDaemon.Run()
+	/*****************************************************\
+	|             Start the Mail-Sender daemon            |
+	\*****************************************************/
 
-	// Start the REST-API application
-	// ------------------------------
+	go app.emailMessageSenderDaemon.Run(ctx)
 
-	mux := http.NewServeMux()
+	/*****************************************************\
+	|                  Start application                  |
+	\*****************************************************/
 
-	authorization.Router(mux, app.authAPI, app.authAPIMiddleware)
-	//system.Router(mux, app.sysAPI, app.authAPIMiddleware)
-	system.Router(mux, app.sysAPI, app.authAPIMiddleware)
+	router := mux.NewRouter()
+	router.Use(app.authAPIMiddleware.Logging())
+	routerV1 := router.PathPrefix("/v1").Subrouter()
+
+	authorization.Router(ctx, routerV1, app.authAPI, app.authAPIMiddleware)
+	system.Router(ctx, routerV1, app.sysAPI, app.authAPIMiddleware)
 
 	app.httpServer = &http.Server{
 		Addr:           ":" + app.httpPort,
-		Handler:        mux,
+		Handler:        router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -275,12 +294,18 @@ func (app *App) Run() error {
 
 	go func() {
 		if err := app.httpServer.ListenAndServe(); err != nil {
-			log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to listen and serve", err)
+			switch err {
+			case http.ErrServerClosed:
+				log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), err.Error())
+			default:
+				log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "failed to listen and serve", err)
+			}
 		}
 	}()
 
-	// Graceful shutdown
-	// -----------------
+	/*****************************************************\
+	|                  Graceful shutdown                  |
+	\*****************************************************/
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -293,12 +318,13 @@ func (app *App) Run() error {
 		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Got SIGTERM...")
 	}
 	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "The service is shutting down...")
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	ctxHttpServer, shutdown := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdown()
-	err := app.httpServer.Shutdown(ctx)
-	if err == nil {
-		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Done")
+	err := app.httpServer.Shutdown(ctxHttpServer)
+	if err != nil {
+		log.Println("failed shutdown of the HTTP Server", err)
 	}
+	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Done")
 
 	return err
 }

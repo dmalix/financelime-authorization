@@ -5,12 +5,16 @@
 package system
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestVersion(t *testing.T) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	MockData.Expected.Error = nil
 
@@ -25,7 +29,7 @@ func TestVersion(t *testing.T) {
 
 	newService := new(MockDescription)
 	newAPI := NewAPI(newService)
-	handler := newAPI.version()
+	handler := newAPI.version(ctx)
 
 	handler.ServeHTTP(responseRecorder, request)
 

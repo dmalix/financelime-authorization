@@ -5,7 +5,8 @@
 package main
 
 import (
-	authApp "github.com/dmalix/financelime-authorization/app"
+	"context"
+	authorizationapp "github.com/dmalix/financelime-authorization/app"
 	"github.com/dmalix/financelime-authorization/utils/trace"
 	"log"
 	"math/rand"
@@ -19,9 +20,9 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-// @title Financelime authorization
+// @title Financelime Authorization
 // @version v0.2.0-alpha
-// @description Financelime authorization RESTful API service
+// @description Financelime Authorization RESTful API service
 // @contact.name API Support
 // @contact.email dmalix@financelime.com
 // @license.name GNU General Public License v3.0
@@ -37,12 +38,14 @@ func main() {
 
 	var err error
 
-	app, err := authApp.New()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	app, err := authorizationapp.NewApp()
 	if err != nil {
 		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to get a new App", err)
 	}
-	// TODO Add context to stop
-	err = app.Run()
+	err = app.Run(ctx)
 	if err != nil {
 		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to run the App", err)
 	}
