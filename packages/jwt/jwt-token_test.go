@@ -5,25 +5,25 @@
 package jwt
 
 import (
-	cryptographer2 "github.com/dmalix/financelime-authorization/packages/cryptographer"
+	"github.com/dmalix/financelime-authorization/packages/cryptographer"
 	"testing"
 	"time"
 )
 
-func TestToken_success_userDataPlainText(t *testing.T) {
+func TestToken_success_secretBoxPlainText(t *testing.T) {
 
 	var err error
 	var token string
 
 	jwtManager := NewToken(
 		"secretKey",
-		PropsSigningAlgorithmHS256,
+		ParamSigningAlgorithmHS256,
 		"issuer",
 		"subject",
 		100,
 		0)
 
-	token, err = jwtManager.GenerateToken("sessionID", []byte("userData"), PropsPurposeAccess)
+	token, err = jwtManager.GenerateToken("sessionID", []byte("userData"), ParamPurposeAccess)
 
 	if err != nil {
 		t.Errorf("function returned wrong error value: got %v want %v",
@@ -38,26 +38,26 @@ func TestToken_success_userDataPlainText(t *testing.T) {
 	}
 }
 
-func TestToken_success_userDataEncrypted(t *testing.T) {
+func TestToken_success_secretBoxEncrypted(t *testing.T) {
 
 	var err error
 	var token string
-	const userDataSource = "userData"
-	var userDataEncrypted []byte
+	const dataSource = "data"
+	var secretBoxEncrypted []byte
 
 	jwtManager := NewToken(
 		"secretKey",
-		PropsSigningAlgorithmHS256,
+		ParamSigningAlgorithmHS256,
 		"issuer",
 		"subject",
 		100,
 		0)
 
-	cryptoManager := cryptographer2.NewCryptographer("secretKey")
+	cryptoManager := cryptographer.NewCryptographer("secretKey")
 
-	userDataEncrypted, err = cryptoManager.Encrypt([]byte(userDataSource))
+	secretBoxEncrypted, err = cryptoManager.Encrypt([]byte(dataSource))
 
-	token, err = jwtManager.GenerateToken("sessionID", userDataEncrypted, PropsPurposeAccess)
+	token, err = jwtManager.GenerateToken("sessionID", secretBoxEncrypted, ParamPurposeAccess)
 
 	if err != nil {
 		t.Errorf("function returned wrong error value: got %v want %v",
@@ -79,13 +79,13 @@ func TestToken_invalid(t *testing.T) {
 
 	jwtManager := NewToken(
 		"secretKey",
-		PropsSigningAlgorithmHS256,
+		ParamSigningAlgorithmHS256,
 		"issuer",
 		"subject",
 		0,
 		0)
 
-	token, err = jwtManager.GenerateToken("sessionID", []byte("userData"), PropsPurposeAccess)
+	token, err = jwtManager.GenerateToken("sessionID", []byte("data"), ParamPurposeAccess)
 
 	if err != nil {
 		t.Errorf("function returned wrong error value: got %v want %v",

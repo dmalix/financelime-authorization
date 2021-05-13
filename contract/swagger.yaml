@@ -1,0 +1,497 @@
+basePath: /
+definitions:
+  model.AccessTokenResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+      sessionID:
+        type: string
+    type: object
+  model.CommonFailure:
+    properties:
+      code:
+        example: 404
+        type: integer
+      message:
+        example: 404 Not Found
+        type: string
+    type: object
+  model.CreateAccessTokenFailure400:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        enum:
+        - BAD_PARAMETERS
+        example: BAD_PARAMETERS
+        type: string
+    type: object
+  model.CreateAccessTokenFailure404:
+    properties:
+      code:
+        example: 404
+        type: integer
+      message:
+        enum:
+        - USER_NOT_FOUND
+        example: USER_NOT_FOUND
+        type: string
+    type: object
+  model.CreateAccessTokenRequest:
+    properties:
+      clientID:
+        description: User Client ID
+        example: PWA_v0.0.1
+        type: string
+      device:
+        $ref: '#/definitions/model.Device'
+      email:
+        description: User Email
+        example: test.user@financelime.com
+        type: string
+      password:
+        description: User Password
+        example: qmhVXVC1%hVNa0Hcq
+        type: string
+    required:
+    - clientID
+    - device
+    - email
+    - password
+    type: object
+  model.Device:
+    properties:
+      height:
+        example: 1920
+        type: integer
+      language:
+        example: en-US
+        type: string
+      platform:
+        example: Linux x86_64
+        type: string
+      timezone:
+        example: "2"
+        type: string
+      width:
+        example: 1060
+        type: integer
+    type: object
+  model.RefreshAccessTokenFailure400:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        enum:
+        - BAD_PARAMETERS
+        - ' BAD_REFRESH_TOKEN'
+        example: BAD_PARAMETERS
+        type: string
+    type: object
+  model.RefreshAccessTokenFailure404:
+    properties:
+      code:
+        example: 404
+        type: integer
+      message:
+        enum:
+        - USER_NOT_FOUND
+        example: USER_NOT_FOUND
+        type: string
+    type: object
+  model.RefreshAccessTokenRequest:
+    properties:
+      refreshToken:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJzZXNzaW9uSUQiOiI2M2IyZjUyM2ZiZGQzMzFlZjQzM2U2NmU5NDZjYWQ2OTNkOTQ5MzdjMWUxNWNjMDI5YjFiNjE1YmExN2VjZWM3IiwidXNlckRhdGEiOiJpNHhTbDBmNXcrMGJSTE1KOURMVlp3NGJDZkpSSUFqQlhoN2VFZFlpNTV2L1QvVk1EK3RmNFNyK0NSV0ZnZEpoUkh2S1AyNnZGQ1AxZ05iOU4yejljMFRoYkRZNkFSdGt2WHkzMHJ3bTlDeXh0Vk1QdUUvRXh4UDdzaCs3MGVrbE5ObjdGS2xIIiwiaWF0IjoxNjIwNTIwNTg2fQ.4fd650daddded3a74c6fcfa28559d02c3ca6f32d55805b58ac88ccd302c5445e
+        type: string
+    required:
+    - refreshToken
+    type: object
+  model.RequestUserPasswordResetFailure400:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        enum:
+        - BAD_PARAMETERS
+        - ' BAD_REFRESH_TOKEN'
+        example: BAD_PARAMETERS
+        type: string
+    type: object
+  model.RequestUserPasswordResetFailure404:
+    properties:
+      code:
+        example: 404
+        type: integer
+      message:
+        enum:
+        - USER_NOT_FOUND
+        example: USER_NOT_FOUND
+        type: string
+    type: object
+  model.RequestUserPasswordResetRequest:
+    properties:
+      email:
+        example: test.user@financelime.com
+        type: string
+    required:
+    - email
+    type: object
+  model.RevokeRefreshTokenFailure400:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        enum:
+        - BAD_PARAMETERS
+        example: BAD_PARAMETERS
+        type: string
+    type: object
+  model.RevokeRefreshTokenRequest:
+    properties:
+      sessionID:
+        example: f58f06a96b69083b7c4fb068faa6c8314af0636e44ecc710261abe1759b07755
+        type: string
+    required:
+    - sessionID
+    type: object
+  model.Session:
+    properties:
+      platform:
+        type: string
+      sessionID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.SignUpFailure400:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        enum:
+        - BAD_PARAMETERS
+        example: BAD_PARAMETERS
+        type: string
+    type: object
+  model.SignUpFailure409:
+    properties:
+      code:
+        example: 409
+        type: integer
+      message:
+        enum:
+        - USER_ALREADY_EXIST
+        - INVITE_NOT_FOUND
+        - INVITE_HAS_ENDED
+        example: USER_ALREADY_EXIST
+        type: string
+    type: object
+  model.SignUpRequest:
+    properties:
+      email:
+        description: User email
+        example: test.user@financelime.com
+        type: string
+      inviteCode:
+        description: Invite code. Required depending on the setting of environment variable `AUTH_INVITE_CODE_REQUIRED`. The default is required.
+        example: testInviteCode
+        type: string
+      language:
+        description: User language
+        example: en
+        type: string
+    required:
+    - email
+    - inviteCode
+    - language
+    type: object
+  model.VersionResponse:
+    properties:
+      build:
+        example: fc56bb1 [2021-05-07_11:12:09]
+        type: string
+      number:
+        example: v0.2.0-alpha
+        type: string
+    type: object
+host: api.auth.dev.financelime.com
+info:
+  contact:
+    email: dmalix@financelime.com
+    name: API Support
+  description: Financelime Authorization RESTful API service
+  license:
+    name: GNU General Public License v3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+  title: Financelime Authorization
+  version: v0.2.0-alpha
+paths:
+  /u/{confirmationKey}:
+    get:
+      description: API returns HTML-page with a message (success or error).
+      operationId: confirm_user_email
+      parameters:
+      - description: RequestID
+        in: query
+        name: rid
+        required: true
+        type: string
+      - description: Confirmation Key
+        in: path
+        name: confirmationKey
+        required: true
+        type: string
+      produces:
+      - text/plain;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Confirm User Email
+  /v1/oauth/create:
+    post:
+      consumes:
+      - application/json;charset=utf-8
+      description: Create Access Token
+      operationId: create_access_token
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      - description: Data for creating a new token
+        in: body
+        name: model.CreateAccessTokenRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateAccessTokenRequest'
+      produces:
+      - application/json;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/model.AccessTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.CreateAccessTokenFailure400'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.CreateAccessTokenFailure404'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: 'Create Access Token (Domain Action: Log In)'
+  /v1/oauth/refresh:
+    put:
+      consumes:
+      - application/json;charset=utf-8
+      description: Refresh Access Token
+      operationId: refresh_access_token
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      - description: Data for refreshing the access token
+        in: body
+        name: model.RefreshAccessTokenRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.RefreshAccessTokenRequest'
+      produces:
+      - application/json;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/model.AccessTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.RefreshAccessTokenFailure400'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.RefreshAccessTokenFailure404'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: 'Refresh Access Token (Domain Action: Renew authorization)'
+  /v1/session/list:
+    get:
+      description: Get a list of active sessions
+      operationId: get_list_active_sessions
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      produces:
+      - application/json;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            items:
+              $ref: '#/definitions/model.Session'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      security:
+      - authorization: []
+      summary: Get a list of active sessions
+  /v1/session/remove:
+    delete:
+      consumes:
+      - application/json;charset=utf-8
+      description: This request revoke the Refresh Token associated with the specified session. Thus, when the Access Token expires, then it cannot be renewed. And only after that, the user will be log out. Be aware that this query is idempotent.
+      operationId: revoke_refresh_token
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      - description: Data for revoking the Refresh Token
+        in: body
+        name: model.RevokeRefreshTokenRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.RevokeRefreshTokenRequest'
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.RevokeRefreshTokenFailure400'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      security:
+      - authorization: []
+      summary: 'Revoke Refresh Token (Domain Action: Log Out)'
+  /v1/user/password:
+    post:
+      consumes:
+      - application/json;charset=utf-8
+      description: The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
+      operationId: user_password_reset
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      - description: Data for resetting your password
+        in: body
+        name: model.RequestUserPasswordResetRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.RequestUserPasswordResetRequest'
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.RequestUserPasswordResetFailure400'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.RequestUserPasswordResetFailure404'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Request to user password reset
+  /v1/user/signup:
+    post:
+      consumes:
+      - application/json;charset=utf-8
+      description: The service sends a confirmation link to the specified email. After confirmation, the service will send a password for authorization.
+      operationId: signup
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      - description: Data for creating a new user
+        in: body
+        name: model.SignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.SignUpRequest'
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.SignUpFailure400'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/model.SignUpFailure409'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Create new user
+  /v1/version:
+    get:
+      description: Get Version
+      operationId: get_version
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      produces:
+      - application/json;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/model.VersionResponse'
+      summary: Get the Service version
+schemes:
+- https
+securityDefinitions:
+  authorization:
+    in: header
+    name: authorization
+    type: apiKey
+swagger: "2.0"

@@ -20,7 +20,7 @@ type AddEmailMessageToQueue_MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var AddEmailMessageToQueue_MockData AddEmailMessageToQueue_MockDescription
 
-func (manager AddEmailMessageToQueue_MockDescription) AddEmailMessageToQueue(_ chan EmailMessage,
+func (manager AddEmailMessageToQueue_MockDescription) AddEmailMessageToQueue(_ chan EMessage,
 	to mail.Address, _, _ string, _ ...string) error {
 	return AddEmailMessageToQueue_MockData.Expected.Error
 }

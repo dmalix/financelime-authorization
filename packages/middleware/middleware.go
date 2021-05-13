@@ -13,15 +13,15 @@ type ConfigMiddleware struct {
 	RequestIDCheck    bool
 }
 
-type Middleware struct {
+type middleware struct {
 	config ConfigMiddleware
-	jwt    jwt.Jwt
+	jwt    jwt.JWT
 }
 
 func NewMiddleware(
 	config ConfigMiddleware,
-	jwt jwt.Jwt) *Middleware {
-	return &Middleware{
+	jwt jwt.JWT) *middleware {
+	return &middleware{
 		config: config,
 		jwt:    jwt,
 	}

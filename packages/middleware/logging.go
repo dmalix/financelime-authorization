@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -9,14 +9,12 @@ import (
 
 type responseWriter struct {
 	http.ResponseWriter
-	status       int
-	headerStatus bool
+	status      int
+	wroteHeader bool
 }
 
-func replacementResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{
-		ResponseWriter: w,
-	}
+func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
+	return &responseWriter{ResponseWriter: w}
 }
 
 func (rw *responseWriter) Status() int {
@@ -24,43 +22,97 @@ func (rw *responseWriter) Status() int {
 }
 
 func (rw *responseWriter) WriteHeader(code int) {
-	if rw.headerStatus {
+	if rw.wroteHeader {
 		return
 	}
 
 	rw.status = code
 	rw.ResponseWriter.WriteHeader(code)
-	rw.headerStatus = true
+	rw.wroteHeader = true
 
 	return
 }
 
-func (middleware *Middleware) Logging() func(http.Handler) http.Handler {
+func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handler {
 	return func(inner http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			defer func() {
 				panicStatus := recover()
 				if panicStatus != nil {
+					logger.DPanic("Recover has panic status",
+						zap.Any("error", panicStatus),
+						zap.String("stack", string(debug.Stack())))
 					w.WriteHeader(http.StatusInternalServerError)
-					log.Println(
-						"err", panicStatus,
-						"trace", debug.Stack(),
-					)
 				}
 			}()
 
 			start := time.Now()
-			replacement := replacementResponseWriter(w)
+			wrapped := wrapResponseWriter(w)
 
-			inner.ServeHTTP(replacement, r)
+			remoteAddr, err := getRemoteAddr(r.Context())
+			if err != nil {
+				logger.DPanic("failed to get remoteAddr", zap.Error(err),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+				return
+			}
 
-			log.Println(
-				"status", replacement.status,
-				"method", r.Method,
-				"path", r.URL.EscapedPath(),
-				"duration", time.Since(start),
-			)
+			requestID, requestIDKey, err := getRequestID(r.Context())
+			if err != nil {
+				logger.DPanic("failed to get requestID", zap.Error(err),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+				return
+			}
+
+			inner.ServeHTTP(wrapped, r)
+
+			if wrapped.status >= 100 && wrapped.status < 200 {
+				logger.Warn("Informational",
+					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(requestIDKey, requestID),
+					zap.Int("status", wrapped.status),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+			} else if wrapped.status >= 200 && wrapped.status < 300 {
+				logger.Info("Success",
+					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(requestIDKey, requestID),
+					zap.Int("status", wrapped.status),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+			} else if wrapped.status >= 300 && wrapped.status < 400 {
+				logger.Warn("Redirection",
+					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(requestIDKey, requestID),
+					zap.Int("status", wrapped.status),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+			} else if wrapped.status >= 400 && wrapped.status < 500 {
+				logger.Error("Client Error",
+					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(requestIDKey, requestID),
+					zap.Int("status", wrapped.status),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+			} else {
+				logger.Error("Server Error",
+					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(requestIDKey, requestID),
+					zap.Int("status", wrapped.status),
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+					zap.Duration("duration", time.Since(start)))
+			}
 		})
 	}
 }

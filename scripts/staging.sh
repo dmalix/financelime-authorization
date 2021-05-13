@@ -43,58 +43,32 @@ ssh -p ${port} ${user}@${host} "cd ${remoteServiceHomePath}/bin; gzip --decompre
 if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to extract the new build file on staging-node [vQpM6nld]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
-echo -ne "- Compress the new migrate files:\t\t\t\t"
-tar --create --gzip --file=migrate.tar.gz migrate
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to compress the migrate files [kHB4jlqD]\e[0m"; exit; fi
-echo -e "\e[32mOK\e[0m"
-
-echo -ne "- Backup the prev migrate files on staging-node:\t\t"
-ssh -p ${port} ${user}@${host} \
-"cd ${remoteServiceHomePath}; tar --create --gzip --file=migrate.${currentTime}.tar.gz migrate; rm --force --dir --recursive migrate"
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to backup the prev migrate files on staging-node [s65iZcf9]\e[0m"; exit; fi
-echo -e "\e[32mOK\e[0m"
-
-echo "- Copy the archive with migrate files to staging-node:"
-scp -P ${port}	migrate.tar.gz	${user}@${host}:${remoteServiceHomePath}
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to Copy the archive with migrate files to staging-node [dihL5qGM]\e[0m"; exit; fi
-
-echo -ne "- Extract the new migrate files on staging-node:\t\t"
-ssh -p ${port} ${user}@${host} \
-"cd ${remoteServiceHomePath}; tar --extract --gzip --file=migrate.tar.gz; rm migrate.tar.gz"
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to extract the new migrate files on staging-node [s65iZcf9]\e[0m"; exit; fi
-echo -e "\e[32mOK\e[0m"
-
-echo -ne "- Remove the archive with with migrate files to staging-node:\t"
-rm migrate.tar.gz
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mRemove the archive with with migrate files to staging-node [E622yCat]\e[0m"; exit; fi
-echo -e "\e[32mOK\e[0m"
-
 ########################################################################################################################
 
-echo -ne "- Compress the new language content files:\t\t\t"
-tar --create --gzip --file=language.tar.gz language
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to compress the language content files [lqkHB4jD]\e[0m"; exit; fi
+echo -ne "- Compress the new assets files:\t\t\t\t"
+tar --create --gzip --file=assets.tar.gz assets
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to compress the assets files [kHB4jlqD]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
-echo -ne "- Backup the prev language files on staging-node:\t\t"
+echo -ne "- Backup the prev assets files on staging-node:\t\t\t"
 ssh -p ${port} ${user}@${host} \
-"cd ${remoteServiceHomePath}; tar --create --gzip --file=language.${currentTime}.tar.gz language; rm --force --dir --recursive language"
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to backup the prev language files on staging-node [Zcfs65i9]\e[0m"; exit; fi
+"cd ${remoteServiceHomePath}; tar --create --gzip --file=assets.${currentTime}.tar.gz assets; rm --force --dir --recursive assets"
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to backup the prev assets files on staging-node [s65iZcf9]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
-echo "- Copy the archive with language files to staging-node:"
-scp -P ${port}	language.tar.gz	${user}@${host}:${remoteServiceHomePath}
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to Copy the archive with language files to staging-node [qGdihL5M]\e[0m"; exit; fi
+echo "- Copy the archive with assets files to staging-node:"
+scp -P ${port}	assets.tar.gz	${user}@${host}:${remoteServiceHomePath}
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to Copy the archive with assets files to staging-node [dihL5qGM]\e[0m"; exit; fi
 
-echo -ne "- Extract the new language files on staging-node:\t\t"
+echo -ne "- Extract the new assets files on staging-node:\t\t\t"
 ssh -p ${port} ${user}@${host} \
-"cd ${remoteServiceHomePath}; tar --extract --gzip --file=language.tar.gz; rm language.tar.gz"
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to extract the new language files on staging-node [Zcs65if9]\e[0m"; exit; fi
+"cd ${remoteServiceHomePath}; tar --extract --gzip --file=assets.tar.gz; rm assets.tar.gz"
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to extract the new assets files on staging-node [s65iZcf9]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
-echo -ne "- Remove the archive with with language files to staging-node:\t"
-rm language.tar.gz
-if [ $? -ne 0 ] ; then echo -e "\e[1;31mRemove the archive with with language files to staging-node [yCE622at]\e[0m"; exit; fi
+echo -ne "- Remove the archive with with assets files to staging-node:\t"
+rm assets.tar.gz
+if [ $? -ne 0 ] ; then echo -e "\e[1;31mRemove the archive with with assets files to staging-node [E622yCat]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
 ########################################################################################################################

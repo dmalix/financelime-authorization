@@ -6,17 +6,15 @@ package main
 
 import (
 	"context"
-	authorizationapp "github.com/dmalix/financelime-authorization/app"
-	"github.com/dmalix/financelime-authorization/utils/trace"
+	authorizationApp "github.com/dmalix/financelime-authorization/app"
+	"github.com/dmalix/financelime-authorization/config"
+	"go.uber.org/zap"
 	"log"
 	"math/rand"
 	"time"
 )
 
 func init() {
-	//log.SetFlags(log.Llongfile)
-	//log.SetFlags(log.Lshortfile)
-	log.SetFlags(log.Lmsgprefix)
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
@@ -36,17 +34,43 @@ func init() {
 
 func main() {
 
-	var err error
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	app, err := authorizationapp.NewApp()
+	version, err := config.InitVersion()
 	if err != nil {
-		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to get a new App", err)
+		log.Fatalln("failed to build logger", err)
 	}
-	err = app.Run(ctx)
+
+	loggerConfig := zap.NewProductionConfig()
+	loggerConfig.Development = version.DevelopmentMode
+
+	logger, err := loggerConfig.Build()
 	if err != nil {
-		log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to run the App", err)
+		log.Fatalln("failed to build logger", err)
 	}
+	defer func(logger *zap.Logger) {
+		if err := logger.Sync(); err != nil {
+			log.Fatalln("failed to sync logger", err)
+		}
+	}(logger)
+
+	logger = logger.Named("main")
+
+	logger.Info("Welcome to the Financelime authorization service", zap.Any("version", version))
+
+	loggerApp := logger.Named("app")
+
+	app, err := authorizationApp.NewApp(logger, version)
+	if err != nil {
+		logger.Fatal("failed to get a new App", zap.Error(err))
+	}
+	logger.Info("Service successfully initialized")
+
+	err = app.Run(ctx, loggerApp)
+	if err != nil {
+		logger.Fatal("failed to run the App", zap.Error(err))
+	}
+	logger.Info("Service stopped")
+
 }

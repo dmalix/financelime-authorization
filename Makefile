@@ -11,9 +11,9 @@ build:
 	scripts/build.sh
 
 swagger:
-	swag init
-	goswagger generate markdown --spec=docs/swagger.json --output=docs/api.md
-	mv docs/api.md docs/API.md
+	swag init --output contract
+	goswagger generate markdown --spec=contract/swagger.json --output=contract/api.md
+	mv contract/api.md contract/API.md
 
 staging:
 	scripts/staging.sh

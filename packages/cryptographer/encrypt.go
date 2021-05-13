@@ -4,9 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/utils/trace"
 	"io"
 )
 
@@ -23,27 +21,18 @@ func (c Cipher) Encrypt(data []byte) ([]byte, error) {
 
 	cipherBlock, err = aes.NewCipher([]byte(createHash(c.SecretKey)))
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			trace.GetCurrentPoint(),
-			"Failed to create the new AES cipherBlock",
-			err))
+		return result, fmt.Errorf("failed to create the new AES cipherBlock: %s", err)
 	}
 
 	cipherGCM, err = cipher.NewGCM(cipherBlock)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			trace.GetCurrentPoint(),
-			"Failed to create the new cipherGCM",
-			err))
+		return result, fmt.Errorf("failed to create the new cipherGCM: %s", err)
 	}
 
 	nonceUse = make([]byte, cipherGCM.NonceSize())
 	_, err = io.ReadFull(rand.Reader, nonceUse)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			trace.GetCurrentPoint(),
-			"Failed to test for reading full of the nonce used",
-			err))
+		return result, fmt.Errorf("failed to test for reading full of the nonce used: %s", err)
 	}
 
 	result = cipherGCM.Seal(nonceUse, nonceUse, data, nil)

@@ -4,7 +4,7 @@
 
 package jwt
 
-type JwtData struct {
+type JsonWebToken struct {
 	Headers struct {
 		SigningAlgorithm string `json:"alg"`
 		Type             string `json:"typ"`
@@ -14,7 +14,7 @@ type JwtData struct {
 		Subject         string `json:"sub"`
 		Purpose         string `json:"purpose"`
 		PublicSessionID string `json:"sessionID"`
-		UserData        []byte `json:"userData"`
+		Data            []byte `json:"data"`
 		IssuedAt        int64  `json:"iat"`
 	}
 }

@@ -2,89 +2,94 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"github.com/dmalix/financelime-authorization/packages/jwt"
-	"github.com/dmalix/financelime-authorization/utils/trace"
+	"go.uber.org/zap"
 	"html"
-	"log"
 	"net/http"
 	"strings"
 )
 
-func (middleware *Middleware) Authorization(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (mw *middleware) Authorization(logger *zap.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		var (
-			err           error
-			authorization string
-			jwtTokenArr   []string
-			jwtData       jwt.JwtData
-			ctx           context.Context
-		)
+			var (
+				err           error
+				authorization string
+				jwtTokenArr   []string
+				jwtData       jwt.JsonWebToken
+			)
 
-		// Get an authorization token from the header
+			remoteAddr, err := getRemoteAddr(r.Context())
+			if err != nil {
+				logger.DPanic("failed to get remoteAddr", zap.Error(err))
+				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+				return
+			}
 
-		authorization = r.Header.Get("authorization")
-		if len(authorization) == 0 {
-			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
-				fmt.Sprintf("The 'authorization' header has not founded [%s]",
-					fmt.Sprintf("%s %s",
-						html.EscapeString(r.Method),
-						html.EscapeString(r.URL.Path))))
-			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
-			return
-		}
+			requestID, requestIDKey, err := getRequestID(r.Context())
+			if err != nil {
+				logger.DPanic("failed to get requestID", zap.Error(err))
+				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+				return
+			}
 
-		// Validate Token and data extract for identification
+			// Get an authorization token from the header
 
-		jwtTokenArr = strings.Split(strings.TrimSpace(html.EscapeString(authorization)), " ")
-		if len(jwtTokenArr) != 2 {
-			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
-				fmt.Sprintf("The 'authorization' header has not founded [%s]",
-					fmt.Sprintf("%s %s",
-						html.EscapeString(r.Method),
-						html.EscapeString(r.URL.Path))))
-			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
-			return
-		}
+			authorization = html.EscapeString(r.Header.Get("authorization"))
+			if authorization == "" {
+				logger.Error("the 'authorization' header not found",
+					zap.String(requestIDKey, requestID), zap.String(ContextKeyRemoteAddr, remoteAddr))
+				http.Error(w, statusMessageUnauthorized, http.StatusUnauthorized)
+				return
+			}
 
-		if strings.ToLower(jwtTokenArr[0]) != "bearer" {
-			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
-				fmt.Sprintf("Invalid JWT-Token [%s]",
-					fmt.Sprintf("%s %s",
-						html.EscapeString(r.Method),
-						html.EscapeString(r.URL.Path))))
-			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
-			return
-		}
+			// Validate Token and data extract for identification
 
-		jwtData, err = middleware.jwt.VerifyToken(jwtTokenArr[1])
-		if err != nil {
-			log.Printf("%s: %s %s [%s]", "ERROR", trace.GetCurrentPoint(),
-				fmt.Sprintf("Invalid JWT-Token [%s]",
-					fmt.Sprintf("%s %s",
-						html.EscapeString(r.Method),
-						html.EscapeString(r.URL.Path))),
-				err)
-			http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
-			return
-		}
+			jwtTokenArr = strings.Split(strings.TrimSpace(html.EscapeString(authorization)), " ")
+			if len(jwtTokenArr) != 2 {
+				logger.Error("the 'authorization' header is invalid",
+					zap.String("error", "want 'bearer token'"),
+					zap.String(ContextKeyRequestID, requestID), zap.String(ContextKeyRemoteAddr, remoteAddr))
+				http.Error(w, statusMessageUnauthorized, http.StatusUnauthorized)
+				return
+			}
 
-		if jwtData.Payload.Purpose != "access" {
-			log.Printf("%s: %s %s", "ERROR", trace.GetCurrentPoint(),
-				fmt.Sprintf("Invalid JWT-Token [%s]",
-					fmt.Sprintf("%s %s",
-						html.EscapeString(r.Method),
-						html.EscapeString(r.URL.Path))))
-			http.Error(w, "401 Unauthorized [%s]", http.StatusUnauthorized)
-			return
-		}
+			if strings.ToLower(jwtTokenArr[0]) != "bearer" {
+				logger.Error("the 'authorization' header is invalid",
+					zap.String("error", "got 'xxx token' want 'bearer token'"),
+					zap.String(ContextKeyRequestID, requestID), zap.String(ContextKeyRemoteAddr, remoteAddr))
+				http.Error(w, statusMessageUnauthorized, http.StatusUnauthorized)
+				return
+			}
 
-		ctx = r.Context()
-		ctx = context.WithValue(ctx, ContextPublicSessionID, jwtData.Payload.PublicSessionID)
-		ctx = context.WithValue(ctx, ContextEncryptedUserData, jwtData.Payload.UserData)
-		r = r.WithContext(ctx)
+			jwtData, err = mw.jwt.VerifyToken(jwtTokenArr[1])
+			if err != nil {
+				logger.Error("the jwt-token is not valid",
+					zap.String("jwt", jwtTokenArr[1]), zap.Error(err),
+					zap.String(ContextKeyRequestID, requestID), zap.String(ContextKeyRemoteAddr, remoteAddr))
+				http.Error(w, statusMessageUnauthorized, http.StatusUnauthorized)
+				return
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			if jwtData.Payload.Purpose != "access" {
+				logger.Error("the jwt-token is not valid",
+					zap.String("jwt", jwtTokenArr[1]),
+					zap.String("error", "'Payload.Purpose' must be 'access'"),
+					zap.String(ContextKeyRequestID, requestID), zap.String(ContextKeyRemoteAddr, remoteAddr))
+				http.Error(w, statusMessageUnauthorized+" [%s]", http.StatusUnauthorized)
+				return
+			}
+
+			logger.Info("Authorization was successful",
+				zap.String(ContextKeyRemoteAddr, remoteAddr), zap.String(ContextKeyRequestID, requestID),
+				zap.String(ContextKeyPublicSessionID, jwtData.Payload.PublicSessionID))
+
+			ctx := context.WithValue(r.Context(), ContextKeyPublicSessionID, jwtData.Payload.PublicSessionID)
+			ctx = context.WithValue(ctx, ContextKeyEncryptedJWTData, jwtData.Payload.Data)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+
+		})
+	}
 }

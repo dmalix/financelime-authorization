@@ -5,11 +5,21 @@
 package middleware
 
 import (
+	"context"
+	"go.uber.org/zap"
 	"net/http"
 )
 
-type APIMiddleware interface {
-	Logging() func(http.Handler) http.Handler
-	RequestID(next http.Handler) http.Handler
-	Authorization(next http.Handler) http.Handler
+type Middleware interface {
+	RequestID(logger *zap.Logger) func(http.Handler) http.Handler
+	RemoteAddr(logger *zap.Logger) func(http.Handler) http.Handler
+	Logging(logger *zap.Logger) func(http.Handler) http.Handler
+	Authorization(logger *zap.Logger) func(http.Handler) http.Handler
+}
+
+type ContextGetter interface {
+	GetRemoteAddr(ctx context.Context) (string, error)
+	GetRequestID(ctx context.Context) (string, string, error)
+	GetPublicSessionID(ctx context.Context) (string, error)
+	GetEncryptedUserData(ctx context.Context) ([]byte, error)
 }

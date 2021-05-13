@@ -6,13 +6,13 @@ package email
 
 import (
 	"context"
-	"log"
+	"go.uber.org/zap"
 	"time"
 )
 
-func (daemon Daemon) Run(ctx context.Context) {
+func (daemon SenderDeamon) Run(ctx context.Context, logger *zap.Logger) {
 
-	var message EmailMessage
+	var message EMessage
 	var err error
 
 	for {
@@ -31,9 +31,10 @@ func (daemon Daemon) Run(ctx context.Context) {
 					default:
 						err = daemon.smtpSender(message.To, message.From, message.Subject, message.Body, message.MessageID)
 						if err == nil {
-							log.Printf("FATAL [%s: Failed to send a email message [%s]]", "a3GXhiMR", err)
-							time.Sleep(time.Second * time.Duration(3))
+							return
 						}
+						logger.DPanic("failed to send a email message", zap.Error(err))
+						time.Sleep(time.Second * time.Duration(3))
 					}
 				}
 			}()
