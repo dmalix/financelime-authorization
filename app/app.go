@@ -294,7 +294,12 @@ func (app *App) Run(ctx context.Context) error {
 
 	go func() {
 		if err := app.httpServer.ListenAndServe(); err != nil {
-			log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "Failed to listen and serve", err)
+			switch err {
+			case http.ErrServerClosed:
+				log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), err.Error())
+			default:
+				log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "failed to listen and serve", err)
+			}
 		}
 	}()
 
@@ -313,12 +318,13 @@ func (app *App) Run(ctx context.Context) error {
 		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Got SIGTERM...")
 	}
 	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "The service is shutting down...")
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	ctxHttpServer, shutdown := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdown()
-	err := app.httpServer.Shutdown(ctx)
-	if err == nil {
-		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Done")
+	err := app.httpServer.Shutdown(ctxHttpServer)
+	if err != nil {
+		log.Println("failed shutdown of the HTTP Server", err)
 	}
+	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Done")
 
 	return err
 }
