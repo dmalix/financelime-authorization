@@ -7,189 +7,164 @@ package app
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/authorization"
+	"github.com/dmalix/financelime-authorization/app/authorization"
+	authorizationModel "github.com/dmalix/financelime-authorization/app/authorization/model"
+	authorizationRepository "github.com/dmalix/financelime-authorization/app/authorization/repository"
+	authorizationREST "github.com/dmalix/financelime-authorization/app/authorization/rest"
+	authorizationService "github.com/dmalix/financelime-authorization/app/authorization/service"
+	"github.com/dmalix/financelime-authorization/app/information"
+	informationREST "github.com/dmalix/financelime-authorization/app/information/rest"
+	informationService "github.com/dmalix/financelime-authorization/app/information/service"
+	"github.com/dmalix/financelime-authorization/config"
 	"github.com/dmalix/financelime-authorization/packages/cryptographer"
 	"github.com/dmalix/financelime-authorization/packages/email"
 	"github.com/dmalix/financelime-authorization/packages/jwt"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
-	"github.com/dmalix/financelime-authorization/system"
-	"github.com/dmalix/financelime-authorization/utils/trace"
 	"github.com/gorilla/mux"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
 
-var (
-	versionNumber    = "unset"
-	versionBuildTime = "unset"
-	versionCommit    = "unset"
-	versionCompiler  = "unset"
-)
-
 type App struct {
-	httpPort                 string
-	emailMessageSenderDaemon email.EmailSenderDaemon
+	httpPort                 int
+	closeDB                  func() error
+	emailMessageSenderDaemon email.Daemon
 	httpServer               *http.Server
-	authAPI                  authorization.API
-	authAPIMiddleware        middleware.APIMiddleware
+	commonMiddleware         middleware.Middleware
+	authREST                 authorization.REST
 	authService              authorization.Service
-	sysAPI                   system.API
-	sysService               system.Service
+	infoREST                 information.REST
+	infoService              information.Service
 }
 
-func NewApp() (*App, error) {
+func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 
 	var (
-		app             *App
-		err             error
-		dbAuthMain      *sql.DB
-		dbAuthRead      *sql.DB
-		dbBlade         *sql.DB
-		config          cfg
-		languageContent authorization.LanguageContent
+		app                *App
+		err                error
+		dbAuthMain         *sql.DB
+		dbAuthRead         *sql.DB
+		dbBlade            *sql.DB
+		appConfig          config.App
+		appLanguageContent config.LanguageContent
 		// TODO Move the number of messages in the queue to configs
-		emailMessageQueue = make(chan email.EmailMessage, 300)
+		emailMessageQueue = make(chan email.EMessage, 300)
 	)
 
-	/*****************************************************\
-	|           Init Config and Language Content          |
-	\*****************************************************/
+	// Init Config and Language Content
 
-	config, err = initConfig()
+	appConfig, err = config.InitConfig()
 	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				trace.GetCurrentPoint(),
-				"Configuration initialization error",
-				err.Error()))
+		return nil, fmt.Errorf("failed to init the config: %s", err)
+	}
+	appLanguageContent, err = config.InitLanguageContent(appConfig.LanguageContent.File)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init the language content: %s", err)
 	}
 
-	languageContent, err = initLanguageContent()
-	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s %s [%s]",
-				trace.GetCurrentPoint(),
-				"Error initializing language content",
-				err.Error()))
-	}
+	logger.Info("Configuration initialized successfully")
 
-	/*****************************************************\
-	|                     Databases                       |
-	\*****************************************************/
+	// Databases
 
-	dbAuthMain, err = authorization.NewPostgreDB(authorization.ConfigPostgreDB{
-		Host:     config.db.authMain.connect.host,
-		Port:     config.db.authMain.connect.port,
-		SSLMode:  config.db.authMain.connect.sslMode,
-		DBName:   config.db.authMain.connect.dbName,
-		User:     config.db.authMain.connect.user,
-		Password: config.db.authMain.connect.password,
+	dbAuthMain, err = authorizationRepository.NewPostgresDB(logger, authorizationModel.ConfigPostgresDB{
+		Host:     appConfig.Db.AuthMain.Connect.Host,
+		Port:     appConfig.Db.AuthMain.Connect.Port,
+		SSLMode:  appConfig.Db.AuthMain.Connect.SslMode,
+		DBName:   appConfig.Db.AuthMain.Connect.DbName,
+		User:     appConfig.Db.AuthMain.Connect.User,
+		Password: appConfig.Db.AuthMain.Connect.Password,
 	})
 	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				trace.GetCurrentPoint(),
-				"Failed to init the AuthMain DB",
-				err.Error()))
+		return nil, fmt.Errorf("failed to init the AuthMain DB: %s", err)
 	}
 
-	dbAuthRead, err = authorization.NewPostgreDB(authorization.ConfigPostgreDB{
-		Host:     config.db.authRead.connect.host,
-		Port:     config.db.authRead.connect.port,
-		SSLMode:  config.db.authRead.connect.sslMode,
-		DBName:   config.db.authRead.connect.dbName,
-		User:     config.db.authRead.connect.user,
-		Password: config.db.authRead.connect.password,
+	dbAuthRead, err = authorizationRepository.NewPostgresDB(logger, authorizationModel.ConfigPostgresDB{
+		Host:     appConfig.Db.AuthRead.Connect.Host,
+		Port:     appConfig.Db.AuthRead.Connect.Port,
+		SSLMode:  appConfig.Db.AuthRead.Connect.SslMode,
+		DBName:   appConfig.Db.AuthRead.Connect.DbName,
+		User:     appConfig.Db.AuthRead.Connect.User,
+		Password: appConfig.Db.AuthRead.Connect.Password,
 	})
 	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				trace.GetCurrentPoint(),
-				"Failed to init the AuthRead DB",
-				err.Error()))
+		return nil, fmt.Errorf("failed to init the AuthRead DB: %s", err)
 	}
 
-	dbBlade, err = authorization.NewPostgreDB(authorization.ConfigPostgreDB{
-		Host:     config.db.blade.connect.host,
-		Port:     config.db.blade.connect.port,
-		SSLMode:  config.db.blade.connect.sslMode,
-		DBName:   config.db.blade.connect.dbName,
-		User:     config.db.blade.connect.user,
-		Password: config.db.blade.connect.password,
+	dbBlade, err = authorizationRepository.NewPostgresDB(logger, authorizationModel.ConfigPostgresDB{
+		Host:     appConfig.Db.Blade.Connect.Host,
+		Port:     appConfig.Db.Blade.Connect.Port,
+		SSLMode:  appConfig.Db.Blade.Connect.SslMode,
+		DBName:   appConfig.Db.Blade.Connect.DbName,
+		User:     appConfig.Db.Blade.Connect.User,
+		Password: appConfig.Db.Blade.Connect.Password,
 	})
 	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				trace.GetCurrentPoint(),
-				"Failed to init the Blade DB",
-				err.Error()))
+		return nil, fmt.Errorf("failed to init the Blade DB: %s", err)
 	}
 
-	err = migrate(dbAuthMain,
-		config.db.authMain.migrate.dropFile,
-		config.db.authMain.migrate.createFile,
-		config.db.authMain.migrate.insertFile)
+	err = config.Migrate(dbAuthMain,
+		appConfig.Db.AuthMain.Migration.DropFile,
+		appConfig.Db.AuthMain.Migration.CreateFile,
+		appConfig.Db.AuthMain.Migration.InsertFile)
 	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				trace.GetCurrentPoint(),
-				"Failed to migrate the AuthMain DB",
-				err.Error()))
+		return nil, fmt.Errorf("failed to migrate the AuthMain DB: %s", err)
 	}
 
-	err = migrate(dbBlade,
-		config.db.blade.migrate.dropFile,
-		config.db.blade.migrate.createFile,
+	err = config.Migrate(dbBlade,
+		appConfig.Db.Blade.Migration.DropFile,
+		appConfig.Db.Blade.Migration.CreateFile,
 		"")
 	if err != nil {
-		return app,
-			errors.New(fmt.Sprintf("%s: %s [%s]",
-				trace.GetCurrentPoint(),
-				"Failed to migrate the Blade DB",
-				err.Error()))
+		return nil, fmt.Errorf("failed to migrate the Blade DB: %s", err)
 	}
 
-	/*****************************************************\
-	|                    Cryptographer                    |
-	\*****************************************************/
+	closeDB := func() error {
+		if err := dbAuthMain.Close(); err != nil {
+			return fmt.Errorf("failed to close AuthMain DB: %s", err)
+		}
+		if err := dbAuthRead.Close(); err != nil {
+			return fmt.Errorf("failed to close AuthRead DB: %s", err)
+		}
+		if err := dbBlade.Close(); err != nil {
+			return fmt.Errorf("failed to close Blade DB: %s", err)
+		}
+		return nil
+	}
 
-	cryptoManager := cryptographer.NewCryptographer(config.jwt.secretKey)
+	logger.Info("Databases initialized successfully")
 
-	/*****************************************************\
-	|                         JWT                         |
-	\*****************************************************/
+	// Cryptographer
+
+	cryptoManager := cryptographer.NewCryptographer(appConfig.Jwt.SecretKey)
+
+	// JWT
 
 	jwtManager := jwt.NewToken(
-		config.jwt.secretKey,
-		config.jwt.signingAlgorithm,
-		config.jwt.issuer,
-		config.jwt.subject,
-		config.jwt.accessTokenLifetime,
-		config.jwt.refreshTokenLifetime)
+		appConfig.Jwt.SecretKey,
+		appConfig.Jwt.SigningAlgorithm,
+		appConfig.Jwt.Issuer,
+		appConfig.Jwt.Subject,
+		appConfig.Jwt.AccessTokenLifetime,
+		appConfig.Jwt.RefreshTokenLifetime)
 
-	/*****************************************************\
-	|                     Email Message                   |
-	\*****************************************************/
+	// Email Message
 
 	emailMessageSenderDaemon := email.NewSenderDaemon(
-		config.smtp.user,
-		config.smtp.password,
-		config.smtp.host,
-		config.smtp.port,
+		appConfig.Smtp.User,
+		appConfig.Smtp.Password,
+		appConfig.Smtp.Host,
+		appConfig.Smtp.Port,
 		emailMessageQueue)
 
-	emailMessageManager := email.NewManager(
-		config.mailMessage.from)
+	emailMessageManager := email.NewManager(appConfig.MailMessage.From)
 
-	/*****************************************************\
-	|                     Middleware                      |
-	\*****************************************************/
+	// middleware
 
 	middlewareConfig := middleware.ConfigMiddleware{
 		RequestIDRequired: true,
@@ -200,92 +175,90 @@ func NewApp() (*App, error) {
 		middlewareConfig,
 		jwtManager)
 
-	/*****************************************************\
-	|                     Authorization                   |
-	\*****************************************************/
+	contextGetter := middleware.NewContextGetter()
 
-	authRepoConfig := authorization.ConfigRepository{
-		CryptoSalt:              config.crypto.salt,
-		JwtRefreshTokenLifetime: config.jwt.refreshTokenLifetime,
+	// Authorization
+
+	authRepoConfig := authorizationModel.ConfigRepository{
+		CryptoSalt:              appConfig.Crypto.Salt,
+		JwtRefreshTokenLifetime: appConfig.Jwt.RefreshTokenLifetime,
 	}
 
-	authRepo := authorization.NewRepository(
+	authRepo := authorizationRepository.NewRepository(
 		authRepoConfig,
+		contextGetter,
 		dbAuthMain,
 		dbAuthRead,
 		dbBlade)
 
-	authorizationServiceConfig := authorization.ConfigService{
-		DomainAPP:              config.domain.app,
-		DomainAPI:              config.domain.api,
-		AuthInviteCodeRequired: config.auth.inviteCodeRequired,
-		CryptoSalt:             config.crypto.salt,
+	authServiceConfig := authorizationModel.ConfigService{
+		DomainAPP:              appConfig.Domain.App,
+		DomainAPI:              appConfig.Domain.Api,
+		AuthInviteCodeRequired: appConfig.Auth.InviteCodeRequired,
+		CryptoSalt:             appConfig.Crypto.Salt,
 	}
 
-	authService := authorization.NewService(
-		authorizationServiceConfig,
-		languageContent,
+	authService := authorizationService.NewService(
+		authServiceConfig,
+		contextGetter,
+		appLanguageContent,
 		emailMessageQueue,
 		emailMessageManager,
 		authRepo,
 		cryptoManager,
 		jwtManager)
 
-	authAPI := authorization.NewAPI(
+	authREST := authorizationREST.NewREST(
+		contextGetter,
 		authService)
 
-	/*****************************************************\
-	|                       System                        |
-	\*****************************************************/
+	// Information
 
-	systemService := system.NewService(
-		versionNumber,
-		versionBuildTime,
-		versionCommit,
-		versionCompiler)
+	infoService := informationService.NewService(
+		version.Number,
+		version.BuildTime,
+		version.Commit,
+		version.Compiler)
 
-	systemAPI := system.NewAPI(
-		systemService)
+	infoREST := informationREST.NewREST(
+		contextGetter,
+		infoService)
 
-	/*****************************************************\
-	|          Implementation of prepared objects         |
-	|                 into the application                |
-	\*****************************************************/
+	// Implementation of prepared objects into the application
 
 	app = &App{
-		httpPort:                 config.http.port,
+		httpPort:                 appConfig.Http.Port,
+		closeDB:                  closeDB,
 		emailMessageSenderDaemon: emailMessageSenderDaemon,
-		authAPI:                  authAPI,
-		authAPIMiddleware:        commonMiddleware,
+		commonMiddleware:         commonMiddleware,
+		authREST:                 authREST,
 		authService:              authService,
-		sysAPI:                   systemAPI,
-		sysService:               systemService,
+		infoREST:                 infoREST,
+		infoService:              infoService,
 	}
 
 	return app, nil
 }
 
-func (app *App) Run(ctx context.Context) error {
+func (app *App) Run(ctx context.Context, logger *zap.Logger) error {
 
-	/*****************************************************\
-	|             Start the Mail-Sender daemon            |
-	\*****************************************************/
+	// Start the Mail-Sender daemon
 
-	go app.emailMessageSenderDaemon.Run(ctx)
+	go app.emailMessageSenderDaemon.Run(ctx, logger)
 
-	/*****************************************************\
-	|                  Start application                  |
-	\*****************************************************/
+	// Start application
 
 	router := mux.NewRouter()
-	router.Use(app.authAPIMiddleware.Logging())
+	router.Use(app.commonMiddleware.RemoteAddr(logger.Named("middlewareRemoteAddr")))
+	router.Use(app.commonMiddleware.RequestID(logger.Named("middlewareRequestID")))
+	router.Use(app.commonMiddleware.Logging(logger.Named("middlewareLogging")))
 	routerV1 := router.PathPrefix("/v1").Subrouter()
 
-	authorization.Router(ctx, routerV1, app.authAPI, app.authAPIMiddleware)
-	system.Router(ctx, routerV1, app.sysAPI, app.authAPIMiddleware)
+	authorizationREST.Router(logger.Named("authorization"), router, routerV1, app.authREST, app.commonMiddleware)
+	informationREST.Router(logger.Named("information"), routerV1, app.infoREST, app.commonMiddleware)
 
 	app.httpServer = &http.Server{
-		Addr:           ":" + app.httpPort,
+		Addr:           ":" + strconv.Itoa(app.httpPort),
 		Handler:        router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -296,35 +269,47 @@ func (app *App) Run(ctx context.Context) error {
 		if err := app.httpServer.ListenAndServe(); err != nil {
 			switch err {
 			case http.ErrServerClosed:
-				log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), err.Error())
+				logger.Info(err.Error())
 			default:
-				log.Fatalf("%s: %s %s [%s]", "FATAL", trace.GetCurrentPoint(), "failed to listen and serve", err)
+				logger.Fatal("Failed to listen and serve", zap.Error(err))
 			}
 		}
 	}()
 
-	/*****************************************************\
-	|                  Graceful shutdown                  |
-	\*****************************************************/
+	logger.Info("Service started")
+
+	// Graceful shutdown
 
 	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGKILL, syscall.SIGQUIT, syscall.SIGTERM)
 	killSignal := <-interrupt
 	switch killSignal {
 	case os.Interrupt:
-		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Got SIGINT...")
+		logger.Info("Got SIGINT...")
+	case syscall.SIGKILL:
+		logger.Info("Got SIGKILL...")
+	case syscall.SIGQUIT:
+		logger.Info("Got SIGQUIT...")
 	case syscall.SIGTERM:
-		log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Got SIGTERM...")
+		logger.Info("Got SIGTERM...")
+	default:
+		logger.Info("Undefined killSignal...")
 	}
-	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "The service is shutting down...")
+	logger.Info("HTTP service is shutting down...")
+
 	ctxHttpServer, shutdown := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdown()
-	err := app.httpServer.Shutdown(ctxHttpServer)
-	if err != nil {
-		log.Println("failed shutdown of the HTTP Server", err)
+	if err := app.httpServer.Shutdown(ctxHttpServer); err != nil {
+		logger.Error("Failed shutdown of the HTTP server", zap.Error(err))
+		return err
 	}
-	log.Printf("%s: %s %s", "INFO", trace.GetCurrentPoint(), "Done")
+	logger.Info("HTTP Server is off")
 
-	return err
+	logger.Info("Databases are closing...")
+	if err := app.closeDB(); err != nil {
+		logger.Info("Failed to close the databases", zap.Error(err))
+	}
+	logger.Info("Databases closed")
+
+	return nil
 }

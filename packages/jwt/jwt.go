@@ -21,19 +21,19 @@ func NewToken(
 	AccessTokenLifetimeSec int,
 	RefreshTokenLifetimeSec int) *Token {
 	return &Token{
-		SecretKey,
-		SigningAlgorithm,
-		Issuer,
-		Subject,
-		AccessTokenLifetimeSec,
-		RefreshTokenLifetimeSec,
+		SecretKey:               SecretKey,
+		SigningAlgorithm:        SigningAlgorithm,
+		Issuer:                  Issuer,
+		Subject:                 Subject,
+		AccessTokenLifetimeSec:  AccessTokenLifetimeSec,
+		RefreshTokenLifetimeSec: RefreshTokenLifetimeSec,
 	}
 }
 
 const (
-	PropsTypeJWT               = "JWT"
-	PropsPurposeAccess         = "access"
-	PropsPurposeRefresh        = "refresh"
-	PropsSigningAlgorithmHS256 = "HS256"
-	PropsSigningAlgorithmHS512 = "HS512"
+	ParamTypeJWT               = "JWT"
+	ParamPurposeAccess         = "access"
+	ParamPurposeRefresh        = "refresh"
+	ParamSigningAlgorithmHS256 = "HS256"
+	ParamSigningAlgorithmHS512 = "HS512"
 )

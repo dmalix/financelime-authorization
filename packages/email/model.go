@@ -6,7 +6,7 @@ package email
 
 import "net/mail"
 
-type EmailMessage struct {
+type EMessage struct {
 	To        mail.Address
 	From      mail.Address
 	Subject   string

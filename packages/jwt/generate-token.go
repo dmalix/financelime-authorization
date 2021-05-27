@@ -11,15 +11,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/utils/trace"
 	"hash"
 	"html"
 	"time"
 )
 
-func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpose string, issuedAt ...int64) (string, error) {
+func (token *Token) GenerateToken(sessionID string, data []byte, tokenPurpose string, issuedAt ...int64) (string, error) {
 
 	var (
 		headersBase64 string
@@ -30,80 +28,61 @@ func (token *Token) GenerateToken(sessionID string, userData []byte, tokenPurpos
 		signature     string
 		unsignedToken string
 		mac           hash.Hash
-		jwtData       JwtData
+		jsonWebToken  JsonWebToken
 	)
 	const NoPadding rune = -1
 
 	//    Headers
-	// ------------
 
-	jwtData.Headers.Type = PropsTypeJWT
-	jwtData.Headers.SigningAlgorithm = token.SigningAlgorithm
-	valueByte, err = json.Marshal(jwtData.Headers)
+	jsonWebToken.Headers.Type = ParamTypeJWT
+	jsonWebToken.Headers.SigningAlgorithm = token.SigningAlgorithm
+	valueByte, err = json.Marshal(jsonWebToken.Headers)
 	if err != nil {
-		return jwt,
-			errors.New(fmt.Sprintf("%s:%s[%s]",
-				trace.GetCurrentPoint(),
-				"Failed convert the jwtData.headers to JSON-format",
-				err))
+		return "", fmt.Errorf("failed convert the jsonWebToken.headers to JSON-format: %s", err)
 	}
 	headersBase64 = base64.URLEncoding.WithPadding(NoPadding).EncodeToString(valueByte)
 
 	//   Payload
-	// ------------
 
-	jwtData.Payload.Issuer = token.Issuer
-	jwtData.Payload.Subject = token.Subject
+	jsonWebToken.Payload.Issuer = token.Issuer
+	jsonWebToken.Payload.Subject = token.Subject
 
-	if tokenPurpose != PropsPurposeAccess && tokenPurpose != PropsPurposeRefresh {
-		return jwt,
-			errors.New(fmt.Sprintf("%s:%s[%s]",
-				trace.GetCurrentPoint(),
-				"Invalid the tokenPurpose param",
-				err))
+	if tokenPurpose != ParamPurposeAccess && tokenPurpose != ParamPurposeRefresh {
+		return "", fmt.Errorf("invalid the tokenPurpose param: %s", err)
 	}
-	jwtData.Payload.Purpose = tokenPurpose
+	jsonWebToken.Payload.Purpose = tokenPurpose
 
-	jwtData.Payload.PublicSessionID = sessionID
+	jsonWebToken.Payload.PublicSessionID = sessionID
 
-	jwtData.Payload.UserData = userData
+	jsonWebToken.Payload.Data = data
 	if len(issuedAt) == 0 {
-		jwtData.Payload.IssuedAt = time.Now().UTC().Unix()
+		jsonWebToken.Payload.IssuedAt = time.Now().UTC().Unix()
 	} else {
-		jwtData.Payload.IssuedAt = issuedAt[0]
+		jsonWebToken.Payload.IssuedAt = issuedAt[0]
 	}
 
-	valueByte, err = json.Marshal(jwtData.Payload)
+	valueByte, err = json.Marshal(jsonWebToken.Payload)
 	if err != nil {
-		return jwt,
-			errors.New(fmt.Sprintf("%s:%s[%s]",
-				trace.GetCurrentPoint(),
-				"Failed convert the jwtData.Payload to JSON-format",
-				err))
+		return "", fmt.Errorf("failed convert the jsonWebToken.Payload to JSON-format: %s", err)
 	}
 	payloadBase64 = base64.URLEncoding.WithPadding(NoPadding).EncodeToString(valueByte)
 
 	//    Sign
-	// -----------
 
 	unsignedToken = headersBase64 + "." + payloadBase64
-	switch jwtData.Headers.SigningAlgorithm {
-	case PropsSigningAlgorithmHS256:
+	switch jsonWebToken.Headers.SigningAlgorithm {
+	case ParamSigningAlgorithmHS256:
 		mac = hmac.New(sha256.New, []byte(token.SecretKey))
-	case PropsSigningAlgorithmHS512:
+	case ParamSigningAlgorithmHS512:
 		mac = hmac.New(sha512.New, []byte(token.SecretKey))
 	default:
-		return jwt,
-			errors.New(fmt.Sprintf("%s:%s",
-				trace.GetCurrentPoint(),
-				"invalid algorithm"))
+		return "", fmt.Errorf("invalid algorithm: %s", err)
 	}
 
 	mac.Write([]byte(unsignedToken))
 	signature = hex.EncodeToString(mac.Sum(nil))
 
 	//   Make JWT
-	// ------------
 
 	jwt =
 		html.UnescapeString(headersBase64) +

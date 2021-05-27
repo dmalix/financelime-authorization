@@ -8,10 +8,10 @@ import (
 	"net/mail"
 )
 
-func (manager Manager) AddEmailMessageToQueue(messageQueue chan EmailMessage,
+func (manager Manager) AddEmailMessageToQueue(messageQueue chan EMessage,
 	to mail.Address, subject, body string, messageID ...string) error {
 
-	var message EmailMessage
+	var message EMessage
 
 	message.To = to
 	message.From = manager.from

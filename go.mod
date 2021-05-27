@@ -9,4 +9,5 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/swaggo/http-swagger v1.0.0
 	github.com/swaggo/swag v1.7.0
+	go.uber.org/zap v1.16.0
 )

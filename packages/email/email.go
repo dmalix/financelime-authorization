@@ -5,29 +5,24 @@
 package email
 
 import (
-	"context"
 	"net/mail"
 )
 
-type EmailSenderDaemon interface {
-	Run(ctx context.Context)
-}
-
-type Daemon struct {
+type SenderDeamon struct {
 	AuthSMTPUser     string
 	AuthSMTPPassword string
 	AuthSMTPHost     string
-	AuthSMTPPort     string
-	MessageQueue     chan EmailMessage
+	AuthSMTPPort     int
+	MessageQueue     chan EMessage
 }
 
 func NewSenderDaemon(
 	authSMTPUser,
 	authSMTPPassword,
-	authSMTPHost,
-	authSMTPPort string,
-	messageQueue chan EmailMessage) *Daemon {
-	return &Daemon{
+	authSMTPHost string,
+	authSMTPPort int,
+	messageQueue chan EMessage) *SenderDeamon {
+	return &SenderDeamon{
 		AuthSMTPUser:     authSMTPUser,
 		AuthSMTPPassword: authSMTPPassword,
 		AuthSMTPHost:     authSMTPHost,

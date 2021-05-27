@@ -11,6 +11,6 @@ type Cipher struct {
 func NewCryptographer(
 	SecretKey string) *Cipher {
 	return &Cipher{
-		SecretKey,
+		SecretKey: SecretKey,
 	}
 }

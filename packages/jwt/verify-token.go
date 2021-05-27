@@ -7,25 +7,23 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/utils/trace"
 	"strings"
 	"time"
 )
 
-func (token *Token) VerifyToken(jwt string) (JwtData, error) {
+func (token *Token) VerifyToken(jwt string) (JsonWebToken, error) {
 
 	var (
-		valueByte   []byte
-		err         error
-		jwtTokenArr []string
-		jwtToken    string
-		lifeTime    int
-		jwtData     JwtData
+		valueByte    []byte
+		err          error
+		jwtTokenArr  []string
+		jwtToken     string
+		lifeTime     int
+		jsonWebToken JsonWebToken
 	)
 
-	const InvalidJwtToken = "Invalid JWT Token"
+	const messageInvalidJwtToken = "invalid JWT-token: %s"
 	const NoPadding rune = -1
 
 	jwtTokenArr = strings.Split(jwt, ".")
@@ -33,48 +31,48 @@ func (token *Token) VerifyToken(jwt string) (JwtData, error) {
 	// Check Headers
 	valueByte, err = base64.URLEncoding.WithPadding(NoPadding).DecodeString(jwtTokenArr[0])
 	if err != nil {
-		return jwtData, errors.New(fmt.Sprintf("%s:%s[%s]", trace.GetCurrentPoint(), InvalidJwtToken, err))
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 
-	err = json.Unmarshal(valueByte, &jwtData.Headers)
+	err = json.Unmarshal(valueByte, &jsonWebToken.Headers)
 	if err != nil {
-		return jwtData, errors.New(fmt.Sprintf("%s:%s[%s]", trace.GetCurrentPoint(), InvalidJwtToken, err))
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 
 	// Check Payload
 	valueByte, err = base64.URLEncoding.WithPadding(NoPadding).DecodeString(jwtTokenArr[1])
 	if err != nil {
-		return jwtData, errors.New(fmt.Sprintf("%s:%s[%s]", trace.GetCurrentPoint(), InvalidJwtToken, err))
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
-	err = json.Unmarshal(valueByte, &jwtData.Payload)
+	err = json.Unmarshal(valueByte, &jsonWebToken.Payload)
 	if err != nil {
-		return jwtData, errors.New(fmt.Sprintf("%s:%s[%s]", trace.GetCurrentPoint(), InvalidJwtToken, err))
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 
 	// Check Sign
-	jwtToken, err = token.GenerateToken(jwtData.Payload.PublicSessionID, jwtData.Payload.UserData,
-		jwtData.Payload.Purpose, jwtData.Payload.IssuedAt)
-	if err != nil { // Обработка ошибки
-		return jwtData, errors.New(fmt.Sprintf("%s:%s[%s]", trace.GetCurrentPoint(), InvalidJwtToken, err))
+	jwtToken, err = token.GenerateToken(jsonWebToken.Payload.PublicSessionID, jsonWebToken.Payload.Data,
+		jsonWebToken.Payload.Purpose, jsonWebToken.Payload.IssuedAt)
+	if err != nil {
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 
 	if strings.Split(jwtToken, ".")[2] != jwtTokenArr[2] {
-		return jwtData, errors.New(fmt.Sprintf("%s:%s", trace.GetCurrentPoint(), InvalidJwtToken))
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 
 	// Check Lifetime
-	switch jwtData.Payload.Purpose {
-	case PropsPurposeAccess:
+	switch jsonWebToken.Payload.Purpose {
+	case ParamPurposeAccess:
 		lifeTime = token.AccessTokenLifetimeSec
-	case PropsPurposeRefresh:
+	case ParamPurposeRefresh:
 		lifeTime = token.RefreshTokenLifetimeSec
 	default:
-		return jwtData, errors.New(fmt.Sprintf("%s:%s", trace.GetCurrentPoint(), InvalidJwtToken))
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 	if time.Now().UTC().Unix() >
-		time.Unix(jwtData.Payload.IssuedAt, 0).Add(time.Second*time.Duration(lifeTime)).UTC().Unix() {
-		return jwtData, errors.New(fmt.Sprintf("%s:%s", trace.GetCurrentPoint(), InvalidJwtToken))
+		time.Unix(jsonWebToken.Payload.IssuedAt, 0).Add(time.Second*time.Duration(lifeTime)).UTC().Unix() {
+		return JsonWebToken{}, fmt.Errorf(messageInvalidJwtToken, err)
 	}
 
-	return jwtData, nil
+	return jsonWebToken, nil
 }

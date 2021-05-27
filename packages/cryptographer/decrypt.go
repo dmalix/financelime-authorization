@@ -3,9 +3,7 @@ package cryptographer
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"errors"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/utils/trace"
 )
 
 func (c Cipher) Decrypt(data []byte) ([]byte, error) {
@@ -23,28 +21,19 @@ func (c Cipher) Decrypt(data []byte) ([]byte, error) {
 	hashedKey = []byte(createHash(c.SecretKey))
 	cipherBlock, err = aes.NewCipher(hashedKey)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			trace.GetCurrentPoint(),
-			"Failed to create the new AES cipherBlock",
-			err))
+		return result, fmt.Errorf("failed to create the new AES cipherBlock: %s", err)
 	}
 
 	cipherGCM, err = cipher.NewGCM(cipherBlock)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			trace.GetCurrentPoint(),
-			"Failed to create the new cipherGCM",
-			err))
+		return result, fmt.Errorf("failed to create the new cipherGCM: %s", err)
 	}
 
 	nonceSize := cipherGCM.NonceSize()
 	nonceUse, ciphertext := data[:nonceSize], data[nonceSize:]
 	result, err = cipherGCM.Open(nil, nonceUse, ciphertext, nil)
 	if err != nil {
-		return result, errors.New(fmt.Sprintf("%s:%s[%s]",
-			trace.GetCurrentPoint(),
-			"Failed to open decrypts",
-			err))
+		return result, fmt.Errorf("failed to open decrypts: %s", err)
 	}
 	return result, nil
 }

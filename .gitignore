@@ -1,3 +1,5 @@
 bin/*
 swg/*
 docs/docs.go
+contract/docs.go
+assets.tar.gz
