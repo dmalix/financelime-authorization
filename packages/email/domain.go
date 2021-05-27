@@ -3,11 +3,10 @@ package email
 import (
 	"context"
 	"go.uber.org/zap"
-	"net/mail"
 )
 
 type Message interface {
-	AddEmailMessageToQueue(messageQueue chan EMessage, to mail.Address, subject, body string, messageID ...string) error
+	AddEmailMessageToQueue(messageQueue chan MessageBox, request Request, email Email) error
 }
 
 type Daemon interface {

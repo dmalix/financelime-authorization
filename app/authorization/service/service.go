@@ -14,7 +14,7 @@ import (
 	"github.com/dmalix/financelime-authorization/app/authorization/model"
 	"github.com/dmalix/financelime-authorization/config"
 	"github.com/dmalix/financelime-authorization/packages/cryptographer"
-	"github.com/dmalix/financelime-authorization/packages/email"
+	em "github.com/dmalix/financelime-authorization/packages/email"
 	"github.com/dmalix/financelime-authorization/packages/jwt"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
 	"github.com/dmalix/financelime-authorization/utils/random"
@@ -28,8 +28,8 @@ type service struct {
 	config          model.ConfigService
 	contextGetter   middleware.ContextGetter
 	languageContent config.LanguageContent
-	messageQueue    chan email.EMessage
-	message         email.Message
+	messageQueue    chan em.MessageBox
+	message         em.Message
 	repository      authorization.Repository
 	cryptographer   cryptographer.Cryptographer
 	jwt             jwt.JWT
@@ -39,8 +39,8 @@ func NewService(
 	config model.ConfigService,
 	contextGetter middleware.ContextGetter,
 	languageContent config.LanguageContent,
-	messageQueue chan email.EMessage,
-	message email.Message,
+	messageQueue chan em.MessageBox,
+	message em.Message,
 	repository authorization.Repository,
 	cryptographer cryptographer.Cryptographer,
 	jwt jwt.JWT) *service {
@@ -117,6 +117,12 @@ func (s *service) generateRequestID(_ context.Context) (string, error) {
 
 func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.ServiceSignUpParam) error {
 
+	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
+	if err != nil {
+		logger.DPanic("failed to get RemoteAddr", zap.Error(err))
+		return err
+	}
+
 	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
 	if err != nil {
 		logger.DPanic("failed to get requestID", zap.Error(err))
@@ -156,15 +162,21 @@ func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.Se
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: param.Email},
-		s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[param.Language]],
-		fmt.Sprintf(
-			s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[param.Language]],
-			s.config.DomainAPI, confirmationKey, newRequestID),
-		fmt.Sprintf(
-			"<%s@%s>",
-			confirmationKey,
-			fmt.Sprintf("%s.%s", "sign-up", s.config.DomainAPI)))
+		em.Request{
+			RemoteAddr:    remoteAddr,
+			RemoteAddrKey: remoteAddrKey,
+			RequestID:     requestID,
+			RequestIDKey:  requestIDKey},
+		em.Email{
+			To:      mail.Address{Address: param.Email},
+			Subject: s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[param.Language]],
+			Body: fmt.Sprintf(
+				s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[param.Language]],
+				s.config.DomainAPI, confirmationKey, newRequestID),
+			MessageID: fmt.Sprintf(
+				"<%s@%s>",
+				confirmationKey,
+				fmt.Sprintf("%s.%s", "sign-up", s.config.DomainAPI))})
 	if err != nil {
 		logger.DPanic("failed to add an email message to the queue", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
@@ -174,6 +186,13 @@ func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.Se
 }
 
 func (s *service) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error) {
+
+	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
+	if err != nil {
+		logger.DPanic("failed to get RemoteAddr", zap.Error(err))
+		return "", err
+	}
+
 	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
 	if err != nil {
 		logger.DPanic("failed to get requestID", zap.Error(err))
@@ -195,15 +214,22 @@ func (s *service) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, conf
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: user.Email},
-		s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.Language]],
-		fmt.Sprintf(
-			s.languageContent.Data.User.Signup.Email.Password.Body[s.languageContent.Language[user.Language]],
-			user.Password),
-		fmt.Sprintf(
-			"<%s@%s>",
-			user.Password,
-			fmt.Sprintf("%s.%s", "confirm-user-email", s.config.DomainAPI)))
+		em.Request{
+			RemoteAddr:    remoteAddr,
+			RemoteAddrKey: remoteAddrKey,
+			RequestID:     requestID,
+			RequestIDKey:  requestIDKey,
+		},
+		em.Email{
+			To:      mail.Address{Address: user.Email},
+			Subject: s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.Language]],
+			Body: fmt.Sprintf(
+				s.languageContent.Data.User.Signup.Email.Password.Body[s.languageContent.Language[user.Language]],
+				user.Password),
+			MessageID: fmt.Sprintf(
+				"<%s@%s>",
+				user.Password,
+				fmt.Sprintf("%s.%s", "confirm-user-email", s.config.DomainAPI))})
 	if err != nil {
 		logger.DPanic("failed to send message to the user", zap.String(requestIDKey, requestID), zap.Error(err))
 		return "", err
@@ -217,7 +243,7 @@ func (s *service) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, conf
 func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 	param model.ServiceCreateAccessTokenParam) (model.ServiceAccessTokenReturn, error) {
 
-	remoteAddr, err := s.contextGetter.GetRemoteAddr(ctx)
+	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return model.ServiceAccessTokenReturn{}, err
@@ -289,18 +315,24 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: param.Email},
-		s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.Language]],
-		fmt.Sprintf(
-			s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.Language]],
-			time.Now().UTC().String(),
-			param.Device.Platform,
-			remoteAddr,
-			s.config.DomainAPP),
-		fmt.Sprintf(
-			"<%s@%s>",
-			remoteAddr,
-			fmt.Sprintf("%s.%s", "get-access-token", s.config.DomainAPI)))
+		em.Request{
+			RemoteAddr:    remoteAddr,
+			RemoteAddrKey: remoteAddrKey,
+			RequestID:     requestID,
+			RequestIDKey:  requestIDKey},
+		em.Email{
+			To:      mail.Address{Address: param.Email},
+			Subject: s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.Language]],
+			Body: fmt.Sprintf(
+				s.languageContent.Data.User.Login.Email.Body[s.languageContent.Language[user.Language]],
+				time.Now().UTC().String(),
+				param.Device.Platform,
+				remoteAddr,
+				s.config.DomainAPP),
+			MessageID: fmt.Sprintf(
+				"<%s@%s>",
+				remoteAddr,
+				fmt.Sprintf("%s.%s", "get-access-token", s.config.DomainAPI))})
 	if err != nil {
 		logger.DPanic("Failed to add this email message to the queue", zap.Error(err),
 			zap.String(requestIDKey, requestID))
@@ -416,7 +448,7 @@ func (s *service) RevokeRefreshToken(ctx context.Context, logger *zap.Logger, pa
 
 func (s *service) RequestUserPasswordReset(ctx context.Context, logger *zap.Logger, email string) error {
 
-	remoteAddr, err := s.contextGetter.GetRemoteAddr(ctx)
+	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return err
@@ -447,15 +479,21 @@ func (s *service) RequestUserPasswordReset(ctx context.Context, logger *zap.Logg
 
 	err = s.message.AddEmailMessageToQueue(
 		s.messageQueue,
-		mail.Address{Address: email},
-		s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
-		fmt.Sprintf(
-			s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
-			remoteAddr, s.config.DomainAPI, confirmationKey),
-		fmt.Sprintf(
-			"<%s@%s>",
-			confirmationKey,
-			fmt.Sprintf("%s.%s", "reset-password", s.config.DomainAPI)))
+		em.Request{
+			RemoteAddr:    remoteAddr,
+			RemoteAddrKey: remoteAddrKey,
+			RequestID:     requestID,
+			RequestIDKey:  requestIDKey},
+		em.Email{
+			To:      mail.Address{Address: email},
+			Subject: s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
+			Body: fmt.Sprintf(
+				s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
+				remoteAddr, s.config.DomainAPI, confirmationKey),
+			MessageID: fmt.Sprintf(
+				"<%s@%s>",
+				confirmationKey,
+				fmt.Sprintf("%s.%s", "reset-password", s.config.DomainAPI))})
 	if err != nil {
 		logger.DPanic("failed to add an email message to the queue", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err

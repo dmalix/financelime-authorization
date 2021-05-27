@@ -54,7 +54,7 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		appConfig          config.App
 		appLanguageContent config.LanguageContent
 		// TODO Move the number of messages in the queue to configs
-		emailMessageQueue = make(chan email.EMessage, 300)
+		emailMessageQueue = make(chan email.MessageBox, 300)
 	)
 
 	// Init Config and Language Content
@@ -244,7 +244,7 @@ func (app *App) Run(ctx context.Context, logger *zap.Logger) error {
 
 	// Start the Mail-Sender daemon
 
-	go app.emailMessageSenderDaemon.Run(ctx, logger)
+	go app.emailMessageSenderDaemon.Run(ctx, logger.Named("emailSender"))
 
 	// Start application
 

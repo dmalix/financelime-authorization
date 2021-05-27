@@ -6,10 +6,22 @@ package email
 
 import "net/mail"
 
-type EMessage struct {
+type Email struct {
 	To        mail.Address
 	From      mail.Address
 	Subject   string
 	Body      string
 	MessageID string
+}
+
+type Request struct {
+	RemoteAddr    string
+	RemoteAddrKey string
+	RequestID     string
+	RequestIDKey  string
+}
+
+type MessageBox struct {
+	Email   Email
+	Request Request
 }

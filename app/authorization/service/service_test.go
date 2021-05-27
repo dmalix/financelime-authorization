@@ -18,11 +18,13 @@ import (
 	"testing"
 )
 
+const remoteAddr = "127.0.0.1"
 const requestID = "W7000-T6755-T7700-P4010-W6778"
 
 func TestServiceSignUp(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
+	ctx = context.WithValue(ctx, middleware.ContextKeyRemoteAddr, remoteAddr)
 	ctx = context.WithValue(ctx, middleware.ContextKeyRequestID, requestID)
 	defer cancel()
 
@@ -32,7 +34,7 @@ func TestServiceSignUp(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessageManager          = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -91,7 +93,7 @@ func TestServiceConfirmUserEmail_Success(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -150,7 +152,7 @@ func TestServiceConfirmUserEmail_Error(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -204,7 +206,7 @@ func TestServiceRequestAccessToken(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -265,7 +267,7 @@ func TestServiceRefreshAccessToken(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -318,7 +320,7 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -373,7 +375,7 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error
@@ -427,7 +429,7 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
-		emailMessageQueue            = make(chan email.EMessage, 1)
+		emailMessageQueue            = make(chan email.MessageBox, 1)
 		emailMessage                 = new(email.AddEmailMessageToQueue_MockDescription)
 		authRepo                     = new(repository.Mock)
 		err                          error

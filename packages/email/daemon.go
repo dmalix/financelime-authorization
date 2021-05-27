@@ -7,12 +7,13 @@ package email
 import (
 	"context"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
 func (daemon SenderDeamon) Run(ctx context.Context, logger *zap.Logger) {
 
-	var message EMessage
+	var message MessageBox
 	var err error
 
 	for {
@@ -29,11 +30,20 @@ func (daemon SenderDeamon) Run(ctx context.Context, logger *zap.Logger) {
 					case <-ctx.Done():
 						return
 					default:
-						err = daemon.smtpSender(message.To, message.From, message.Subject, message.Body, message.MessageID)
+						err = daemon.smtpSender(message.Email.To, message.Email.From, message.Email.Subject,
+							message.Email.Body, message.Email.MessageID)
 						if err == nil {
 							return
 						}
-						logger.DPanic("failed to send a email message", zap.Error(err))
+						if strings.Contains(err.Error(), "Recipient address rejected") {
+							logger.Error("failed to send a email message", zap.Error(err),
+								zap.String(message.Request.RemoteAddrKey, message.Request.RemoteAddr),
+								zap.String(message.Request.RequestIDKey, message.Request.RequestID))
+							return
+						}
+						logger.DPanic("failed to send a email message", zap.Error(err),
+							zap.String(message.Request.RemoteAddrKey, message.Request.RemoteAddr),
+							zap.String(message.Request.RequestIDKey, message.Request.RequestID))
 						time.Sleep(time.Second * time.Duration(3))
 					}
 				}

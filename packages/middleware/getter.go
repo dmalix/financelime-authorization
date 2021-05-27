@@ -12,16 +12,16 @@ func NewContextGetter() *contextGetter {
 	return &contextGetter{}
 }
 
-func (cg *contextGetter) GetRemoteAddr(ctx context.Context) (string, error) {
+func (cg *contextGetter) GetRemoteAddr(ctx context.Context) (string, string, error) {
 	return getRemoteAddr(ctx)
 }
 
-func getRemoteAddr(ctx context.Context) (string, error) {
+func getRemoteAddr(ctx context.Context) (string, string, error) {
 	ctxValue := ctx.Value(ContextKeyRemoteAddr)
 	if ctxValue == nil {
-		return "", fmt.Errorf("failed to get context %s", ContextKeyRemoteAddr)
+		return "", "", fmt.Errorf("failed to get context %s", ContextKeyRemoteAddr)
 	}
-	return ctxValue.(string), nil
+	return ctxValue.(string), ContextKeyRemoteAddr, nil
 }
 
 func (cg *contextGetter) GetRequestID(ctx context.Context) (string, string, error) {

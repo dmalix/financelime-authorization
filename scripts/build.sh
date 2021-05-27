@@ -2,7 +2,7 @@
 
 PROJECT=github.com/dmalix/financelime-authorization
 
-DEVELOPMENT_MODE=false
+DEVELOPMENT_MODE=true
 
 VERSION=$(cat VERSION)
 COMMIT=$(git rev-parse --short HEAD)
