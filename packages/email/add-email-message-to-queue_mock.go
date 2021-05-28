@@ -4,10 +4,6 @@
 
 package email
 
-import (
-	"net/mail"
-)
-
 //noinspection GoSnakeCaseUsage
 type AddEmailMessageToQueue_MockDescription struct {
 	Props struct {
@@ -20,7 +16,6 @@ type AddEmailMessageToQueue_MockDescription struct {
 //noinspection GoSnakeCaseUsage
 var AddEmailMessageToQueue_MockData AddEmailMessageToQueue_MockDescription
 
-func (manager AddEmailMessageToQueue_MockDescription) AddEmailMessageToQueue(_ chan EMessage,
-	to mail.Address, _, _ string, _ ...string) error {
+func (manager AddEmailMessageToQueue_MockDescription) AddEmailMessageToQueue(_ chan MessageBox, _ Request, _ Email) error {
 	return AddEmailMessageToQueue_MockData.Expected.Error
 }

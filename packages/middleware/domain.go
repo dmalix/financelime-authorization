@@ -18,7 +18,7 @@ type Middleware interface {
 }
 
 type ContextGetter interface {
-	GetRemoteAddr(ctx context.Context) (string, error)
+	GetRemoteAddr(ctx context.Context) (string, string, error)
 	GetRequestID(ctx context.Context) (string, string, error)
 	GetPublicSessionID(ctx context.Context) (string, error)
 	GetEncryptedUserData(ctx context.Context) ([]byte, error)

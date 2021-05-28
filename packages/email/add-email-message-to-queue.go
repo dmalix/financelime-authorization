@@ -4,24 +4,27 @@
 
 package email
 
-import (
-	"net/mail"
-)
+import "net/mail"
 
-func (manager Manager) AddEmailMessageToQueue(messageQueue chan EMessage,
-	to mail.Address, subject, body string, messageID ...string) error {
+func (manager Manager) AddEmailMessageToQueue(messageQueue chan MessageBox, request Request, email Email) error {
 
-	var message EMessage
+	var messageBox MessageBox
+	var from = mail.Address{}
 
-	message.To = to
-	message.From = manager.from
-	message.Subject = subject
-	message.Body = body
-	if len(messageID[0]) > 0 {
-		message.MessageID = messageID[0]
+	messageBox.Email.To = email.To
+	if email.From == from {
+		messageBox.Email.From = manager.from
 	}
+	messageBox.Email.Subject = email.Subject
+	messageBox.Email.Body = email.Body
+	messageBox.Email.MessageID = email.MessageID
 
-	messageQueue <- message
+	messageBox.Request.RemoteAddr = request.RemoteAddr
+	messageBox.Request.RemoteAddrKey = request.RemoteAddrKey
+	messageBox.Request.RequestID = request.RequestID
+	messageBox.Request.RequestIDKey = request.RequestIDKey
+
+	messageQueue <- messageBox
 
 	return nil
 }

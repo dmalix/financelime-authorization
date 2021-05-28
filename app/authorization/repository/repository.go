@@ -55,7 +55,7 @@ func (r *repository) CreateUser(ctx context.Context, logger *zap.Logger, param m
 		confirmationID           int64
 	)
 
-	remoteAddr, err := r.contextGetter.GetRemoteAddr(ctx)
+	remoteAddr, _, err := r.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return err
@@ -110,7 +110,7 @@ func (r *repository) CreateUser(ctx context.Context, logger *zap.Logger, param m
 		return err
 	}
 	defer func(dbTransactionAuthMain *sql.Tx) {
-		logger.Warn("the AuthMain DB transaction was rollback", zap.String(requestIDKey, requestID))
+		logger.Debug("the AuthMain DB transaction was rollback", zap.String(requestIDKey, requestID))
 		err := dbTransactionAuthMain.Rollback()
 		if err != nil && err.Error() != messageTransactionHasAlreadyBeenCommittedOrRolledBack {
 			logger.DPanic("failed to rollback AuthMain DB transaction", zap.Error(err), zap.String(requestIDKey, requestID))
@@ -123,7 +123,7 @@ func (r *repository) CreateUser(ctx context.Context, logger *zap.Logger, param m
 		return err
 	}
 	defer func(dbTransactionBlade *sql.Tx) {
-		logger.Warn("the Blade DB transaction was rollback", zap.String(requestIDKey, requestID))
+		logger.Debug("the Blade DB transaction was rollback", zap.String(requestIDKey, requestID))
 		err := dbTransactionBlade.Rollback()
 		if err != nil && err.Error() != messageTransactionHasAlreadyBeenCommittedOrRolledBack {
 			logger.DPanic("failed to rollback Blade DB transaction", zap.Error(err), zap.String(requestIDKey, requestID))
@@ -475,7 +475,7 @@ func (r *repository) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, c
 		return model.User{}, err
 	}
 	defer func(dbTransactionAuthMain *sql.Tx) {
-		logger.Warn("the AuthMain DB transaction was rollback", zap.String(requestIDKey, requestID))
+		logger.Debug("the AuthMain DB transaction was rollback", zap.String(requestIDKey, requestID))
 		err := dbTransactionAuthMain.Rollback()
 		if err != nil && err.Error() != messageTransactionHasAlreadyBeenCommittedOrRolledBack {
 			logger.DPanic("failed to rollback AuthMain DB transaction", zap.Error(err),
@@ -490,7 +490,7 @@ func (r *repository) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, c
 		return model.User{}, err
 	}
 	defer func(dbTransactionBlade *sql.Tx) {
-		logger.Warn("the Blade DB transaction was rollback", zap.String(requestIDKey, requestID))
+		logger.Debug("the Blade DB transaction was rollback", zap.String(requestIDKey, requestID))
 		err := dbTransactionBlade.Rollback()
 		if err != nil && err.Error() != messageTransactionHasAlreadyBeenCommittedOrRolledBack {
 			logger.DPanic("failed to rollback Blade DB transaction", zap.Error(err),
@@ -847,7 +847,7 @@ func (r *repository) SaveSession(ctx context.Context, logger *zap.Logger, param 
 	var sessionID int64
 	var deviceID int64
 
-	remoteAddr, err := r.contextGetter.GetRemoteAddr(ctx)
+	remoteAddr, _, err := r.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return err
@@ -943,7 +943,7 @@ func (r *repository) UpdateSession(ctx context.Context, logger *zap.Logger, para
 
 	var result string
 
-	remoteAddr, err := r.contextGetter.GetRemoteAddr(ctx)
+	remoteAddr, _, err := r.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return err
@@ -1001,7 +1001,7 @@ func (r *repository) RequestUserPasswordReset(ctx context.Context, logger *zap.L
 	var user model.User
 	var confirmationID string
 
-	remoteAddr, err := r.contextGetter.GetRemoteAddr(ctx)
+	remoteAddr, _, err := r.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return model.User{}, err

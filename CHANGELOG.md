@@ -4,6 +4,10 @@
 - Implemented the generation of the OpenAPI spec. 
 - Added context to some functions.
 - Changed the graceful shutdown.
+- Implemented Zap-logger.
+
+**Bugfixes:**
+- Fixed a bug with sending emails.
 
 ## Pre-Release v0.1.5-alpha
 

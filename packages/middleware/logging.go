@@ -50,7 +50,7 @@ func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handle
 			start := time.Now()
 			wrapped := wrapResponseWriter(w)
 
-			remoteAddr, err := getRemoteAddr(r.Context())
+			remoteAddr, remoteAddrKey, err := getRemoteAddr(r.Context())
 			if err != nil {
 				logger.DPanic("failed to get remoteAddr", zap.Error(err),
 					zap.String("method", r.Method),
@@ -74,7 +74,7 @@ func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handle
 
 			if wrapped.status >= 100 && wrapped.status < 200 {
 				logger.Warn("Informational",
-					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(remoteAddrKey, remoteAddr),
 					zap.String(requestIDKey, requestID),
 					zap.Int("status", wrapped.status),
 					zap.String("method", r.Method),
@@ -82,7 +82,7 @@ func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handle
 					zap.Duration("duration", time.Since(start)))
 			} else if wrapped.status >= 200 && wrapped.status < 300 {
 				logger.Info("Success",
-					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(remoteAddrKey, remoteAddr),
 					zap.String(requestIDKey, requestID),
 					zap.Int("status", wrapped.status),
 					zap.String("method", r.Method),
@@ -90,7 +90,7 @@ func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handle
 					zap.Duration("duration", time.Since(start)))
 			} else if wrapped.status >= 300 && wrapped.status < 400 {
 				logger.Warn("Redirection",
-					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(remoteAddrKey, remoteAddr),
 					zap.String(requestIDKey, requestID),
 					zap.Int("status", wrapped.status),
 					zap.String("method", r.Method),
@@ -98,7 +98,7 @@ func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handle
 					zap.Duration("duration", time.Since(start)))
 			} else if wrapped.status >= 400 && wrapped.status < 500 {
 				logger.Error("Client Error",
-					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(remoteAddrKey, remoteAddr),
 					zap.String(requestIDKey, requestID),
 					zap.Int("status", wrapped.status),
 					zap.String("method", r.Method),
@@ -106,7 +106,7 @@ func (mw *middleware) Logging(logger *zap.Logger) func(http.Handler) http.Handle
 					zap.Duration("duration", time.Since(start)))
 			} else {
 				logger.Error("Server Error",
-					zap.String(ContextKeyRemoteAddr, remoteAddr),
+					zap.String(remoteAddrKey, remoteAddr),
 					zap.String(requestIDKey, requestID),
 					zap.Int("status", wrapped.status),
 					zap.String("method", r.Method),

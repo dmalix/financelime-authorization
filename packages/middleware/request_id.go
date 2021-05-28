@@ -15,7 +15,7 @@ func (mw *middleware) RequestID(logger *zap.Logger) func(http.Handler) http.Hand
 			const toCheck = true
 			var requestID string
 
-			remoteAddr, err := getRemoteAddr(r.Context())
+			remoteAddr, remoteAddrKey, err := getRemoteAddr(r.Context())
 			if err != nil {
 				logger.DPanic("failed to get remoteAddr", zap.Error(err))
 				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
@@ -33,7 +33,7 @@ func (mw *middleware) RequestID(logger *zap.Logger) func(http.Handler) http.Hand
 						}
 						requestID = rid[0]
 					} else {
-						logger.Error("the 'request-id' header not found but required", zap.String(ContextKeyRemoteAddr, remoteAddr))
+						logger.Error("the 'request-id' header not found but required", zap.String(remoteAddrKey, remoteAddr))
 						http.Error(w, statusMessageBadRequest, http.StatusBadRequest)
 						return
 					}
@@ -41,7 +41,7 @@ func (mw *middleware) RequestID(logger *zap.Logger) func(http.Handler) http.Hand
 				if toCheck {
 					if len(requestID) != 29 {
 						logger.Error("the 'request-id' value is invalid",
-							zap.String("requestID", requestID), zap.String(ContextKeyRemoteAddr, remoteAddr))
+							zap.String("requestID", requestID), zap.String(remoteAddrKey, remoteAddr))
 						http.Error(w, statusMessageBadRequest, http.StatusBadRequest)
 						return
 					}

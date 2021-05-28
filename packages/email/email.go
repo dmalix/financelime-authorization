@@ -13,7 +13,7 @@ type SenderDeamon struct {
 	AuthSMTPPassword string
 	AuthSMTPHost     string
 	AuthSMTPPort     int
-	MessageQueue     chan EMessage
+	MessageQueue     chan MessageBox
 }
 
 func NewSenderDaemon(
@@ -21,7 +21,7 @@ func NewSenderDaemon(
 	authSMTPPassword,
 	authSMTPHost string,
 	authSMTPPort int,
-	messageQueue chan EMessage) *SenderDeamon {
+	messageQueue chan MessageBox) *SenderDeamon {
 	return &SenderDeamon{
 		AuthSMTPUser:     authSMTPUser,
 		AuthSMTPPassword: authSMTPPassword,
