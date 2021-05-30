@@ -46,8 +46,8 @@ func TestServiceSignUp(t *testing.T) {
 
 	languageContent.Language = make(map[string]int)
 	languageContent.Language["abc"] = 0
-	languageContent.Data.User.Signup.Email.Confirm.Subject = append(languageContent.Data.User.Signup.Email.Confirm.Subject, "")
-	languageContent.Data.User.Signup.Email.Confirm.Body = append(languageContent.Data.User.Signup.Email.Confirm.Body, "%s%s")
+	languageContent.Data.User.Signup.Email.Request.Subject = append(languageContent.Data.User.Signup.Email.Request.Subject, "")
+	languageContent.Data.User.Signup.Email.Request.Body = append(languageContent.Data.User.Signup.Email.Request.Body, "%s%s")
 
 	cryptManager := cryptographer.NewCryptographer("6368616e676520746869732070617373")
 	jwtManager := &jwt.Token{}
@@ -70,7 +70,7 @@ func TestServiceSignUp(t *testing.T) {
 		cryptManager,
 		jwtManager)
 
-	err = newService.SignUp(ctx, logger, model.ServiceSignUpParam{
+	err = newService.SignUpStep1(ctx, logger, model.ServiceSignUpParam{
 		Email:      props.Email,
 		Language:   props.Language,
 		InviteCode: props.InviteCode,
@@ -128,7 +128,7 @@ func TestServiceConfirmUserEmail_Success(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	message, err = newService.ConfirmUserEmail(ctx, logger, "12345")
+	message, err = newService.SignUpStep2(ctx, logger, "12345")
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",
@@ -187,7 +187,7 @@ func TestServiceConfirmUserEmail_Error(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	_, err = newService.ConfirmUserEmail(ctx, logger, "12345")
+	_, err = newService.SignUpStep2(ctx, logger, "12345")
 
 	if err == nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",
@@ -409,7 +409,7 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 		cryptographerManager,
 		jwtManager)
 
-	err = newService.RequestUserPasswordReset(ctx, logger, "email")
+	err = newService.ResetUserPasswordStep1(ctx, logger, "email")
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",

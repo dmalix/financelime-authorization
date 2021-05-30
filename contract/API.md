@@ -47,69 +47,19 @@ API Support dmalix@financelime.com
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
-| GET | /u/{confirmationKey} | [confirm user email](#confirm-user-email) | Confirm User Email |
 | POST | /v1/oauth/create | [create access token](#create-access-token) | Create Access Token (Domain Action: Log In) |
 | GET | /v1/session/list | [get list active sessions](#get-list-active-sessions) | Get a list of active sessions |
 | GET | /v1/version | [get version](#get-version) | Get the Service version |
 | PUT | /v1/oauth/refresh | [refresh access token](#refresh-access-token) | Refresh Access Token (Domain Action: Renew authorization) |
+| POST | /v1/user/password | [reset user password step1](#reset-user-password-step1) | Request to user password reset |
+| GET | /p/{confirmationKey} | [reset user password step2](#reset-user-password-step2) | Confirm to user password reset |
 | DELETE | /v1/session/remove | [revoke refresh token](#revoke-refresh-token) | Revoke Refresh Token (Domain Action: Log Out) |
-| POST | /v1/user/signup | [signup](#signup) | Create new user |
-| POST | /v1/user/password | [user password reset](#user-password-reset) | Request to user password reset |
+| POST | /v1/user/signup | [signup step1](#signup-step1) | Create new user |
+| GET | /u/{confirmationKey} | [signup step2](#signup-step2) | Confirm User Email |
   
 
 
 ## Paths
-
-### <span id="confirm-user-email"></span> Confirm User Email (*confirm_user_email*)
-
-```
-GET /u/{confirmationKey}
-```
-
-API returns HTML-page with a message (success or error).
-
-#### Produces
-  * text/plain;charset=utf-8
-
-#### Parameters
-
-| Name | Source | Type | Go type | Separator | Required | Default | Description |
-|------|--------|------|---------|-----------| :------: |---------|-------------|
-| confirmationKey | `path` | string | `string` |  | ✓ |  | Confirmation Key |
-| rid | `query` | string | `string` |  | ✓ |  | RequestID |
-
-#### All responses
-| Code | Status | Description | Has headers | Schema |
-|------|--------|-------------|:-----------:|--------|
-| [200](#confirm-user-email-200) | OK | Successful operation |  | [schema](#confirm-user-email-200-schema) |
-| [404](#confirm-user-email-404) | Not Found | Not Found |  | [schema](#confirm-user-email-404-schema) |
-| [500](#confirm-user-email-500) | Internal Server Error | Internal Server Error |  | [schema](#confirm-user-email-500-schema) |
-
-#### Responses
-
-
-##### <span id="confirm-user-email-200"></span> 200 - Successful operation
-Status: OK
-
-###### <span id="confirm-user-email-200-schema"></span> Schema
-
-##### <span id="confirm-user-email-404"></span> 404 - Not Found
-Status: Not Found
-
-###### <span id="confirm-user-email-404-schema"></span> Schema
-   
-  
-
-[ModelCommonFailure](#model-common-failure)
-
-##### <span id="confirm-user-email-500"></span> 500 - Internal Server Error
-Status: Internal Server Error
-
-###### <span id="confirm-user-email-500-schema"></span> Schema
-   
-  
-
-[ModelCommonFailure](#model-common-failure)
 
 ### <span id="create-access-token"></span> Create Access Token (Domain Action: Log In) (*create_access_token*)
 
@@ -328,6 +278,118 @@ Status: Internal Server Error
 
 [ModelCommonFailure](#model-common-failure)
 
+### <span id="reset-user-password-step1"></span> Request to user password reset (*reset_user_password_step1*)
+
+```
+POST /v1/user/password
+```
+
+The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
+
+#### Consumes
+  * application/json;charset=utf-8
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| request-id | `header` | string | `string` |  | ✓ |  | RequestID |
+| model.ResetUserPasswordRequest | `body` | [ModelResetUserPasswordRequest](#model-reset-user-password-request) | `models.ModelResetUserPasswordRequest` | | ✓ | | Data for resetting your password |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [204](#reset-user-password-step1-204) | No Content | Successful operation |  | [schema](#reset-user-password-step1-204-schema) |
+| [400](#reset-user-password-step1-400) | Bad Request | Bad Request |  | [schema](#reset-user-password-step1-400-schema) |
+| [404](#reset-user-password-step1-404) | Not Found | Not Found |  | [schema](#reset-user-password-step1-404-schema) |
+| [500](#reset-user-password-step1-500) | Internal Server Error | Internal Server Error |  | [schema](#reset-user-password-step1-500-schema) |
+
+#### Responses
+
+
+##### <span id="reset-user-password-step1-204"></span> 204 - Successful operation
+Status: No Content
+
+###### <span id="reset-user-password-step1-204-schema"></span> Schema
+
+##### <span id="reset-user-password-step1-400"></span> 400 - Bad Request
+Status: Bad Request
+
+###### <span id="reset-user-password-step1-400-schema"></span> Schema
+   
+  
+
+[ModelRequestUserPasswordResetFailure400](#model-request-user-password-reset-failure400)
+
+##### <span id="reset-user-password-step1-404"></span> 404 - Not Found
+Status: Not Found
+
+###### <span id="reset-user-password-step1-404-schema"></span> Schema
+   
+  
+
+[ModelRequestUserPasswordResetFailure404](#model-request-user-password-reset-failure404)
+
+##### <span id="reset-user-password-step1-500"></span> 500 - Internal Server Error
+Status: Internal Server Error
+
+###### <span id="reset-user-password-step1-500-schema"></span> Schema
+   
+  
+
+[ModelCommonFailure](#model-common-failure)
+
+### <span id="reset-user-password-step2"></span> Confirm to user password reset (*reset_user_password_step2*)
+
+```
+GET /p/{confirmationKey}
+```
+
+API returns HTML-page with a message (success or error).
+
+#### Produces
+  * text/plain;charset=utf-8
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| confirmationKey | `path` | string | `string` |  | ✓ |  | Confirmation Key |
+| rid | `query` | string | `string` |  | ✓ |  | RequestID |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#reset-user-password-step2-200) | OK | Successful operation |  | [schema](#reset-user-password-step2-200-schema) |
+| [404](#reset-user-password-step2-404) | Not Found | Not Found |  | [schema](#reset-user-password-step2-404-schema) |
+| [500](#reset-user-password-step2-500) | Internal Server Error | Internal Server Error |  | [schema](#reset-user-password-step2-500-schema) |
+
+#### Responses
+
+
+##### <span id="reset-user-password-step2-200"></span> 200 - Successful operation
+Status: OK
+
+###### <span id="reset-user-password-step2-200-schema"></span> Schema
+
+##### <span id="reset-user-password-step2-404"></span> 404 - Not Found
+Status: Not Found
+
+###### <span id="reset-user-password-step2-404-schema"></span> Schema
+   
+  
+
+[ModelCommonFailure](#model-common-failure)
+
+##### <span id="reset-user-password-step2-500"></span> 500 - Internal Server Error
+Status: Internal Server Error
+
+###### <span id="reset-user-password-step2-500-schema"></span> Schema
+   
+  
+
+[ModelCommonFailure](#model-common-failure)
+
 ### <span id="revoke-refresh-token"></span> Revoke Refresh Token (Domain Action: Log Out) (*revoke_refresh_token*)
 
 ```
@@ -382,7 +444,7 @@ Status: Internal Server Error
 
 [ModelCommonFailure](#model-common-failure)
 
-### <span id="signup"></span> Create new user (*signup*)
+### <span id="signup-step1"></span> Create new user (*signup_step1*)
 
 ```
 POST /v1/user/signup
@@ -403,112 +465,102 @@ The service sends a confirmation link to the specified email. After confirmation
 #### All responses
 | Code | Status | Description | Has headers | Schema |
 |------|--------|-------------|:-----------:|--------|
-| [204](#signup-204) | No Content | Successful operation |  | [schema](#signup-204-schema) |
-| [400](#signup-400) | Bad Request | Bad Request |  | [schema](#signup-400-schema) |
-| [404](#signup-404) | Not Found | Not Found |  | [schema](#signup-404-schema) |
-| [409](#signup-409) | Conflict | Conflict |  | [schema](#signup-409-schema) |
-| [500](#signup-500) | Internal Server Error | Internal Server Error |  | [schema](#signup-500-schema) |
+| [204](#signup-step1-204) | No Content | Successful operation |  | [schema](#signup-step1-204-schema) |
+| [400](#signup-step1-400) | Bad Request | Bad Request |  | [schema](#signup-step1-400-schema) |
+| [404](#signup-step1-404) | Not Found | Not Found |  | [schema](#signup-step1-404-schema) |
+| [409](#signup-step1-409) | Conflict | Conflict |  | [schema](#signup-step1-409-schema) |
+| [500](#signup-step1-500) | Internal Server Error | Internal Server Error |  | [schema](#signup-step1-500-schema) |
 
 #### Responses
 
 
-##### <span id="signup-204"></span> 204 - Successful operation
+##### <span id="signup-step1-204"></span> 204 - Successful operation
 Status: No Content
 
-###### <span id="signup-204-schema"></span> Schema
+###### <span id="signup-step1-204-schema"></span> Schema
 
-##### <span id="signup-400"></span> 400 - Bad Request
+##### <span id="signup-step1-400"></span> 400 - Bad Request
 Status: Bad Request
 
-###### <span id="signup-400-schema"></span> Schema
+###### <span id="signup-step1-400-schema"></span> Schema
    
   
 
 [ModelSignUpFailure400](#model-sign-up-failure400)
 
-##### <span id="signup-404"></span> 404 - Not Found
+##### <span id="signup-step1-404"></span> 404 - Not Found
 Status: Not Found
 
-###### <span id="signup-404-schema"></span> Schema
+###### <span id="signup-step1-404-schema"></span> Schema
    
   
 
 [ModelCommonFailure](#model-common-failure)
 
-##### <span id="signup-409"></span> 409 - Conflict
+##### <span id="signup-step1-409"></span> 409 - Conflict
 Status: Conflict
 
-###### <span id="signup-409-schema"></span> Schema
+###### <span id="signup-step1-409-schema"></span> Schema
    
   
 
 [ModelSignUpFailure409](#model-sign-up-failure409)
 
-##### <span id="signup-500"></span> 500 - Internal Server Error
+##### <span id="signup-step1-500"></span> 500 - Internal Server Error
 Status: Internal Server Error
 
-###### <span id="signup-500-schema"></span> Schema
+###### <span id="signup-step1-500-schema"></span> Schema
    
   
 
 [ModelCommonFailure](#model-common-failure)
 
-### <span id="user-password-reset"></span> Request to user password reset (*user_password_reset*)
+### <span id="signup-step2"></span> Confirm User Email (*signup_step2*)
 
 ```
-POST /v1/user/password
+GET /u/{confirmationKey}
 ```
 
-The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
+API returns HTML-page with a message (success or error).
 
-#### Consumes
-  * application/json;charset=utf-8
+#### Produces
+  * text/plain;charset=utf-8
 
 #### Parameters
 
 | Name | Source | Type | Go type | Separator | Required | Default | Description |
 |------|--------|------|---------|-----------| :------: |---------|-------------|
-| request-id | `header` | string | `string` |  | ✓ |  | RequestID |
-| model.RequestUserPasswordResetRequest | `body` | [ModelRequestUserPasswordResetRequest](#model-request-user-password-reset-request) | `models.ModelRequestUserPasswordResetRequest` | | ✓ | | Data for resetting your password |
+| confirmationKey | `path` | string | `string` |  | ✓ |  | Confirmation Key |
+| rid | `query` | string | `string` |  | ✓ |  | RequestID |
 
 #### All responses
 | Code | Status | Description | Has headers | Schema |
 |------|--------|-------------|:-----------:|--------|
-| [204](#user-password-reset-204) | No Content | Successful operation |  | [schema](#user-password-reset-204-schema) |
-| [400](#user-password-reset-400) | Bad Request | Bad Request |  | [schema](#user-password-reset-400-schema) |
-| [404](#user-password-reset-404) | Not Found | Not Found |  | [schema](#user-password-reset-404-schema) |
-| [500](#user-password-reset-500) | Internal Server Error | Internal Server Error |  | [schema](#user-password-reset-500-schema) |
+| [200](#signup-step2-200) | OK | Successful operation |  | [schema](#signup-step2-200-schema) |
+| [404](#signup-step2-404) | Not Found | Not Found |  | [schema](#signup-step2-404-schema) |
+| [500](#signup-step2-500) | Internal Server Error | Internal Server Error |  | [schema](#signup-step2-500-schema) |
 
 #### Responses
 
 
-##### <span id="user-password-reset-204"></span> 204 - Successful operation
-Status: No Content
+##### <span id="signup-step2-200"></span> 200 - Successful operation
+Status: OK
 
-###### <span id="user-password-reset-204-schema"></span> Schema
+###### <span id="signup-step2-200-schema"></span> Schema
 
-##### <span id="user-password-reset-400"></span> 400 - Bad Request
-Status: Bad Request
-
-###### <span id="user-password-reset-400-schema"></span> Schema
-   
-  
-
-[ModelRequestUserPasswordResetFailure400](#model-request-user-password-reset-failure400)
-
-##### <span id="user-password-reset-404"></span> 404 - Not Found
+##### <span id="signup-step2-404"></span> 404 - Not Found
 Status: Not Found
 
-###### <span id="user-password-reset-404-schema"></span> Schema
+###### <span id="signup-step2-404-schema"></span> Schema
    
   
 
-[ModelRequestUserPasswordResetFailure404](#model-request-user-password-reset-failure404)
+[ModelCommonFailure](#model-common-failure)
 
-##### <span id="user-password-reset-500"></span> 500 - Internal Server Error
+##### <span id="signup-step2-500"></span> 500 - Internal Server Error
 Status: Internal Server Error
 
-###### <span id="user-password-reset-500-schema"></span> Schema
+###### <span id="signup-step2-500-schema"></span> Schema
    
   
 
@@ -697,7 +749,7 @@ Status: Internal Server Error
 
 
 
-### <span id="model-request-user-password-reset-request"></span> model.RequestUserPasswordResetRequest
+### <span id="model-reset-user-password-request"></span> model.ResetUserPasswordRequest
 
 
   

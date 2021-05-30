@@ -7,7 +7,7 @@
     "User": {
       "Signup": {
         "Email": {
-          "Confirm": {
+          "Request": {
             "Subject": [
               "Пожалуйста, подтвердите ваш email-адрес",
               "Please verify your email address"
@@ -43,8 +43,8 @@
               "Please confirm password reset"
             ],
             "Body": [
-              "Уважаемый пользователь!\r\n\r\nВы или кто-то другой запросил сброс пароля для вашего аккаунта (с адреса %s).\r\n\r\nЕсли это сделали не вы, то проигнорируйте это письмо. Если вы действительно хотите сбросить пароль, то для подтверждения используйте следующую ссылку:\r\n\r\nhttps://%s/p/%s\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
-              "Dear User!\r\n\r\nYou or someone else has requested a password reset for your account (from address %s)!\r\n\r\nIf you didn't do it, then ignore this letter. If you really want to reset your password, please use the following link to confirm:\r\n\r\nhttps://%s/p/%s\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
+              "Уважаемый пользователь!\r\n\r\nВы или кто-то другой запросил сброс пароля для вашего аккаунта (с адреса %s).\r\n\r\nЕсли это сделали не вы, то проигнорируйте это письмо. Если вы действительно хотите сбросить пароль, то для подтверждения используйте следующую ссылку:\r\n\r\nhttps://%s/p/%s?rid=%s\r\n\r\n--\r\nС наилучшими пожеланиями,\r\nFinancelime.com",
+              "Dear User!\r\n\r\nYou or someone else has requested a password reset for your account (from address %s)!\r\n\r\nIf you didn't do it, then ignore this letter. If you really want to reset your password, please use the following link to confirm:\r\n\r\nhttps://%s/p/%s?rid=%s\r\n\r\n--\r\nBest regards,\r\nFinancelime.com"
             ]
           },
           "Password": {
@@ -59,12 +59,10 @@
           }
         },
         "Page": {
-          "Request": {
-            "Text": [
+          "Text": [
               "Сброс подтвержден!\r\n\r\nВаш пароль был успешно сброшен!\r\n\r\nПожалуйста, проверьте свою электронную почту для дальнейших инструкций.",
               "Reset confirmed!\r\n\r\nYour password has been successfully reset!\r\n\r\nPlease check your email for further instructions."
             ]
-          }
         }
       },
       "Login": {

@@ -14,23 +14,39 @@ import (
 
 func Router(logger *zap.Logger, router *mux.Router, routerV1 *mux.Router, handler authorization.REST, middleware middleware.Middleware) {
 
-	routerV1.Handle("/user/signup", handler.SignUp(logger)).
-		Methods(http.MethodPost).Headers(headerKeyContentType, headerValueApplicationJson)
-
-	router.Handle("/u/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
-		handler.ConfirmUserEmail(logger)).Methods(http.MethodGet)
-
-	routerV1.Handle("/user/password", handler.RequestUserPasswordReset(logger)).Methods(http.MethodPost).
-		Methods(http.MethodPost).Headers(headerKeyContentType, headerValueApplicationJson)
-
-	routerV1.Handle("/oauth/create", handler.CreateAccessToken(logger)).Methods(http.MethodPost).
+	routerV1.Handle("/user/signup",
+		handler.SignUpStep1(logger)).
+		Methods(http.MethodPost).
 		Headers(headerKeyContentType, headerValueApplicationJson)
-	routerV1.Handle("/oauth/refresh", handler.RefreshAccessToken(logger)).Methods(http.MethodPut).
+	router.Handle("/u/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
+		handler.SignUpStep2(logger)).
+		Methods(http.MethodGet)
+
+	routerV1.Handle("/oauth/create",
+		handler.CreateAccessToken(logger)).
+		Methods(http.MethodPost).
+		Headers(headerKeyContentType, headerValueApplicationJson)
+	routerV1.Handle("/oauth/refresh", handler.RefreshAccessToken(logger)).
+		Methods(http.MethodPut).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 
 	routerSession := routerV1.PathPrefix("/session").Subrouter()
 	routerSession.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
-	routerSession.Handle("/list", handler.GetListActiveSessions(logger)).Methods(http.MethodGet)
-	routerSession.Handle("/remove", handler.RevokeRefreshToken(logger)).Methods(http.MethodDelete).
+	routerSession.Handle("/list",
+		handler.GetListActiveSessions(logger)).
+		Methods(http.MethodGet)
+	routerSession.Handle("/remove",
+		handler.RevokeRefreshToken(logger)).
+		Methods(http.MethodDelete).
 		Headers(headerKeyContentType, headerValueApplicationJson)
+
+	routerV1.Handle("/user/password",
+		handler.ResetUserPasswordStep1(logger)).
+		Methods(http.MethodPost).
+		Methods(http.MethodPost).
+		Headers(headerKeyContentType, headerValueApplicationJson)
+	router.Handle("/p/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
+		handler.ResetUserPasswordStep2(logger)).
+		Methods(http.MethodGet)
+
 }

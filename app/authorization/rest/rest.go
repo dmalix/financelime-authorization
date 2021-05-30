@@ -29,10 +29,10 @@ func NewREST(
 	}
 }
 
-// SignUp
+// SignUpStep1
 // @Summary Create new user
 // @Description The service sends a confirmation link to the specified email. After confirmation, the service will send a password for authorization.
-// @ID signup
+// @ID signup_step1
 // @Accept application/json;charset=utf-8
 // @Param request-id header string true "RequestID"
 // @Param model.SignUpRequest body model.SignUpRequest true "Data for creating a new user"
@@ -42,7 +42,7 @@ func NewREST(
 // @Failure 409 {object} model.SignUpFailure409
 // @Failure 500 {object} model.CommonFailure
 // @Router /v1/user/signup [post]
-func (a *rest) SignUp(logger *zap.Logger) http.Handler {
+func (a *rest) SignUpStep1(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var requestInput model.SignUpRequest
@@ -73,7 +73,7 @@ func (a *rest) SignUp(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		err = a.service.SignUp(r.Context(), logger, model.ServiceSignUpParam{
+		err = a.service.SignUpStep1(r.Context(), logger, model.ServiceSignUpParam{
 			Email:      requestInput.Email,
 			Language:   requestInput.Language,
 			InviteCode: requestInput.InviteCode})
@@ -97,10 +97,10 @@ func (a *rest) SignUp(logger *zap.Logger) http.Handler {
 	})
 }
 
-// ConfirmUserEmail
+// SignUpStep2
 // @Summary Confirm User Email
 // @Description API returns HTML-page with a message (success or error).
-// @ID confirm_user_email
+// @ID signup_step2
 // @Produce text/plain;charset=utf-8
 // @Param rid query string true "RequestID"
 // @Param confirmationKey path string true "Confirmation Key"
@@ -108,7 +108,7 @@ func (a *rest) SignUp(logger *zap.Logger) http.Handler {
 // @Failure 404 {object} model.CommonFailure
 // @Failure 500 {object} model.CommonFailure
 // @Router /u/{confirmationKey} [get]
-func (a *rest) ConfirmUserEmail(logger *zap.Logger) http.Handler {
+func (a *rest) SignUpStep2(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		vars := mux.Vars(r)
@@ -122,7 +122,7 @@ func (a *rest) ConfirmUserEmail(logger *zap.Logger) http.Handler {
 
 		confirmationKey := vars["confirmationKey"]
 
-		confirmationMessage, err := a.service.ConfirmUserEmail(r.Context(), logger, confirmationKey)
+		confirmationMessage, err := a.service.SignUpStep2(r.Context(), logger, confirmationKey)
 		if err != nil {
 			logger.Error("failed to confirm user email", zap.String(requestIDKey, requestID), zap.Error(err))
 			switch err {
@@ -142,72 +142,6 @@ func (a *rest) ConfirmUserEmail(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		return
-	})
-}
-
-// RequestUserPasswordReset
-// @Summary Request to user password reset
-// @Description The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
-// @ID user_password_reset
-// @Accept application/json;charset=utf-8
-// @Param request-id header string true "RequestID"
-// @Param model.RequestUserPasswordResetRequest body model.RequestUserPasswordResetRequest true "Data for resetting your password"
-// @Success 204 "Successful operation"
-// @Failure 400 {object} model.RequestUserPasswordResetFailure400
-// @Failure 404 {object} model.RequestUserPasswordResetFailure404
-// @Failure 500 {object} model.CommonFailure
-// @Router /v1/user/password [post]
-func (a *rest) RequestUserPasswordReset(logger *zap.Logger) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		var requestInput model.RequestUserPasswordResetRequest
-
-		requestID, requestIDKey, err := a.contextGetter.GetRequestID(r.Context())
-		if err != nil {
-			logger.DPanic("failed to get requestID", zap.Error(err))
-			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
-			return
-		}
-
-		requestBody, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			logger.DPanic("failed to read the requestBody", zap.String(requestIDKey, requestID), zap.Error(err))
-			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
-			return
-		}
-
-		err = r.Body.Close()
-		if err != nil {
-			logger.DPanic("failed to close a requestBody", zap.String(requestIDKey, requestID), zap.Error(err))
-			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
-			return
-		}
-
-		err = json.Unmarshal(requestBody, &requestInput)
-		if err != nil {
-			logger.Error("failed to unmarshal the requestBody", zap.String(requestIDKey, requestID), zap.Error(err))
-			http.Error(w, authorization.ErrorBadParams.Error(), http.StatusBadRequest)
-			return
-		}
-
-		err = a.service.RequestUserPasswordReset(r.Context(), logger, requestInput.Email)
-		if err != nil {
-			logger.Error("failed to request a reset of the user's password", zap.Error(err), zap.String(requestIDKey, requestID))
-			switch err {
-			case authorization.ErrorBadParams:
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			case authorization.ErrorUserNotFound:
-				http.Error(w, err.Error(), http.StatusNotFound)
-				return
-			default:
-				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusNoContent)
 		return
 	})
 }
@@ -514,6 +448,121 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusNoContent)
+		return
+	})
+}
+
+// ResetUserPasswordStep1
+// @Summary Request to user password reset
+// @Description The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
+// @ID reset_user_password_step1
+// @Accept application/json;charset=utf-8
+// @Param request-id header string true "RequestID"
+// @Param model.ResetUserPasswordRequest body model.ResetUserPasswordRequest true "Data for resetting your password"
+// @Success 204 "Successful operation"
+// @Failure 400 {object} model.RequestUserPasswordResetFailure400
+// @Failure 404 {object} model.RequestUserPasswordResetFailure404
+// @Failure 500 {object} model.CommonFailure
+// @Router /v1/user/password [post]
+func (a *rest) ResetUserPasswordStep1(logger *zap.Logger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		var requestInput model.ResetUserPasswordRequest
+
+		requestID, requestIDKey, err := a.contextGetter.GetRequestID(r.Context())
+		if err != nil {
+			logger.DPanic("failed to get requestID", zap.Error(err))
+			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		requestBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			logger.DPanic("failed to read the requestBody", zap.String(requestIDKey, requestID), zap.Error(err))
+			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		err = r.Body.Close()
+		if err != nil {
+			logger.DPanic("failed to close a requestBody", zap.String(requestIDKey, requestID), zap.Error(err))
+			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		err = json.Unmarshal(requestBody, &requestInput)
+		if err != nil {
+			logger.Error("failed to unmarshal the requestBody", zap.String(requestIDKey, requestID), zap.Error(err))
+			http.Error(w, authorization.ErrorBadParams.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = a.service.ResetUserPasswordStep1(r.Context(), logger, requestInput.Email)
+		if err != nil {
+			logger.Error("failed to request a reset of the user's password", zap.Error(err), zap.String(requestIDKey, requestID))
+			switch err {
+			case authorization.ErrorBadParams:
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			case authorization.ErrorUserNotFound:
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			default:
+				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+		return
+	})
+}
+
+// ResetUserPasswordStep2
+// @Summary Confirm to user password reset
+// @Description API returns HTML-page with a message (success or error).
+// @ID reset_user_password_step2
+// @Produce text/plain;charset=utf-8
+// @Param rid query string true "RequestID"
+// @Param confirmationKey path string true "Confirmation Key"
+// @Success 200 "Successful operation"
+// @Failure 404 {object} model.CommonFailure
+// @Failure 500 {object} model.CommonFailure
+// @Router /p/{confirmationKey} [get]
+func (a *rest) ResetUserPasswordStep2(logger *zap.Logger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+
+		requestID, requestIDKey, err := a.contextGetter.GetRequestID(r.Context())
+		if err != nil {
+			logger.DPanic("failed to get requestID", zap.Error(err))
+			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+			return
+		}
+
+		confirmationKey := vars["confirmationKey"]
+
+		confirmationMessage, err := a.service.ResetUserPasswordStep2(r.Context(), logger, confirmationKey)
+		if err != nil {
+			logger.Error("failed to confirm user password reset", zap.String(requestIDKey, requestID), zap.Error(err))
+			switch err {
+			case authorization.ErrorBadParamConfirmationKey, authorization.ErrorBadConfirmationKey:
+				http.Error(w, statusMessageNotFound, http.StatusNotFound)
+				return
+			default:
+				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.Header().Set(headerKeyContentType, headerValueTextPlain)
+		w.WriteHeader(http.StatusOK)
+		if code, err := w.Write([]byte(confirmationMessage)); err != nil {
+			logger.DPanic("failed response", zap.Int("code", code), zap.Error(err), zap.String(requestIDKey, requestID))
+			return
+		}
+
 		return
 	})
 }

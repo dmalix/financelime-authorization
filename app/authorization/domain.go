@@ -12,33 +12,36 @@ import (
 )
 
 type REST interface {
-	SignUp(logger *zap.Logger) http.Handler
-	ConfirmUserEmail(logger *zap.Logger) http.Handler
-	RequestUserPasswordReset(logger *zap.Logger) http.Handler
+	SignUpStep1(logger *zap.Logger) http.Handler
+	SignUpStep2(logger *zap.Logger) http.Handler
 	CreateAccessToken(logger *zap.Logger) http.Handler
 	RefreshAccessToken(logger *zap.Logger) http.Handler
 	GetListActiveSessions(logger *zap.Logger) http.Handler
 	RevokeRefreshToken(logger *zap.Logger) http.Handler
+	ResetUserPasswordStep1(logger *zap.Logger) http.Handler
+	ResetUserPasswordStep2(logger *zap.Logger) http.Handler
 }
 
 type Service interface {
-	SignUp(ctx context.Context, logger *zap.Logger, param model.ServiceSignUpParam) error
-	ConfirmUserEmail(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error)
+	SignUpStep1(ctx context.Context, logger *zap.Logger, param model.ServiceSignUpParam) error
+	SignUpStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error)
 	CreateAccessToken(ctx context.Context, logger *zap.Logger, param model.ServiceCreateAccessTokenParam) (model.ServiceAccessTokenReturn, error)
 	RefreshAccessToken(ctx context.Context, logger *zap.Logger, refreshToken string) (model.ServiceAccessTokenReturn, error)
 	RevokeRefreshToken(ctx context.Context, logger *zap.Logger, param model.ServiceRevokeRefreshTokenParam) error
 	GetListActiveSessions(ctx context.Context, logger *zap.Logger, encryptedUserData []byte) ([]model.Session, error)
-	RequestUserPasswordReset(ctx context.Context, logger *zap.Logger, email string) error
+	ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, email string) error
+	ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error)
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, logger *zap.Logger, param model.RepoCreateUserParam) error
-	ConfirmUserEmail(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error)
+	SignUpStep1(ctx context.Context, logger *zap.Logger, param model.RepoSignUpParam) error
+	SignUpStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error)
 	GetUserByAuth(ctx context.Context, logger *zap.Logger, param model.RepoGetUserByAuthParam) (model.User, error)
 	GetUserByRefreshToken(ctx context.Context, logger *zap.Logger, refreshToken string) (model.User, error)
 	SaveSession(ctx context.Context, logger *zap.Logger, param model.RepoSaveSessionParam) error
 	UpdateSession(ctx context.Context, logger *zap.Logger, param model.RepoUpdateSessionParam) error
 	DeleteSession(ctx context.Context, logger *zap.Logger, param model.RepoDeleteSessionParam) error
 	GetListActiveSessions(ctx context.Context, logger *zap.Logger, userID int64) ([]model.Session, error)
-	RequestUserPasswordReset(ctx context.Context, logger *zap.Logger, param model.RepoRequestUserPasswordResetParam) (model.User, error)
+	ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, param model.RepoResetUserPasswordParam) (model.User, error)
+	ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error)
 }

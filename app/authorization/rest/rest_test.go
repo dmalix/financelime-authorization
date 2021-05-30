@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-func TestAPISignUp(t *testing.T) {
+func TestAPISignUp1(t *testing.T) {
 
 	authService := new(service.Mock)
 
@@ -53,7 +53,7 @@ func TestAPISignUp(t *testing.T) {
 	contextGetter := new(middleware.MockDescription)
 
 	authREST := NewREST(contextGetter, authService)
-	handler := authREST.SignUp(logger)
+	handler := authREST.SignUpStep1(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -63,7 +63,7 @@ func TestAPISignUp(t *testing.T) {
 	}
 }
 
-func TestAPIConfirmUserEmail(t *testing.T) {
+func TestAPISignUp2(t *testing.T) {
 
 	authService := new(service.Mock)
 
@@ -87,7 +87,7 @@ func TestAPIConfirmUserEmail(t *testing.T) {
 	contextGetter := new(middleware.MockDescription)
 
 	authREST := NewREST(contextGetter, authService)
-	handler := authREST.ConfirmUserEmail(logger)
+	handler := authREST.SignUpStep2(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
 
@@ -211,42 +211,6 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 	}
 }
 
-func TestAPIRequestUserPasswordReset(t *testing.T) {
-
-	authService := new(service.Mock)
-
-	authService.Expected.Error = nil
-
-	props := map[string]interface{}{}
-
-	bytesRepresentation, err := json.Marshal(props)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	request, err := http.NewRequest("", "", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	request.Header.Add(headerKeyContentType, headerValueApplicationJson)
-
-	responseRecorder := httptest.NewRecorder()
-
-	logger, _ := zap.NewProduction()
-	contextGetter := new(middleware.MockDescription)
-
-	authREST := NewREST(contextGetter, authService)
-	handler := authREST.RequestUserPasswordReset(logger)
-
-	handler.ServeHTTP(responseRecorder, request)
-
-	if status := responseRecorder.Code; status != http.StatusNoContent {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusNoContent)
-	}
-}
-
 func TestAPIGetListActiveSessions(t *testing.T) {
 
 	authService := new(service.Mock)
@@ -275,5 +239,41 @@ func TestAPIGetListActiveSessions(t *testing.T) {
 	if status := responseRecorder.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
+	}
+}
+
+func TestAPIResetUserPassword1(t *testing.T) {
+
+	authService := new(service.Mock)
+
+	authService.Expected.Error = nil
+
+	props := map[string]interface{}{}
+
+	bytesRepresentation, err := json.Marshal(props)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	request, err := http.NewRequest("", "", bytes.NewBuffer(bytesRepresentation))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	request.Header.Add(headerKeyContentType, headerValueApplicationJson)
+
+	responseRecorder := httptest.NewRecorder()
+
+	logger, _ := zap.NewProduction()
+	contextGetter := new(middleware.MockDescription)
+
+	authREST := NewREST(contextGetter, authService)
+	handler := authREST.ResetUserPasswordStep1(logger)
+
+	handler.ServeHTTP(responseRecorder, request)
+
+	if status := responseRecorder.Code; status != http.StatusNoContent {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNoContent)
 	}
 }

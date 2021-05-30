@@ -115,7 +115,7 @@ func (s *service) generateRequestID(_ context.Context) (string, error) {
 	return requestID, nil
 }
 
-func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.ServiceSignUpParam) error {
+func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param model.ServiceSignUpParam) error {
 
 	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
@@ -131,7 +131,7 @@ func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.Se
 
 	confirmationKey := random.StringRand(16, 16, true)
 
-	err = s.repository.CreateUser(ctx, logger, model.RepoCreateUserParam{
+	err = s.repository.SignUpStep1(ctx, logger, model.RepoSignUpParam{
 		Email:              param.Email,
 		Language:           param.Language,
 		InviteCode:         param.InviteCode,
@@ -169,9 +169,9 @@ func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.Se
 			RequestIDKey:  requestIDKey},
 		em.Email{
 			To:      mail.Address{Address: param.Email},
-			Subject: s.languageContent.Data.User.Signup.Email.Confirm.Subject[s.languageContent.Language[param.Language]],
+			Subject: s.languageContent.Data.User.Signup.Email.Request.Subject[s.languageContent.Language[param.Language]],
 			Body: fmt.Sprintf(
-				s.languageContent.Data.User.Signup.Email.Confirm.Body[s.languageContent.Language[param.Language]],
+				s.languageContent.Data.User.Signup.Email.Request.Body[s.languageContent.Language[param.Language]],
 				s.config.DomainAPI, confirmationKey, newRequestID),
 			MessageID: fmt.Sprintf(
 				"<%s@%s>",
@@ -185,7 +185,7 @@ func (s *service) SignUp(ctx context.Context, logger *zap.Logger, param model.Se
 	return nil
 }
 
-func (s *service) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error) {
+func (s *service) SignUpStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error) {
 
 	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
@@ -199,7 +199,7 @@ func (s *service) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, conf
 		return "", err
 	}
 
-	user, err := s.repository.ConfirmUserEmail(ctx, logger, confirmationKey)
+	user, err := s.repository.SignUpStep2(ctx, logger, confirmationKey)
 	if err != nil {
 		logger.Error("failed to confirm user email", zap.String(requestIDKey, requestID), zap.Error(err))
 		switch err {
@@ -446,62 +446,6 @@ func (s *service) RevokeRefreshToken(ctx context.Context, logger *zap.Logger, pa
 	return nil
 }
 
-func (s *service) RequestUserPasswordReset(ctx context.Context, logger *zap.Logger, email string) error {
-
-	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
-	if err != nil {
-		logger.DPanic("failed to get remoteAddr", zap.Error(err))
-		return err
-	}
-
-	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
-	if err != nil {
-		logger.DPanic("failed to get requestID", zap.Error(err))
-		return err
-	}
-
-	confirmationKey := random.StringRand(16, 16, true)
-
-	user, err := s.repository.RequestUserPasswordReset(ctx, logger, model.RepoRequestUserPasswordResetParam{
-		Email:           email,
-		ConfirmationKey: confirmationKey})
-	if err != nil {
-		logger.Error("failed to request a reset of the user's password", zap.Error(err), zap.String(requestIDKey, requestID))
-		switch err {
-		case authorization.ErrorBadParamEmail, authorization.ErrorBadConfirmationKey:
-			return err
-		case authorization.ErrorUserNotFound:
-			return err
-		default:
-			return err
-		}
-	}
-
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		em.Request{
-			RemoteAddr:    remoteAddr,
-			RemoteAddrKey: remoteAddrKey,
-			RequestID:     requestID,
-			RequestIDKey:  requestIDKey},
-		em.Email{
-			To:      mail.Address{Address: email},
-			Subject: s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
-			Body: fmt.Sprintf(
-				s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
-				remoteAddr, s.config.DomainAPI, confirmationKey),
-			MessageID: fmt.Sprintf(
-				"<%s@%s>",
-				confirmationKey,
-				fmt.Sprintf("%s.%s", "reset-password", s.config.DomainAPI))})
-	if err != nil {
-		logger.DPanic("failed to add an email message to the queue", zap.Error(err), zap.String(requestIDKey, requestID))
-		return err
-	}
-
-	return nil
-}
-
 func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger, encryptedUserData []byte) ([]model.Session, error) {
 
 	var user model.User
@@ -532,4 +476,122 @@ func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger,
 		return nil, err
 	}
 	return sessions, nil
+}
+
+func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, email string) error {
+
+	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
+	if err != nil {
+		logger.DPanic("failed to get remoteAddr", zap.Error(err))
+		return err
+	}
+
+	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
+	if err != nil {
+		logger.DPanic("failed to get requestID", zap.Error(err))
+		return err
+	}
+
+	confirmationKey := random.StringRand(16, 16, true)
+
+	user, err := s.repository.ResetUserPasswordStep1(ctx, logger, model.RepoResetUserPasswordParam{
+		Email:           email,
+		ConfirmationKey: confirmationKey})
+	if err != nil {
+		logger.Error("failed to request a reset of the user's password", zap.Error(err), zap.String(requestIDKey, requestID))
+		switch err {
+		case authorization.ErrorBadParamEmail, authorization.ErrorBadConfirmationKey:
+			return err
+		case authorization.ErrorUserNotFound:
+			return err
+		default:
+			return err
+		}
+	}
+
+	newRequestID, err := s.generateRequestID(ctx)
+	if err != nil {
+		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
+		return err
+	}
+
+	err = s.message.AddEmailMessageToQueue(
+		s.messageQueue,
+		em.Request{
+			RemoteAddr:    remoteAddr,
+			RemoteAddrKey: remoteAddrKey,
+			RequestID:     requestID,
+			RequestIDKey:  requestIDKey},
+		em.Email{
+			To:      mail.Address{Address: email},
+			Subject: s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
+			Body: fmt.Sprintf(
+				s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
+				remoteAddr, s.config.DomainAPI, confirmationKey, newRequestID),
+			MessageID: fmt.Sprintf(
+				"<%s@%s>",
+				confirmationKey,
+				fmt.Sprintf("%s.%s", "reset-password", s.config.DomainAPI))})
+	if err != nil {
+		logger.DPanic("failed to add an email message to the queue", zap.Error(err), zap.String(requestIDKey, requestID))
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error) {
+
+	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
+	if err != nil {
+		logger.DPanic("failed to get RemoteAddr", zap.Error(err))
+		return "", err
+	}
+
+	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
+	if err != nil {
+		logger.DPanic("failed to get requestID", zap.Error(err))
+		return "", err
+	}
+
+	user, err := s.repository.ResetUserPasswordStep2(ctx, logger, confirmationKey)
+	if err != nil {
+		logger.Error("failed to confirm user password reset", zap.String(requestIDKey, requestID), zap.Error(err))
+		switch err {
+		case authorization.ErrorBadParamConfirmationKey:
+			return "", err
+		case authorization.ErrorConfirmationKeyNotFound, authorization.ErrorConfirmationKeyAlreadyConfirmed,
+			authorization.ErrorUserNotFound:
+			return "", authorization.ErrorBadConfirmationKey
+		default:
+			return "", err
+		}
+	}
+
+	err = s.message.AddEmailMessageToQueue(
+		s.messageQueue,
+		em.Request{
+			RemoteAddr:    remoteAddr,
+			RemoteAddrKey: remoteAddrKey,
+			RequestID:     requestID,
+			RequestIDKey:  requestIDKey,
+		},
+		em.Email{
+			To:      mail.Address{Address: user.Email},
+			Subject: s.languageContent.Data.User.ResetPassword.Email.Password.Subject[s.languageContent.Language[user.Language]],
+			Body: fmt.Sprintf(
+				s.languageContent.Data.User.ResetPassword.Email.Password.Body[s.languageContent.Language[user.Language]],
+				user.Password),
+			MessageID: fmt.Sprintf(
+				"<%s@%s>",
+				user.Password,
+				fmt.Sprintf("%s.%s", "confirm-user-password-reset", s.config.DomainAPI))})
+	if err != nil {
+		logger.DPanic("failed to send message to the user", zap.String(requestIDKey, requestID), zap.Error(err))
+		return "", err
+	}
+
+	confirmationMessage := s.languageContent.Data.User.ResetPassword.Page.Text[s.languageContent.Language[user.Language]]
+
+	return confirmationMessage, nil
 }
