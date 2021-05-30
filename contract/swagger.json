@@ -19,6 +19,49 @@
     "host": "api.auth.dev.financelime.com",
     "basePath": "/",
     "paths": {
+        "/p/{confirmationKey}": {
+            "get": {
+                "description": "API returns HTML-page with a message (success or error).",
+                "produces": [
+                    "text/plain;charset=utf-8"
+                ],
+                "summary": "Confirm to user password reset",
+                "operationId": "reset_user_password_step2",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "rid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Confirmation Key",
+                        "name": "confirmationKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
         "/u/{confirmationKey}": {
             "get": {
                 "description": "API returns HTML-page with a message (success or error).",
@@ -26,7 +69,7 @@
                     "text/plain;charset=utf-8"
                 ],
                 "summary": "Confirm User Email",
-                "operationId": "confirm_user_email",
+                "operationId": "signup_step2",
                 "parameters": [
                     {
                         "type": "string",
@@ -274,7 +317,7 @@
                     "application/json;charset=utf-8"
                 ],
                 "summary": "Request to user password reset",
-                "operationId": "user_password_reset",
+                "operationId": "reset_user_password_step1",
                 "parameters": [
                     {
                         "type": "string",
@@ -285,11 +328,11 @@
                     },
                     {
                         "description": "Data for resetting your password",
-                        "name": "model.RequestUserPasswordResetRequest",
+                        "name": "model.ResetUserPasswordRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.RequestUserPasswordResetRequest"
+                            "$ref": "#/definitions/model.ResetUserPasswordRequest"
                         }
                     }
                 ],
@@ -325,7 +368,7 @@
                     "application/json;charset=utf-8"
                 ],
                 "summary": "Create new user",
-                "operationId": "signup",
+                "operationId": "signup_step1",
                 "parameters": [
                     {
                         "type": "string",
@@ -595,7 +638,7 @@
                 }
             }
         },
-        "model.RequestUserPasswordResetRequest": {
+        "model.ResetUserPasswordRequest": {
             "type": "object",
             "required": [
                 "email"

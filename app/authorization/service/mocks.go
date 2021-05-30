@@ -27,7 +27,7 @@ type Mock struct {
 	repository repository2.Mock
 }
 
-func (s *Mock) SignUp(_ context.Context, _ *zap.Logger, param model.ServiceSignUpParam) error {
+func (s *Mock) SignUpStep1(_ context.Context, _ *zap.Logger, param model.ServiceSignUpParam) error {
 
 	if s.Expected.Error != nil {
 		return s.Expected.Error
@@ -41,7 +41,7 @@ func (s *Mock) SignUp(_ context.Context, _ *zap.Logger, param model.ServiceSignU
 	return s.Expected.Error
 }
 
-func (s *Mock) ConfirmUserEmail(_ context.Context, _ *zap.Logger, _ string) (string, error) {
+func (s *Mock) SignUpStep2(_ context.Context, _ *zap.Logger, _ string) (string, error) {
 	return "", s.Expected.Error
 }
 
@@ -70,6 +70,10 @@ func (s *Mock) RevokeRefreshToken(_ context.Context, _ *zap.Logger, _ model.Serv
 	return s.Expected.Error
 }
 
-func (s *Mock) RequestUserPasswordReset(_ context.Context, _ *zap.Logger, _ string) error {
+func (s *Mock) ResetUserPasswordStep1(_ context.Context, _ *zap.Logger, _ string) error {
 	return s.Expected.Error
+}
+
+func (s *Mock) ResetUserPasswordStep2(_ context.Context, _ *zap.Logger, _ string) (string, error) {
+	return "", s.Expected.Error
 }

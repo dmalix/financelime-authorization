@@ -134,7 +134,7 @@ definitions:
         example: USER_NOT_FOUND
         type: string
     type: object
-  model.RequestUserPasswordResetRequest:
+  model.ResetUserPasswordRequest:
     properties:
       email:
         example: test.user@financelime.com
@@ -234,10 +234,39 @@ info:
   title: Financelime Authorization
   version: v0.2.0-alpha
 paths:
+  /p/{confirmationKey}:
+    get:
+      description: API returns HTML-page with a message (success or error).
+      operationId: reset_user_password_step2
+      parameters:
+      - description: RequestID
+        in: query
+        name: rid
+        required: true
+        type: string
+      - description: Confirmation Key
+        in: path
+        name: confirmationKey
+        required: true
+        type: string
+      produces:
+      - text/plain;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Confirm to user password reset
   /u/{confirmationKey}:
     get:
       description: API returns HTML-page with a message (success or error).
-      operationId: confirm_user_email
+      operationId: signup_step2
       parameters:
       - description: RequestID
         in: query
@@ -402,7 +431,7 @@ paths:
       consumes:
       - application/json;charset=utf-8
       description: The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
-      operationId: user_password_reset
+      operationId: reset_user_password_step1
       parameters:
       - description: RequestID
         in: header
@@ -411,10 +440,10 @@ paths:
         type: string
       - description: Data for resetting your password
         in: body
-        name: model.RequestUserPasswordResetRequest
+        name: model.ResetUserPasswordRequest
         required: true
         schema:
-          $ref: '#/definitions/model.RequestUserPasswordResetRequest'
+          $ref: '#/definitions/model.ResetUserPasswordRequest'
       responses:
         "204":
           description: Successful operation
@@ -436,7 +465,7 @@ paths:
       consumes:
       - application/json;charset=utf-8
       description: The service sends a confirmation link to the specified email. After confirmation, the service will send a password for authorization.
-      operationId: signup
+      operationId: signup_step1
       parameters:
       - description: RequestID
         in: header

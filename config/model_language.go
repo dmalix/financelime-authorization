@@ -17,7 +17,7 @@ type DataLanguageContent struct {
 type UserDataLanguageContent struct {
 	Signup struct {
 		Email struct {
-			Confirm struct {
+			Request struct {
 				Subject []string
 				Body    []string
 			}
@@ -42,9 +42,7 @@ type UserDataLanguageContent struct {
 			}
 		}
 		Page struct {
-			Request struct {
-				Text []string
-			}
+			Text []string
 		}
 	}
 	Login struct {

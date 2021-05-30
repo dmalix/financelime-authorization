@@ -1,6 +1,6 @@
 package model
 
-type RepoCreateUserParam struct {
+type RepoSignUpParam struct {
 	Email              string
 	Language           string
 	InviteCode         string
@@ -31,7 +31,7 @@ type RepoUpdateSessionParam struct {
 	RefreshToken    string
 }
 
-type RepoRequestUserPasswordResetParam struct {
+type RepoResetUserPasswordParam struct {
 	Email           string
 	ConfirmationKey string
 }

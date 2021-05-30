@@ -1,17 +1,14 @@
 ## Pre-Release v0.2.0-alpha
 
-**Changes:**
 - Implemented the generation of the OpenAPI spec. 
 - Added context to some functions.
 - Changed the graceful shutdown.
 - Implemented Zap-logger.
-
-**Bugfixes:**
 - Fixed a bug with sending emails.
+- Added a confirmation for a user password reset (a step 2).  
 
 ## Pre-Release v0.1.5-alpha
 
-**New Features:**
 - Get the current version of the REST API service
 - Sign Up 
 - Confirm User Email
@@ -20,8 +17,6 @@
 - Refresh Access Token
 - Revoke Refresh Token
 - Request User Password reset
-
-**Changes:**
 - Add error labels.
 - Make some improvements to function and variable names.
 - Add human-readable errors (domain error code).
@@ -33,32 +28,22 @@
 
 ## Pre-Release v0.1.4-alpha
 
-**Changes:**
 - Transfer some functions from the router to utilities.
 
 ## Pre-Release v0.1.3-alpha
 
-**Changes:**
 - Add method handling to the router.
 
 ## Pre-Release v0.1.2-alpha
 
-**Changes:**
 - Make some router improvements.
 
 ## Pre-Release v0.1.1-alpha
 
-**New Features:**
 - Add checking the `request-id` header.
 
 ## Pre-Release v0.1.0-alpha
 
 Initial Release
 
-**New Features:**
 - Added a Signup method.
-
----
-Changes:
-Bugfixes:
-Invalid:

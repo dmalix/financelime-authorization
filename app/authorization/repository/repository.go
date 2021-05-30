@@ -43,7 +43,7 @@ func NewRepository(
 	}
 }
 
-func (r *repository) CreateUser(ctx context.Context, logger *zap.Logger, param model.RepoCreateUserParam) error {
+func (r *repository) SignUpStep1(ctx context.Context, logger *zap.Logger, param model.RepoSignUpParam) error {
 
 	var (
 		userID                   int64
@@ -404,7 +404,7 @@ func (r *repository) CreateUser(ctx context.Context, logger *zap.Logger, param m
 	return nil
 }
 
-func (r *repository) ConfirmUserEmail(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error) {
+func (r *repository) SignUpStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error) {
 
 	var (
 		confirmationID     int64
@@ -996,7 +996,100 @@ func (r *repository) UpdateSession(ctx context.Context, logger *zap.Logger, para
 	return nil
 }
 
-func (r *repository) RequestUserPasswordReset(ctx context.Context, logger *zap.Logger, param model.RepoRequestUserPasswordResetParam) (model.User, error) {
+func (r *repository) GetListActiveSessions(ctx context.Context, logger *zap.Logger, userID int64) ([]model.Session, error) {
+
+	var session model.Session
+	var sessions []model.Session
+
+	requestID, requestIDKey, err := r.contextGetter.GetRequestID(ctx)
+	if err != nil {
+		logger.DPanic("failed to get requestID", zap.Error(err))
+		return nil, err
+	}
+
+	loadActiveSessionsList, err := r.dbAuthRead.Query(strings.Replace("/* postgreSQL query */\n"+
+		"SELECT\n"+
+		"    \"session\".public_id,\n"+
+		"    device.platform,\n"+
+		"    CASE\n"+
+		"        WHEN (\n"+
+		"            \"session\".updated_at IS NULL\n"+
+		"        ) THEN \"session\".created_at\n"+
+		"        ELSE \"session\".updated_at\n"+
+		"    END AS updated_at\n"+
+		"FROM\n"+
+		"    \"session\"\n"+
+		"INNER JOIN device ON\n"+
+		"    \"session\".\"id\" = device.session_id\n"+
+		"WHERE\n"+
+		"    (\n"+
+		"        (\n"+
+		"            \"session\".updated_at IS NULL\n"+
+		"                AND \"session\".created_at > NOW( ) - INTERVAL '$LIFETIME SECOND'\n"+
+		"        )\n"+
+		"            OR (\n"+
+		"                \"session\".updated_at IS NOT NULL\n"+
+		"                    AND \"session\".updated_at > NOW( ) - INTERVAL '$LIFETIME SECOND'\n"+
+		"            )\n"+
+		"    )\n"+
+		"    AND \"session\".user_id = $1\n"+
+		"    AND \"session\".deleted_at IS NULL\n",
+		"$LIFETIME", strconv.Itoa(r.config.JwtRefreshTokenLifetime), 2),
+		userID)
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return nil, err
+	}
+	defer func(loadActiveSessionsList *sql.Rows) {
+		if err := loadActiveSessionsList.Close(); err != nil {
+			logger.DPanic("failed to close result set", zap.Error(err), zap.String(requestIDKey, requestID))
+		}
+	}(loadActiveSessionsList)
+
+	for loadActiveSessionsList.Next() {
+		err = loadActiveSessionsList.Scan(
+			&session.PublicSessionID,
+			&session.Platform,
+			&session.UpdatedAt,
+		)
+		if err != nil {
+			logger.DPanic("failed to scan the data", zap.Error(err), zap.String(requestIDKey, requestID))
+			return nil, err
+		}
+
+		sessions = append(sessions, session)
+	}
+
+	return sessions, nil
+}
+
+func (r *repository) DeleteSession(ctx context.Context, logger *zap.Logger, param model.RepoDeleteSessionParam) error {
+
+	requestID, requestIDKey, err := r.contextGetter.GetRequestID(ctx)
+	if err != nil {
+		logger.DPanic("failed to get requestID", zap.Error(err))
+		return err
+	}
+
+	_, err = r.dbAuthMain.Exec("/* postgreSQL query */\n"+
+		"UPDATE\n"+
+		"    \"session\"\n"+
+		"SET\n"+
+		"    deleted_at = NOW()\n"+
+		"WHERE\n"+
+		"    \"session\".user_id = $1\n"+
+		"    AND \"session\".public_id = $2\n",
+		param.UserID,
+		param.PublicSessionID)
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, param model.RepoResetUserPasswordParam) (model.User, error) {
 
 	var user model.User
 	var confirmationID string
@@ -1101,95 +1194,221 @@ func (r *repository) RequestUserPasswordReset(ctx context.Context, logger *zap.L
 	return user, nil
 }
 
-func (r *repository) GetListActiveSessions(ctx context.Context, logger *zap.Logger, userID int64) ([]model.Session, error) {
+func (r *repository) ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error) {
 
-	var session model.Session
-	var sessions []model.Session
+	var (
+		confirmationKeyID int64
+		userID            int64
+		user              model.User
+	)
 
 	requestID, requestIDKey, err := r.contextGetter.GetRequestID(ctx)
 	if err != nil {
 		logger.DPanic("failed to get requestID", zap.Error(err))
-		return nil, err
+		return model.User{}, err
 	}
 
-	loadActiveSessionsList, err := r.dbAuthRead.Query(strings.Replace("/* postgreSQL query */\n"+
-		"SELECT\n"+
-		"    \"session\".public_id,\n"+
-		"    device.platform,\n"+
-		"    CASE\n"+
-		"        WHEN (\n"+
-		"            \"session\".updated_at IS NULL\n"+
-		"        ) THEN \"session\".created_at\n"+
-		"        ELSE \"session\".updated_at\n"+
-		"    END AS updated_at\n"+
-		"FROM\n"+
-		"    \"session\"\n"+
-		"INNER JOIN device ON\n"+
-		"    \"session\".\"id\" = device.session_id\n"+
-		"WHERE\n"+
-		"    (\n"+
-		"        (\n"+
-		"            \"session\".updated_at IS NULL\n"+
-		"                AND \"session\".created_at > NOW( ) - INTERVAL '$LIFETIME SECOND'\n"+
-		"        )\n"+
-		"            OR (\n"+
-		"                \"session\".updated_at IS NOT NULL\n"+
-		"                    AND \"session\".updated_at > NOW( ) - INTERVAL '$LIFETIME SECOND'\n"+
-		"            )\n"+
-		"    )\n"+
-		"    AND \"session\".user_id = $1\n"+
-		"    AND \"session\".deleted_at IS NULL\n",
-		"$LIFETIME", strconv.Itoa(r.config.JwtRefreshTokenLifetime), 2),
-		userID)
-	if err != nil {
-		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
-		return nil, err
+	propsValueRegexp := regexp.MustCompile(`^[abcefghijkmnopqrtuvwxyz23479]{16}$`)
+	if !propsValueRegexp.MatchString(confirmationKey) {
+		logger.Error("the param is not valid", zap.String("confirmationKey", confirmationKey))
+		return model.User{}, authorization.ErrorBadParamConfirmationKey
 	}
-	defer func(loadActiveSessionsList *sql.Rows) {
-		if err := loadActiveSessionsList.Close(); err != nil {
+
+	// Check the confirmationKey in Database
+
+	loadConfirmationKeyInfo, err := r.dbBlade.Query("/* postgreSQL query */\n"+
+		"SELECT\n"+
+		"    confirmation_reset_password.\"id\",\n"+
+		"    confirmation_reset_password.email,\n"+
+		"    confirmation_reset_password.\"language\"\n"+
+		"FROM\n"+
+		"    confirmation_reset_password\n"+
+		"WHERE\n"+
+		"    confirmation_reset_password.confirmation_key = $1\n"+
+		"    AND confirmation_reset_password.deleted_at IS NULL\n"+
+		"    AND confirmation_reset_password.expires_at > NOW()\n"+
+		"ORDER BY\n"+
+		"    confirmation_reset_password.\"id\" DESC\n"+
+		"LIMIT 1\n",
+		confirmationKey)
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID),
+			zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+	defer func(loadConfirmationKeyInfo *sql.Rows) {
+		if err := loadConfirmationKeyInfo.Close(); err != nil {
 			logger.DPanic("failed to close result set", zap.Error(err), zap.String(requestIDKey, requestID))
 		}
-	}(loadActiveSessionsList)
+	}(loadConfirmationKeyInfo)
 
-	for loadActiveSessionsList.Next() {
-		err = loadActiveSessionsList.Scan(
-			&session.PublicSessionID,
-			&session.Platform,
-			&session.UpdatedAt,
-		)
+	for loadConfirmationKeyInfo.Next() {
+		err = loadConfirmationKeyInfo.Scan(&confirmationKeyID, &user.Email, &user.Language)
 		if err != nil {
-			logger.DPanic("failed to scan the data", zap.Error(err), zap.String(requestIDKey, requestID))
-			return nil, err
+			logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+			return model.User{}, err
 		}
-
-		sessions = append(sessions, session)
 	}
 
-	return sessions, nil
-}
+	if confirmationKeyID == 0 {
+		return model.User{}, authorization.ErrorConfirmationKeyNotFound
+	}
 
-func (r *repository) DeleteSession(ctx context.Context, logger *zap.Logger, param model.RepoDeleteSessionParam) error {
+	// Begin the transaction
 
-	requestID, requestIDKey, err := r.contextGetter.GetRequestID(ctx)
+	dbTransactionAuthMain, err := r.dbAuthMain.Begin()
 	if err != nil {
-		logger.DPanic("failed to get requestID", zap.Error(err))
-		return err
+		logger.DPanic("failed to begin AuthMain DB transaction", zap.Error(err),
+			zap.String(requestIDKey, requestID))
+		return model.User{}, err
 	}
+	defer func(dbTransactionAuthMain *sql.Tx) {
+		logger.Debug("the AuthMain DB transaction was rollback", zap.String(requestIDKey, requestID))
+		err := dbTransactionAuthMain.Rollback()
+		if err != nil && err.Error() != messageTransactionHasAlreadyBeenCommittedOrRolledBack {
+			logger.DPanic("failed to rollback AuthMain DB transaction", zap.Error(err),
+				zap.String(requestIDKey, requestID))
+		}
+	}(dbTransactionAuthMain)
 
-	_, err = r.dbAuthMain.Exec("/* postgreSQL query */\n"+
-		"UPDATE\n"+
-		"    \"session\"\n"+
-		"SET\n"+
-		"    deleted_at = NOW()\n"+
-		"WHERE\n"+
-		"    \"session\".user_id = $1\n"+
-		"    AND \"session\".public_id = $2\n",
-		param.UserID,
-		param.PublicSessionID)
+	dbTransactionBlade, err := r.dbBlade.Begin()
+	if err != nil {
+		logger.DPanic("failed to begin Blade DB transaction", zap.Error(err),
+			zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+	defer func(dbTransactionBlade *sql.Tx) {
+		logger.Debug("the Blade DB transaction was rollback", zap.String(requestIDKey, requestID))
+		err := dbTransactionBlade.Rollback()
+		if err != nil && err.Error() != messageTransactionHasAlreadyBeenCommittedOrRolledBack {
+			logger.DPanic("failed to rollback Blade DB transaction", zap.Error(err),
+				zap.String(requestIDKey, requestID))
+		}
+	}(dbTransactionBlade)
+
+	// Lock tables
+
+	_, err = dbTransactionAuthMain.Exec("/* postgreSQL query */\n" +
+		"LOCK TABLE \"user\" IN SHARE ROW EXCLUSIVE MODE\n")
 	if err != nil {
 		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
-		return err
+		return model.User{}, err
 	}
 
-	return nil
+	_, err = dbTransactionBlade.Exec("/* postgreSQL query */\n" +
+		"LOCK TABLE confirmation_reset_password IN SHARE ROW EXCLUSIVE MODE\n")
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+
+	// Check if an user exists with this email address
+
+	loadUserID, err := dbTransactionAuthMain.Query("/* postgreSQL query */\n"+
+		"SELECT\n"+
+		"    \"user\".\"id\"\n"+
+		"FROM\n"+
+		"    \"user\"\n"+
+		"WHERE\n"+
+		"    \"user\".email = $1\n"+
+		"    AND \"user\".deleted_at IS NULL\n"+
+		"LIMIT 1\n",
+		user.Email)
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+	defer func(loadUserID *sql.Rows) {
+		if err := loadUserID.Close(); err != nil {
+			logger.DPanic("failed to close result set", zap.Error(err), zap.String(requestIDKey, requestID))
+		}
+	}(loadUserID)
+
+	for loadUserID.Next() {
+		err = loadUserID.Scan(&userID)
+		if err != nil {
+			logger.DPanic("failed to scan the data", zap.Error(err), zap.String(requestIDKey, requestID))
+			return model.User{}, err
+		}
+	}
+
+	if userID == 0 {
+		return model.User{}, authorization.ErrorUserNotFound
+	}
+
+	// Updating the confirmation key status to "Deleted"
+
+	deleteConfirmationKey, err := dbTransactionBlade.Prepare("/* postgreSQL query */\n" +
+		"UPDATE\n" +
+		"    confirmation_reset_password\n" +
+		"SET\n" +
+		"    deleted_at = NOW()\n" +
+		"WHERE\n" +
+		"    confirmation_reset_password.\"id\" = $1\n")
+	if err != nil {
+		logger.DPanic("failed to prepare the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+	defer func(deleteConfirmationKey *sql.Stmt) {
+		if err := deleteConfirmationKey.Close(); err != nil {
+			logger.DPanic("failed to close result set", zap.Error(err), zap.String(requestIDKey, requestID))
+		}
+	}(deleteConfirmationKey)
+
+	_, err = deleteConfirmationKey.Exec(confirmationKeyID)
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+
+	// Generate and update user password in the Auth DB
+
+	user.Password = random.StringRand(16, 16, false)
+	hs := sha256.New()
+	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
+	if err != nil {
+		logger.DPanic("failed to generate a new password", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+	hashedPassword := hex.EncodeToString(hs.Sum(nil))
+
+	updateUserPassword, err := dbTransactionAuthMain.Prepare("/* postgreSQL query */\n" +
+		"UPDATE\n" +
+		"    \"user\"\n" +
+		"SET\n" +
+		"    updated_at = NOW(),\n" +
+		"    \"password\" = $1\n" +
+		"WHERE\n" +
+		"    \"user\".\"id\" = $2\n")
+	if err != nil {
+		logger.DPanic("failed to prepare the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+	defer func(updateUserPassword *sql.Stmt) {
+		if err := updateUserPassword.Close(); err != nil {
+			logger.DPanic("failed to close result set", zap.Error(err), zap.String(requestIDKey, requestID))
+		}
+	}(updateUserPassword)
+
+	_, err = updateUserPassword.Exec(hashedPassword, userID)
+	if err != nil {
+		logger.DPanic("failed to exec the query", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+
+	// Transactions Commit
+
+	err = dbTransactionAuthMain.Commit()
+	if err != nil {
+		logger.DPanic("failed to commit to the AuthMain DB", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+
+	err = dbTransactionBlade.Commit()
+	if err != nil {
+		logger.DPanic("failed to commit to the Blade DB", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.User{}, err
+	}
+
+	return user, nil
 }

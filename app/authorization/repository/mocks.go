@@ -18,18 +18,16 @@ type Mock struct {
 	}
 }
 
-func (repo *Mock) CreateUser(_ context.Context, _ *zap.Logger, _ model.RepoCreateUserParam) error {
+func (repo *Mock) SignUpStep1(_ context.Context, _ *zap.Logger, _ model.RepoSignUpParam) error {
 	return repo.Expected.Error
 }
 
-func (repo *Mock) ConfirmUserEmail(_ context.Context, _ *zap.Logger, _ string) (model.User, error) {
-	var user model.User
-	return user, repo.Expected.Error
+func (repo *Mock) SignUpStep2(_ context.Context, _ *zap.Logger, _ string) (model.User, error) {
+	return model.User{}, repo.Expected.Error
 }
 
 func (repo *Mock) GetUserByAuth(_ context.Context, _ *zap.Logger, _ model.RepoGetUserByAuthParam) (model.User, error) {
-	var user model.User
-	return user, repo.Expected.Error
+	return model.User{}, repo.Expected.Error
 }
 
 func (repo *Mock) SaveSession(_ context.Context, _ *zap.Logger, _ model.RepoSaveSessionParam) error {
@@ -37,8 +35,7 @@ func (repo *Mock) SaveSession(_ context.Context, _ *zap.Logger, _ model.RepoSave
 }
 
 func (repo *Mock) GetListActiveSessions(_ context.Context, _ *zap.Logger, _ int64) ([]model.Session, error) {
-	var sessions []model.Session
-	return sessions, repo.Expected.Error
+	return nil, repo.Expected.Error
 }
 
 func (repo *Mock) UpdateSession(_ context.Context, _ *zap.Logger, _ model.RepoUpdateSessionParam) error {
@@ -46,15 +43,17 @@ func (repo *Mock) UpdateSession(_ context.Context, _ *zap.Logger, _ model.RepoUp
 }
 
 func (repo *Mock) GetUserByRefreshToken(_ context.Context, _ *zap.Logger, _ string) (model.User, error) {
-	var user model.User
-	return user, repo.Expected.Error
+	return model.User{}, repo.Expected.Error
 }
 
 func (repo *Mock) DeleteSession(_ context.Context, _ *zap.Logger, _ model.RepoDeleteSessionParam) error {
 	return repo.Expected.Error
 }
 
-func (repo *Mock) RequestUserPasswordReset(_ context.Context, _ *zap.Logger, _ model.RepoRequestUserPasswordResetParam) (model.User, error) {
-	var user model.User
-	return user, repo.Expected.Error
+func (repo *Mock) ResetUserPasswordStep1(_ context.Context, _ *zap.Logger, _ model.RepoResetUserPasswordParam) (model.User, error) {
+	return model.User{}, repo.Expected.Error
+}
+
+func (repo *Mock) ResetUserPasswordStep2(_ context.Context, _ *zap.Logger, _ string) (model.User, error) {
+	return model.User{}, repo.Expected.Error
 }

@@ -34,7 +34,7 @@ type RevokeRefreshTokenRequest struct {
 	PublicSessionID string `json:"sessionID" validate:"required" example:"f58f06a96b69083b7c4fb068faa6c8314af0636e44ecc710261abe1759b07755"`
 }
 
-type RequestUserPasswordResetRequest struct {
+type ResetUserPasswordRequest struct {
 	Email string `json:"email" validate:"required" example:"test.user@financelime.com"`
 }
 
