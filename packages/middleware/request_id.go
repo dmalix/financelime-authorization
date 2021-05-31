@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"context"
+	"github.com/dmalix/financelime-authorization/utils/random"
 	"go.uber.org/zap"
 	"html"
 	"net/http"
+	"strings"
 )
 
 func (mw *middleware) RequestID(logger *zap.Logger) func(http.Handler) http.Handler {
@@ -39,8 +41,26 @@ func (mw *middleware) RequestID(logger *zap.Logger) func(http.Handler) http.Hand
 					}
 				}
 				if toCheck {
-					if len(requestID) != 29 {
-						logger.Error("the 'request-id' value is invalid",
+					if r.Method == http.MethodGet {
+						if len(requestID) != 16 {
+							logger.Error("the 'request-id' value is invalid (len32)",
+								zap.String("requestID", requestID), zap.String(remoteAddrKey, remoteAddr))
+							http.Error(w, statusMessageBadRequest, http.StatusBadRequest)
+							return
+						}
+						requestID = requestID + random.StringRand(48, 48, false)
+					} else {
+						if len(requestID) != 64 {
+							logger.Error("the 'request-id' value is invalid (len64)",
+								zap.String("requestID", requestID), zap.String(remoteAddrKey, remoteAddr))
+							http.Error(w, statusMessageBadRequest, http.StatusBadRequest)
+							return
+						}
+					}
+					requestIDArr := strings.Split(requestID, "")
+					prefix := requestIDArr[4] + requestIDArr[7] + requestIDArr[10] + requestIDArr[13]
+					if !strings.HasPrefix(requestID, prefix) {
+						logger.Error("the 'request-id' value is invalid (prefix)",
 							zap.String("requestID", requestID), zap.String(remoteAddrKey, remoteAddr))
 						http.Error(w, statusMessageBadRequest, http.StatusBadRequest)
 						return

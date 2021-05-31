@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"net/mail"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -81,36 +82,19 @@ func (s *service) generatePublicID(ctx context.Context, logger *zap.Logger, priv
 	return publicSessionID, nil
 }
 
-func (s *service) generateRequestID(_ context.Context) (string, error) {
+func (s *service) generateRequestID(_ context.Context, short bool) (string, error) {
 
-	const requestID = "W7000-T6755-T7700-P4010-W6778"
+	var requestID string
 
-	//TODO Add the generation requestID
-
-	/*
-
-			#### Algorithm for generating the 'request-id' header:
-
-			```
-		        +------------------------- | 4 random character sets
-		        |     +------------------- |          pattern:
-		        |     |     +------------- |            LNNNN
-		        |     |     |     +------- |       (1 letter + 4 numbers)
-		check   |     |     |     |
-		 sum    1     2     3     4
-		----- ----- ----- ----- -----
-		LXXXX-LNNNN-LNNNN-LNNNN-LNNNN  <-- pattern
-		W7000-T6755-T7700-P4010-W6778  <-- example of generated value
-		=----                   =----
-		^                       |
-		|                       |
-		+-----------------------+
-
-		LXXXX | L - The letter that is always equal to a letter from set 4
-		      | XXXX - This is the sum of all digits from sets 1,2,3 and 4
-		      |        The number of characters is always 4 (missing ones get zeros)
-
-	*/
+	prefix := random.StringRand(4, 4, false)
+	prefixArr := strings.Split(prefix, "")
+	for _, v := range prefixArr {
+		requestID = requestID + v + random.StringRand(2, 2, false)
+	}
+	requestID = prefix + requestID
+	if !short {
+		requestID = requestID + random.StringRand(48, 48, false)
+	}
 
 	return requestID, nil
 }
@@ -154,7 +138,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		}
 	}
 
-	newRequestID, err := s.generateRequestID(ctx)
+	newRequestID, err := s.generateRequestID(ctx, true)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
@@ -509,7 +493,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		}
 	}
 
-	newRequestID, err := s.generateRequestID(ctx)
+	newRequestID, err := s.generateRequestID(ctx, true)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err

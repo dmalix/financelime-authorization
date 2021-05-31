@@ -10,8 +10,11 @@ import (
 
 func StringRand(min, max int, readable bool) string {
 
+	const charSetReadable = "abcefghijkmnopqrtuvwxyz23479"
+	const charSetUnreadable = "abcdefghijklmnopqrstuvwxyz0123456789"
+
 	var length int
-	var char string
+	var chars string
 
 	if min < max {
 		length = min + rand.Intn(max-min)
@@ -19,15 +22,15 @@ func StringRand(min, max int, readable bool) string {
 		length = min
 	}
 
-	if readable == false {
-		char = "abcdefghijklmnopqrstuvwxyz0123456789"
+	if readable {
+		chars = charSetReadable
 	} else {
-		char = "abcefghijkmnopqrtuvwxyz23479"
+		chars = charSetUnreadable
 	}
 
 	buf := make([]byte, length)
 	for i := 0; i < length; i++ {
-		buf[i] = char[rand.Intn(len(char)-1)]
+		buf[i] = chars[rand.Intn(len(chars)-1)]
 	}
 	return string(buf)
 }

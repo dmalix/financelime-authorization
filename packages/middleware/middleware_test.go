@@ -81,7 +81,7 @@ func TestRequestID_200(t *testing.T) {
 		authorizationAPIMiddlewareConfig,
 		jwtManager)
 
-	request.Header.Add("request-id", "W7000-T6755-T7700-P4010-W6778")
+	request.Header.Add("request-id", "abcda12b12c12d12")
 	responseRecorder := httptest.NewRecorder()
 	logger, _ := zap.NewProduction()
 	mwFunc := authorizationAPIMiddleware.RequestID(logger)
