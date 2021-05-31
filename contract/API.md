@@ -47,14 +47,14 @@ API Support dmalix@financelime.com
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
-| POST | /v1/oauth/create | [create access token](#create-access-token) | Create Access Token (Domain Action: Log In) |
-| GET | /v1/session/list | [get list active sessions](#get-list-active-sessions) | Get a list of active sessions |
+| POST | /v1/oauth | [create access token](#create-access-token) | Create Access Token (Domain Action: Log In) |
+| GET | /v1/sessions | [get list active sessions](#get-list-active-sessions) | Get a list of active sessions |
 | GET | /v1/version | [get version](#get-version) | Get the Service version |
-| PUT | /v1/oauth/refresh | [refresh access token](#refresh-access-token) | Refresh Access Token (Domain Action: Renew authorization) |
-| POST | /v1/user/password | [reset user password step1](#reset-user-password-step1) | Request to user password reset |
+| PUT | /v1/oauth | [refresh access token](#refresh-access-token) | Refresh Access Token (Domain Action: Renew authorization) |
+| PUT | /v1/user | [reset user password step1](#reset-user-password-step1) | Request to user password reset |
 | GET | /p/{confirmationKey} | [reset user password step2](#reset-user-password-step2) | Confirm to user password reset |
-| DELETE | /v1/session/remove | [revoke refresh token](#revoke-refresh-token) | Revoke Refresh Token (Domain Action: Log Out) |
-| POST | /v1/user/signup | [signup step1](#signup-step1) | Create new user |
+| DELETE | /v1/session | [revoke refresh token](#revoke-refresh-token) | Revoke Refresh Token (Domain Action: Log Out) |
+| POST | /v1/user | [signup step1](#signup-step1) | Create new user |
 | GET | /u/{confirmationKey} | [signup step2](#signup-step2) | Confirm User Email |
   
 
@@ -64,7 +64,7 @@ API Support dmalix@financelime.com
 ### <span id="create-access-token"></span> Create Access Token (Domain Action: Log In) (*create_access_token*)
 
 ```
-POST /v1/oauth/create
+POST /v1/oauth
 ```
 
 Create Access Token
@@ -132,7 +132,7 @@ Status: Internal Server Error
 ### <span id="get-list-active-sessions"></span> Get a list of active sessions (*get_list_active_sessions*)
 
 ```
-GET /v1/session/list
+GET /v1/sessions
 ```
 
 Get a list of active sessions
@@ -213,7 +213,7 @@ Status: OK
 ### <span id="refresh-access-token"></span> Refresh Access Token (Domain Action: Renew authorization) (*refresh_access_token*)
 
 ```
-PUT /v1/oauth/refresh
+PUT /v1/oauth
 ```
 
 Refresh Access Token
@@ -281,7 +281,7 @@ Status: Internal Server Error
 ### <span id="reset-user-password-step1"></span> Request to user password reset (*reset_user_password_step1*)
 
 ```
-POST /v1/user/password
+PUT /v1/user
 ```
 
 The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
@@ -393,7 +393,7 @@ Status: Internal Server Error
 ### <span id="revoke-refresh-token"></span> Revoke Refresh Token (Domain Action: Log Out) (*revoke_refresh_token*)
 
 ```
-DELETE /v1/session/remove
+DELETE /v1/session
 ```
 
 This request revoke the Refresh Token associated with the specified session. Thus, when the Access Token expires, then it cannot be renewed. And only after that, the user will be log out. Be aware that this query is idempotent.
@@ -447,7 +447,7 @@ Status: Internal Server Error
 ### <span id="signup-step1"></span> Create new user (*signup_step1*)
 
 ```
-POST /v1/user/signup
+POST /v1/user
 ```
 
 The service sends a confirmation link to the specified email. After confirmation, the service will send a password for authorization.

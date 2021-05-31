@@ -105,7 +105,62 @@
                 }
             }
         },
-        "/v1/oauth/create": {
+        "/v1/oauth/": {
+            "put": {
+                "description": "Refresh Access Token",
+                "consumes": [
+                    "application/json;charset=utf-8"
+                ],
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Refresh Access Token (Domain Action: Renew authorization)",
+                "operationId": "refresh_access_token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for refreshing the access token",
+                        "name": "model.RefreshAccessTokenRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshAccessTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/model.AccessTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshAccessTokenFailure400"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshAccessTokenFailure404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create Access Token",
                 "consumes": [
@@ -162,105 +217,7 @@
                 }
             }
         },
-        "/v1/oauth/refresh": {
-            "put": {
-                "description": "Refresh Access Token",
-                "consumes": [
-                    "application/json;charset=utf-8"
-                ],
-                "produces": [
-                    "application/json;charset=utf-8"
-                ],
-                "summary": "Refresh Access Token (Domain Action: Renew authorization)",
-                "operationId": "refresh_access_token",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "RequestID",
-                        "name": "request-id",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Data for refreshing the access token",
-                        "name": "model.RefreshAccessTokenRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.RefreshAccessTokenRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "schema": {
-                            "$ref": "#/definitions/model.AccessTokenResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/model.RefreshAccessTokenFailure400"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/model.RefreshAccessTokenFailure404"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.CommonFailure"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/session/list": {
-            "get": {
-                "security": [
-                    {
-                        "authorization": []
-                    }
-                ],
-                "description": "Get a list of active sessions",
-                "produces": [
-                    "application/json;charset=utf-8"
-                ],
-                "summary": "Get a list of active sessions",
-                "operationId": "get_list_active_sessions",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "RequestID",
-                        "name": "request-id",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Session"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.CommonFailure"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/session/remove": {
+        "/v1/session/": {
             "delete": {
                 "security": [
                     {
@@ -310,8 +267,49 @@
                 }
             }
         },
-        "/v1/user/password": {
-            "post": {
+        "/v1/sessions/": {
+            "get": {
+                "security": [
+                    {
+                        "authorization": []
+                    }
+                ],
+                "description": "Get a list of active sessions",
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Get a list of active sessions",
+                "operationId": "get_list_active_sessions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Session"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/": {
+            "put": {
                 "description": "The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.",
                 "consumes": [
                     "application/json;charset=utf-8"
@@ -359,9 +357,7 @@
                         }
                     }
                 }
-            }
-        },
-        "/v1/user/signup": {
+            },
             "post": {
                 "description": "The service sends a confirmation link to the specified email. After confirmation, the service will send a password for authorization.",
                 "consumes": [

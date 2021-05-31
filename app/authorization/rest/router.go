@@ -14,7 +14,7 @@ import (
 
 func Router(logger *zap.Logger, router *mux.Router, routerV1 *mux.Router, handler authorization.REST, middleware middleware.Middleware) {
 
-	routerV1.Handle("/user/signup",
+	routerV1.Handle("/user/",
 		handler.SignUpStep1(logger)).
 		Methods(http.MethodPost).
 		Headers(headerKeyContentType, headerValueApplicationJson)
@@ -22,28 +22,30 @@ func Router(logger *zap.Logger, router *mux.Router, routerV1 *mux.Router, handle
 		handler.SignUpStep2(logger)).
 		Methods(http.MethodGet)
 
-	routerV1.Handle("/oauth/create",
+	routerV1.Handle("/oauth/",
 		handler.CreateAccessToken(logger)).
 		Methods(http.MethodPost).
 		Headers(headerKeyContentType, headerValueApplicationJson)
-	routerV1.Handle("/oauth/refresh", handler.RefreshAccessToken(logger)).
+	routerV1.Handle("/oauth/", handler.RefreshAccessToken(logger)).
 		Methods(http.MethodPut).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 
-	routerSession := routerV1.PathPrefix("/session").Subrouter()
-	routerSession.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
-	routerSession.Handle("/list",
+	routerSessions := routerV1.PathPrefix("/sessions/").Subrouter()
+	routerSessions.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
+	routerSessions.Handle("",
 		handler.GetListActiveSessions(logger)).
 		Methods(http.MethodGet)
-	routerSession.Handle("/remove",
+
+	routerSession := routerV1.PathPrefix("/session/").Subrouter()
+	routerSession.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
+	routerSession.Handle("",
 		handler.RevokeRefreshToken(logger)).
 		Methods(http.MethodDelete).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 
-	routerV1.Handle("/user/password",
+	routerV1.Handle("/user/",
 		handler.ResetUserPasswordStep1(logger)).
-		Methods(http.MethodPost).
-		Methods(http.MethodPost).
+		Methods(http.MethodPut).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 	router.Handle("/p/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
 		handler.ResetUserPasswordStep2(logger)).

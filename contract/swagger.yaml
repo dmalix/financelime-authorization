@@ -292,7 +292,7 @@ paths:
           schema:
             $ref: '#/definitions/model.CommonFailure'
       summary: Confirm User Email
-  /v1/oauth/create:
+  /v1/oauth/:
     post:
       consumes:
       - application/json;charset=utf-8
@@ -330,7 +330,6 @@ paths:
           schema:
             $ref: '#/definitions/model.CommonFailure'
       summary: 'Create Access Token (Domain Action: Log In)'
-  /v1/oauth/refresh:
     put:
       consumes:
       - application/json;charset=utf-8
@@ -368,33 +367,7 @@ paths:
           schema:
             $ref: '#/definitions/model.CommonFailure'
       summary: 'Refresh Access Token (Domain Action: Renew authorization)'
-  /v1/session/list:
-    get:
-      description: Get a list of active sessions
-      operationId: get_list_active_sessions
-      parameters:
-      - description: RequestID
-        in: header
-        name: request-id
-        required: true
-        type: string
-      produces:
-      - application/json;charset=utf-8
-      responses:
-        "200":
-          description: Successful operation
-          schema:
-            items:
-              $ref: '#/definitions/model.Session'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.CommonFailure'
-      security:
-      - authorization: []
-      summary: Get a list of active sessions
-  /v1/session/remove:
+  /v1/session/:
     delete:
       consumes:
       - application/json;charset=utf-8
@@ -426,41 +399,33 @@ paths:
       security:
       - authorization: []
       summary: 'Revoke Refresh Token (Domain Action: Log Out)'
-  /v1/user/password:
-    post:
-      consumes:
-      - application/json;charset=utf-8
-      description: The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
-      operationId: reset_user_password_step1
+  /v1/sessions/:
+    get:
+      description: Get a list of active sessions
+      operationId: get_list_active_sessions
       parameters:
       - description: RequestID
         in: header
         name: request-id
         required: true
         type: string
-      - description: Data for resetting your password
-        in: body
-        name: model.ResetUserPasswordRequest
-        required: true
-        schema:
-          $ref: '#/definitions/model.ResetUserPasswordRequest'
+      produces:
+      - application/json;charset=utf-8
       responses:
-        "204":
+        "200":
           description: Successful operation
-        "400":
-          description: Bad Request
           schema:
-            $ref: '#/definitions/model.RequestUserPasswordResetFailure400'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/model.RequestUserPasswordResetFailure404'
+            items:
+              $ref: '#/definitions/model.Session'
+            type: array
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/model.CommonFailure'
-      summary: Request to user password reset
-  /v1/user/signup:
+      security:
+      - authorization: []
+      summary: Get a list of active sessions
+  /v1/user/:
     post:
       consumes:
       - application/json;charset=utf-8
@@ -498,6 +463,39 @@ paths:
           schema:
             $ref: '#/definitions/model.CommonFailure'
       summary: Create new user
+    put:
+      consumes:
+      - application/json;charset=utf-8
+      description: The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.
+      operationId: reset_user_password_step1
+      parameters:
+      - description: RequestID
+        in: header
+        name: request-id
+        required: true
+        type: string
+      - description: Data for resetting your password
+        in: body
+        name: model.ResetUserPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.ResetUserPasswordRequest'
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.RequestUserPasswordResetFailure400'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.RequestUserPasswordResetFailure404'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Request to user password reset
   /v1/version:
     get:
       description: Get Version

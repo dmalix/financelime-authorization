@@ -41,7 +41,7 @@ func NewREST(
 // @Failure 404 {object} model.CommonFailure
 // @Failure 409 {object} model.SignUpFailure409
 // @Failure 500 {object} model.CommonFailure
-// @Router /v1/user/signup [post]
+// @Router /v1/user/ [post]
 func (a *rest) SignUpStep1(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -158,7 +158,7 @@ func (a *rest) SignUpStep2(logger *zap.Logger) http.Handler {
 // @Failure 400 {object} model.CreateAccessTokenFailure400
 // @Failure 404 {object} model.CreateAccessTokenFailure404
 // @Failure 500 {object} model.CommonFailure
-// @Router /v1/oauth/create [post]
+// @Router /v1/oauth/ [post]
 func (a *rest) CreateAccessToken(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -251,7 +251,7 @@ func (a *rest) CreateAccessToken(logger *zap.Logger) http.Handler {
 // @Failure 400 {object} model.RefreshAccessTokenFailure400
 // @Failure 404 {object} model.RefreshAccessTokenFailure404
 // @Failure 500 {object} model.CommonFailure
-// @Router /v1/oauth/refresh [put]
+// @Router /v1/oauth/ [put]
 func (a *rest) RefreshAccessToken(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -330,7 +330,7 @@ func (a *rest) RefreshAccessToken(logger *zap.Logger) http.Handler {
 // @Param request-id header string true "RequestID"
 // @Success 200 {object} []model.Session "Successful operation"
 // @Failure 500 {object} model.CommonFailure
-// @Router /v1/session/list [get]
+// @Router /v1/sessions/ [get]
 func (a *rest) GetListActiveSessions(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -386,7 +386,7 @@ func (a *rest) GetListActiveSessions(logger *zap.Logger) http.Handler {
 // @Success 204 "Successful operation"
 // @Failure 400 {object} model.RevokeRefreshTokenFailure400
 // @Failure 500 {object} model.CommonFailure
-// @Router /v1/session/remove [delete]
+// @Router /v1/session/ [delete]
 func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -463,7 +463,7 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 // @Failure 400 {object} model.RequestUserPasswordResetFailure400
 // @Failure 404 {object} model.RequestUserPasswordResetFailure404
 // @Failure 500 {object} model.CommonFailure
-// @Router /v1/user/password [post]
+// @Router /v1/user/ [put]
 func (a *rest) ResetUserPasswordStep1(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
