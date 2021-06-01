@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"github.com/dmalix/financelime-authorization/utils/random"
+	random2 "github.com/dmalix/financelime-authorization/packages/random"
 	"go.uber.org/zap"
 	"html"
 	"net/http"
@@ -48,7 +48,7 @@ func (mw *middleware) RequestID(logger *zap.Logger) func(http.Handler) http.Hand
 							http.Error(w, statusMessageBadRequest, http.StatusBadRequest)
 							return
 						}
-						requestID = requestID + random.StringRand(48, 48, false)
+						requestID = requestID + random2.StringRand(48, 48, false)
 					} else {
 						if len(requestID) != 64 {
 							logger.Error("the 'request-id' value is invalid (len64)",

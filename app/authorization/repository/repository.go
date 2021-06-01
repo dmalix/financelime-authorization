@@ -12,7 +12,7 @@ import (
 	"github.com/dmalix/financelime-authorization/app/authorization"
 	"github.com/dmalix/financelime-authorization/app/authorization/model"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
-	"github.com/dmalix/financelime-authorization/utils/random"
+	random2 "github.com/dmalix/financelime-authorization/packages/random"
 	"go.uber.org/zap"
 	"html"
 	"regexp"
@@ -636,7 +636,7 @@ func (r *repository) SignUpStep2(ctx context.Context, logger *zap.Logger, confir
 
 	// Create the new verified user in the Auth DB
 
-	user.Password = random.StringRand(16, 16, false)
+	user.Password = random2.StringRand(16, 16, false)
 	hs := sha256.New()
 	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
 	if err != nil {
@@ -1363,7 +1363,7 @@ func (r *repository) ResetUserPasswordStep2(ctx context.Context, logger *zap.Log
 
 	// Generate and update user password in the Auth DB
 
-	user.Password = random.StringRand(16, 16, false)
+	user.Password = random2.StringRand(16, 16, false)
 	hs := sha256.New()
 	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
 	if err != nil {

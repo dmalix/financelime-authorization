@@ -17,7 +17,7 @@ import (
 	em "github.com/dmalix/financelime-authorization/packages/email"
 	"github.com/dmalix/financelime-authorization/packages/jwt"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
-	"github.com/dmalix/financelime-authorization/utils/random"
+	random2 "github.com/dmalix/financelime-authorization/packages/random"
 	"go.uber.org/zap"
 	"net/mail"
 	"strconv"
@@ -69,7 +69,7 @@ func (s *service) generatePublicID(ctx context.Context, logger *zap.Logger, priv
 
 	_, err = hs.Write([]byte(
 		strconv.FormatInt(privateID, 10) +
-			random.StringRand(16, 16, false) +
+			random2.StringRand(16, 16, false) +
 			time.Now().String() +
 			s.config.CryptoSalt))
 	if err != nil {
@@ -86,14 +86,14 @@ func (s *service) generateRequestID(_ context.Context, short bool) (string, erro
 
 	var requestID string
 
-	prefix := random.StringRand(4, 4, false)
+	prefix := random2.StringRand(4, 4, false)
 	prefixArr := strings.Split(prefix, "")
 	for _, v := range prefixArr {
-		requestID = requestID + v + random.StringRand(2, 2, false)
+		requestID = requestID + v + random2.StringRand(2, 2, false)
 	}
 	requestID = prefix + requestID
 	if !short {
-		requestID = requestID + random.StringRand(48, 48, false)
+		requestID = requestID + random2.StringRand(48, 48, false)
 	}
 
 	return requestID, nil
@@ -113,7 +113,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		return err
 	}
 
-	confirmationKey := random.StringRand(16, 16, true)
+	confirmationKey := random2.StringRand(16, 16, true)
 
 	err = s.repository.SignUpStep1(ctx, logger, model.RepoSignUpParam{
 		Email:              param.Email,
@@ -476,7 +476,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		return err
 	}
 
-	confirmationKey := random.StringRand(16, 16, true)
+	confirmationKey := random2.StringRand(16, 16, true)
 
 	user, err := s.repository.ResetUserPasswordStep1(ctx, logger, model.RepoResetUserPasswordParam{
 		Email:           email,
