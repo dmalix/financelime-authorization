@@ -6,8 +6,6 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/dmalix/financelime-authorization/app/authorization"
@@ -15,13 +13,11 @@ import (
 	"github.com/dmalix/financelime-authorization/config"
 	"github.com/dmalix/financelime-authorization/packages/cryptographer"
 	em "github.com/dmalix/financelime-authorization/packages/email"
+	"github.com/dmalix/financelime-authorization/packages/generator"
 	"github.com/dmalix/financelime-authorization/packages/jwt"
 	"github.com/dmalix/financelime-authorization/packages/middleware"
-	random2 "github.com/dmalix/financelime-authorization/packages/random"
 	"go.uber.org/zap"
 	"net/mail"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -57,48 +53,6 @@ func NewService(
 	}
 }
 
-func (s *service) generatePublicID(ctx context.Context, logger *zap.Logger, privateID int64) (string, error) {
-
-	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
-	if err != nil {
-		logger.DPanic("failed to get requestID", zap.Error(err))
-		return "", err
-	}
-
-	hs := sha256.New()
-
-	_, err = hs.Write([]byte(
-		strconv.FormatInt(privateID, 10) +
-			random2.StringRand(16, 16, false) +
-			time.Now().String() +
-			s.config.CryptoSalt))
-	if err != nil {
-		logger.DPanic("failed to generate a hash", zap.Error(err), zap.String(requestIDKey, requestID))
-		return "", err
-	}
-
-	publicSessionID := hex.EncodeToString(hs.Sum(nil))
-
-	return publicSessionID, nil
-}
-
-func (s *service) generateRequestID(_ context.Context, short bool) (string, error) {
-
-	var requestID string
-
-	prefix := random2.StringRand(4, 4, false)
-	prefixArr := strings.Split(prefix, "")
-	for _, v := range prefixArr {
-		requestID = requestID + v + random2.StringRand(2, 2, false)
-	}
-	requestID = prefix + requestID
-	if !short {
-		requestID = requestID + random2.StringRand(48, 48, false)
-	}
-
-	return requestID, nil
-}
-
 func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param model.ServiceSignUpParam) error {
 
 	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
@@ -113,7 +67,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		return err
 	}
 
-	confirmationKey := random2.StringRand(16, 16, true)
+	confirmationKey := generator.StringRand(16, 16, true)
 
 	err = s.repository.SignUpStep1(ctx, logger, model.RepoSignUpParam{
 		Email:              param.Email,
@@ -138,7 +92,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		}
 	}
 
-	newRequestID, err := s.generateRequestID(ctx, true)
+	newRequestID, err := generator.GenerateRequestID(ctx, true)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
@@ -255,7 +209,7 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 		}
 	}
 
-	publicSessionID, err := s.generatePublicID(ctx, logger, user.ID)
+	publicSessionID, err := generator.GeneratePublicID(user.ID)
 	if err != nil {
 		logger.DPanic("failed to generate the publicSessionID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
@@ -476,7 +430,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		return err
 	}
 
-	confirmationKey := random2.StringRand(16, 16, true)
+	confirmationKey := generator.StringRand(16, 16, true)
 
 	user, err := s.repository.ResetUserPasswordStep1(ctx, logger, model.RepoResetUserPasswordParam{
 		Email:           email,
@@ -493,7 +447,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		}
 	}
 
-	newRequestID, err := s.generateRequestID(ctx, true)
+	newRequestID, err := generator.GenerateRequestID(ctx, true)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
