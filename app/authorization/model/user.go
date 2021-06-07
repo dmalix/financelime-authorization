@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+type JwtPayloadData struct {
+	sessionID int64
+	user      User
+}
+
 type User struct {
 	ID       int64
 	Email    string

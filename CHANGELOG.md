@@ -4,8 +4,7 @@
 - Added context to some functions.
 - Changed the graceful shutdown.
 - Implemented Zap-logger.
-- Fixed a bug with sending emails.
-- Added a confirmation for a user password reset (a step 2).  
+- Added a confirmation for a user password reset (a step 2).
 
 ## Pre-Release v0.1.5-alpha
 

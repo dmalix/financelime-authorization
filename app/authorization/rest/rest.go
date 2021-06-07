@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"github.com/dmalix/financelime-authorization/app/authorization"
 	"github.com/dmalix/financelime-authorization/app/authorization/model"
-	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/dmalix/middleware"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"io/ioutil"
@@ -343,7 +343,7 @@ func (a *rest) GetListActiveSessions(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		encryptedUserData, err := a.contextGetter.GetEncryptedUserData(r.Context())
+		encryptedUserData, err := a.contextGetter.GetJwtData(r.Context())
 		if err != nil {
 			logger.DPanic("failed to get encryptedUserData", zap.Error(err), zap.String(requestIDKey, requestID))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
@@ -419,7 +419,7 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		encryptedUserData, err := a.contextGetter.GetEncryptedUserData(r.Context())
+		encryptedUserData, err := a.contextGetter.GetJwtData(r.Context())
 		if err != nil {
 			logger.DPanic("failed to get encryptedUserData", zap.Error(err))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
@@ -427,7 +427,7 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 		}
 
 		if requestInput.PublicSessionID == "" {
-			publicSessionID, err = a.contextGetter.GetPublicSessionID(r.Context())
+			publicSessionID, err = a.contextGetter.GetJwtID(r.Context())
 			if err != nil {
 				logger.DPanic("failed to get publicSessionID", zap.Error(err))
 				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)

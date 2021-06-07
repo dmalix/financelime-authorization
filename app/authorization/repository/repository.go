@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -11,8 +11,8 @@ import (
 	"encoding/hex"
 	"github.com/dmalix/financelime-authorization/app/authorization"
 	"github.com/dmalix/financelime-authorization/app/authorization/model"
-	"github.com/dmalix/financelime-authorization/packages/generator"
-	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/dmalix/middleware"
+	"github.com/dmalix/utils/generate"
 	"go.uber.org/zap"
 	"html"
 	"regexp"
@@ -636,7 +636,7 @@ func (r *repository) SignUpStep2(ctx context.Context, logger *zap.Logger, confir
 
 	// Create the new verified user in the Auth DB
 
-	user.Password = generator.StringRand(16, 16, false)
+	user.Password = generate.StringRand(16, 16, false)
 	hs := sha256.New()
 	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
 	if err != nil {
@@ -842,7 +842,7 @@ func (r *repository) GetUserByRefreshToken(ctx context.Context, logger *zap.Logg
 	return user, nil
 }
 
-func (r *repository) SaveSession(ctx context.Context, logger *zap.Logger, param model.RepoSaveSessionParam) error {
+func (r *repository) CreateSession(ctx context.Context, logger *zap.Logger, param model.RepoCreateSessionParam) error {
 
 	var sessionID int64
 	var deviceID int64
@@ -860,14 +860,11 @@ func (r *repository) SaveSession(ctx context.Context, logger *zap.Logger, param 
 	}
 
 	hs := sha256.New()
-	_, err = hs.Write([]byte(
-		param.RefreshToken +
-			r.config.CryptoSalt))
+	_, err = hs.Write([]byte(param.RefreshToken + r.config.CryptoSalt))
 	if err != nil {
 		logger.DPanic("failed to generate hash for refresh token", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
 	}
-
 	hashedRefreshToken := hex.EncodeToString(hs.Sum(nil))
 
 	err = r.dbAuthMain.QueryRow("/* postgreSQL query */\n"+
@@ -956,14 +953,11 @@ func (r *repository) UpdateSession(ctx context.Context, logger *zap.Logger, para
 	}
 
 	hs := sha256.New()
-	_, err = hs.Write([]byte(
-		param.RefreshToken +
-			r.config.CryptoSalt))
+	_, err = hs.Write([]byte(param.RefreshToken + r.config.CryptoSalt))
 	if err != nil {
 		logger.DPanic("failed to generate hash", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
 	}
-
 	hashedRefreshToken := hex.EncodeToString(hs.Sum(nil))
 
 	err = r.dbAuthMain.QueryRow("/* postgreSQL query */\n"+
@@ -1363,7 +1357,7 @@ func (r *repository) ResetUserPasswordStep2(ctx context.Context, logger *zap.Log
 
 	// Generate and update user password in the Auth DB
 
-	user.Password = generator.StringRand(16, 16, false)
+	user.Password = generate.StringRand(16, 16, false)
 	hs := sha256.New()
 	_, err = hs.Write([]byte(user.Password + r.config.CryptoSalt))
 	if err != nil {

@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -38,7 +38,7 @@ type Repository interface {
 	SignUpStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (model.User, error)
 	GetUserByAuth(ctx context.Context, logger *zap.Logger, param model.RepoGetUserByAuthParam) (model.User, error)
 	GetUserByRefreshToken(ctx context.Context, logger *zap.Logger, refreshToken string) (model.User, error)
-	SaveSession(ctx context.Context, logger *zap.Logger, param model.RepoSaveSessionParam) error
+	CreateSession(ctx context.Context, logger *zap.Logger, param model.RepoCreateSessionParam) error
 	UpdateSession(ctx context.Context, logger *zap.Logger, param model.RepoUpdateSessionParam) error
 	DeleteSession(ctx context.Context, logger *zap.Logger, param model.RepoDeleteSessionParam) error
 	GetListActiveSessions(ctx context.Context, logger *zap.Logger, userID int64) ([]model.Session, error)

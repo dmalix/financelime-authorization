@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -11,12 +11,14 @@ import (
 	"github.com/dmalix/financelime-authorization/app/authorization"
 	"github.com/dmalix/financelime-authorization/app/authorization/model"
 	"github.com/dmalix/financelime-authorization/config"
-	"github.com/dmalix/financelime-authorization/packages/cryptographer"
-	em "github.com/dmalix/financelime-authorization/packages/email"
-	"github.com/dmalix/financelime-authorization/packages/generator"
-	"github.com/dmalix/financelime-authorization/packages/jwt"
-	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/dmalix/jwt"
+	"github.com/dmalix/middleware"
+	"github.com/dmalix/requestid"
+	"github.com/dmalix/secretdata"
+	"github.com/dmalix/sendmail"
+	"github.com/dmalix/utils/generate"
 	"go.uber.org/zap"
+	"net/http"
 	"net/mail"
 	"time"
 )
@@ -25,31 +27,37 @@ type service struct {
 	config          model.ConfigService
 	contextGetter   middleware.ContextGetter
 	languageContent config.LanguageContent
-	messageQueue    chan em.MessageBox
-	message         em.Message
+	sendmailQueue   chan sendmail.MessageBox
+	sendmailManager sendmail.Manager
 	repository      authorization.Repository
-	cryptographer   cryptographer.Cryptographer
-	jwt             jwt.JWT
+	dataAccess      secretdata.SecretData
+	dataRefresh     secretdata.SecretData
+	jwtAccess       jwt.Jwt
+	jwtRefresh      jwt.Jwt
 }
 
 func NewService(
 	config model.ConfigService,
 	contextGetter middleware.ContextGetter,
 	languageContent config.LanguageContent,
-	messageQueue chan em.MessageBox,
-	message em.Message,
+	sendmailQueue chan sendmail.MessageBox,
+	sendmailManager sendmail.Manager,
 	repository authorization.Repository,
-	cryptographer cryptographer.Cryptographer,
-	jwt jwt.JWT) *service {
+	dataAccess secretdata.SecretData,
+	dataRefresh secretdata.SecretData,
+	jwtAccess jwt.Jwt,
+	jwtRefresh jwt.Jwt) *service {
 	return &service{
 		config:          config,
 		contextGetter:   contextGetter,
 		languageContent: languageContent,
-		messageQueue:    messageQueue,
-		message:         message,
+		sendmailQueue:   sendmailQueue,
+		sendmailManager: sendmailManager,
 		repository:      repository,
-		cryptographer:   cryptographer,
-		jwt:             jwt,
+		dataAccess:      dataAccess,
+		dataRefresh:     dataRefresh,
+		jwtAccess:       jwtAccess,
+		jwtRefresh:      jwtRefresh,
 	}
 }
 
@@ -67,7 +75,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		return err
 	}
 
-	confirmationKey := generator.StringRand(16, 16, true)
+	confirmationKey := generate.StringRand(16, 16, true)
 
 	err = s.repository.SignUpStep1(ctx, logger, model.RepoSignUpParam{
 		Email:              param.Email,
@@ -92,20 +100,20 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		}
 	}
 
-	newRequestID, err := generator.GenerateRequestID(ctx, true)
+	newRequestID, err := requestid.Create(http.MethodGet)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
 	}
 
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		em.Request{
+	err = s.sendmailManager.AddMessageToQueue(
+		s.sendmailQueue,
+		sendmail.Request{
 			RemoteAddr:    remoteAddr,
 			RemoteAddrKey: remoteAddrKey,
 			RequestID:     requestID,
 			RequestIDKey:  requestIDKey},
-		em.Email{
+		sendmail.Email{
 			To:      mail.Address{Address: param.Email},
 			Subject: s.languageContent.Data.User.Signup.Email.Request.Subject[s.languageContent.Language[param.Language]],
 			Body: fmt.Sprintf(
@@ -150,15 +158,15 @@ func (s *service) SignUpStep2(ctx context.Context, logger *zap.Logger, confirmat
 		}
 	}
 
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		em.Request{
+	err = s.sendmailManager.AddMessageToQueue(
+		s.sendmailQueue,
+		sendmail.Request{
 			RemoteAddr:    remoteAddr,
 			RemoteAddrKey: remoteAddrKey,
 			RequestID:     requestID,
 			RequestIDKey:  requestIDKey,
 		},
-		em.Email{
+		sendmail.Email{
 			To:      mail.Address{Address: user.Email},
 			Subject: s.languageContent.Data.User.Signup.Email.Password.Subject[s.languageContent.Language[user.Language]],
 			Body: fmt.Sprintf(
@@ -186,7 +194,6 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 		logger.DPanic("failed to get remoteAddr", zap.Error(err))
 		return model.ServiceAccessTokenReturn{}, err
 	}
-
 	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
 	if err != nil {
 		logger.DPanic("failed to get requestID", zap.Error(err))
@@ -209,56 +216,60 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 		}
 	}
 
-	publicSessionID, err := generator.GeneratePublicID(user.ID)
+	publicSessionID, err := generate.PublicID(user.ID)
 	if err != nil {
 		logger.DPanic("failed to generate the publicSessionID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
-
-	sourceUserData, err := json.Marshal(user)
+	userData, err := json.Marshal(user)
+	if err != nil {
+		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.ServiceAccessTokenReturn{}, err
+	}
+	encryptedUserData, err := s.dataAccess.Encrypt(userData)
 	if err != nil {
 		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	encryptedUserData, err := s.cryptographer.Encrypt(sourceUserData)
-	if err != nil {
-		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
-		return model.ServiceAccessTokenReturn{}, err
-	}
-
-	accessJWT, err := s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.ParamPurposeAccess)
+	accessToken, err := s.jwtAccess.Create(jwt.Claims{
+		JwtID: publicSessionID,
+		Data:  encryptedUserData,
+	})
 	if err != nil {
 		logger.DPanic("failed to generate an access token", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	refreshJWT, err := s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.ParamPurposeRefresh)
+	refreshToken, err := s.jwtRefresh.Create(jwt.Claims{
+		JwtID: publicSessionID,
+		Data:  encryptedUserData,
+	})
 	if err != nil {
 		logger.DPanic("failed to generate an refresh token", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	err = s.repository.SaveSession(ctx, logger, model.RepoSaveSessionParam{
+	err = s.repository.CreateSession(ctx, logger, model.RepoCreateSessionParam{
 		UserID:          user.ID,
 		PublicSessionID: publicSessionID,
-		RefreshToken:    refreshJWT,
+		RefreshToken:    refreshToken,
 		ClientID:        param.ClientID,
 		UserAgent:       param.UserAgent,
 		Device:          param.Device})
 	if err != nil {
-		logger.DPanic("failed to save session", zap.Error(err), zap.String(requestIDKey, requestID))
+		logger.DPanic("failed to create session", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		em.Request{
+	err = s.sendmailManager.AddMessageToQueue(
+		s.sendmailQueue,
+		sendmail.Request{
 			RemoteAddr:    remoteAddr,
 			RemoteAddrKey: remoteAddrKey,
 			RequestID:     requestID,
 			RequestIDKey:  requestIDKey},
-		em.Email{
+		sendmail.Email{
 			To:      mail.Address{Address: param.Email},
 			Subject: s.languageContent.Data.User.Login.Email.Subject[s.languageContent.Language[user.Language]],
 			Body: fmt.Sprintf(
@@ -279,8 +290,8 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 
 	return model.ServiceAccessTokenReturn{
 		PublicSessionID: publicSessionID,
-		AccessJWT:       accessJWT,
-		RefreshJWT:      refreshJWT}, nil
+		AccessJWT:       accessToken,
+		RefreshJWT:      refreshToken}, nil
 }
 
 func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
@@ -292,10 +303,11 @@ func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	jwtData, err := s.jwt.VerifyToken(refreshToken)
+	jwtData, parseCodeError, err := s.jwtAccess.Parse(refreshToken)
 	if err != nil {
 		logger.Error("failed to verify the refresh token", zap.Error(err),
 			zap.String("refreshToken", refreshToken),
+			zap.String("parseCodeError", parseCodeError),
 			zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, authorization.ErrorBadRefreshToken
 	}
@@ -311,7 +323,7 @@ func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 		}
 	}
 
-	publicSessionID := jwtData.Payload.PublicSessionID
+	publicSessionID := jwtData.Claims.JwtID
 
 	sourceUserData, err := json.Marshal(user)
 	if err != nil {
@@ -319,27 +331,34 @@ func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	encryptedUserData, err := s.cryptographer.Encrypt(sourceUserData)
+	encryptedUserData, err := s.dataAccess.Encrypt(sourceUserData)
 	if err != nil {
 		logger.DPanic("failed to encrypt the user data", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	jwtAccess, err := s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.ParamPurposeAccess)
+	jwtAccess, err := s.jwtAccess.Create(jwt.Claims{
+		JwtID: publicSessionID,
+		Data:  encryptedUserData,
+	})
 	if err != nil {
-		logger.DPanic("failed to generate an access token (JWT)", zap.Error(err), zap.String(requestIDKey, requestID))
+		logger.DPanic("failed to create an access token (JWT)", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	jwtRefresh, err := s.jwt.GenerateToken(publicSessionID, encryptedUserData, jwt.ParamPurposeRefresh)
+	jwtRefresh, err := s.jwtRefresh.Create(jwt.Claims{
+		JwtID: publicSessionID,
+		Data:  encryptedUserData,
+	})
 	if err != nil {
-		logger.DPanic("failed to generate an refresh token (JWT)", zap.Error(err), zap.String(requestIDKey, requestID))
+		logger.DPanic("failed to create an refresh token (JWT)", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
 	err = s.repository.UpdateSession(ctx, logger, model.RepoUpdateSessionParam{
 		PublicSessionID: publicSessionID,
-		RefreshToken:    refreshToken})
+		RefreshToken:    refreshToken,
+	})
 	if err != nil {
 		logger.DPanic("failed to update the session", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
@@ -361,7 +380,7 @@ func (s *service) RevokeRefreshToken(ctx context.Context, logger *zap.Logger, pa
 		return err
 	}
 
-	decryptedJWTData, err := s.cryptographer.Decrypt(param.EncryptedUserData)
+	decryptedJWTData, err := s.dataAccess.Decrypt(param.EncryptedUserData)
 	if err != nil {
 		logger.DPanic("failed to decrypt the user data", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
@@ -394,7 +413,7 @@ func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger,
 		return nil, err
 	}
 
-	decryptedJWTData, err := s.cryptographer.Decrypt(encryptedUserData)
+	decryptedJWTData, err := s.dataAccess.Decrypt(encryptedUserData)
 	if err != nil {
 		logger.DPanic("failed to decrypt the user data", zap.Error(err), zap.String(requestIDKey, requestID))
 		return nil, err
@@ -430,7 +449,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		return err
 	}
 
-	confirmationKey := generator.StringRand(16, 16, true)
+	confirmationKey := generate.StringRand(16, 16, true)
 
 	user, err := s.repository.ResetUserPasswordStep1(ctx, logger, model.RepoResetUserPasswordParam{
 		Email:           email,
@@ -447,20 +466,20 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		}
 	}
 
-	newRequestID, err := generator.GenerateRequestID(ctx, true)
+	newRequestID, err := requestid.Create(http.MethodGet)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
 	}
 
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		em.Request{
+	err = s.sendmailManager.AddMessageToQueue(
+		s.sendmailQueue,
+		sendmail.Request{
 			RemoteAddr:    remoteAddr,
 			RemoteAddrKey: remoteAddrKey,
 			RequestID:     requestID,
 			RequestIDKey:  requestIDKey},
-		em.Email{
+		sendmail.Email{
 			To:      mail.Address{Address: email},
 			Subject: s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
 			Body: fmt.Sprintf(
@@ -506,15 +525,15 @@ func (s *service) ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger
 		}
 	}
 
-	err = s.message.AddEmailMessageToQueue(
-		s.messageQueue,
-		em.Request{
+	err = s.sendmailManager.AddMessageToQueue(
+		s.sendmailQueue,
+		sendmail.Request{
 			RemoteAddr:    remoteAddr,
 			RemoteAddrKey: remoteAddrKey,
 			RequestID:     requestID,
 			RequestIDKey:  requestIDKey,
 		},
-		em.Email{
+		sendmail.Email{
 			To:      mail.Address{Address: user.Email},
 			Subject: s.languageContent.Data.User.ResetPassword.Email.Password.Subject[s.languageContent.Language[user.Language]],
 			Body: fmt.Sprintf(

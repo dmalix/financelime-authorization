@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -166,20 +166,23 @@ func InitConfig() (App, error) {
 	}
 
 	// JWT
-	if config.Jwt.SecretKey = os.Getenv(envJwtSecretKey); config.Jwt.SecretKey == "" {
-		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtSecretKey)
-	}
-	if config.Jwt.SigningAlgorithm = os.Getenv(envJwtSigningAlgorithm); config.Jwt.SigningAlgorithm == "" {
-		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtSigningAlgorithm)
-	}
 	if config.Jwt.Issuer = os.Getenv(envJwtIssuer); config.Jwt.Issuer == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtIssuer)
 	}
-	if config.Jwt.Subject = os.Getenv(envJwtSubject); config.Jwt.Subject == "" {
-		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtSubject)
+	if config.Jwt.AccessSecretKey = os.Getenv(envJwtAccessSecretKey); config.Jwt.AccessSecretKey == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtAccessSecretKey)
+	}
+	if config.Jwt.AccessSignatureAlgorithm = os.Getenv(envJwtAccessSignatureAlgorithm); config.Jwt.AccessSignatureAlgorithm == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtAccessSignatureAlgorithm)
 	}
 	if config.Jwt.AccessTokenLifetime, err = strconv.Atoi(os.Getenv(envJwtAccessTokenLifeTime)); err != nil {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsNotNumber, envJwtAccessTokenLifeTime, err)
+	}
+	if config.Jwt.RefreshSecretKey = os.Getenv(envJwtRefreshSecretKey); config.Jwt.RefreshSecretKey == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtRefreshSecretKey)
+	}
+	if config.Jwt.RefreshSignatureAlgorithm = os.Getenv(envJwtRefreshSignatureAlgorithm); config.Jwt.RefreshSignatureAlgorithm == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtRefreshSignatureAlgorithm)
 	}
 	if config.Jwt.RefreshTokenLifetime, err = strconv.Atoi(os.Getenv(envJwtRefreshTokenLifeTime)); err != nil {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsNotNumber, envJwtRefreshTokenLifeTime, err)

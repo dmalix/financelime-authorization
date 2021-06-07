@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -9,7 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/dmalix/financelime-authorization/app/authorization/service"
-	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/dmalix/middleware"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -198,8 +198,8 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 	handler := authREST.RevokeRefreshToken(logger)
 
 	rctx := request.Context()
-	rctx = context.WithValue(rctx, middleware.ContextKeyPublicSessionID, "PublicSessionID")
-	rctx = context.WithValue(rctx, middleware.ContextKeyEncryptedJWTData, []byte("EncryptedJWTData"))
+	rctx = context.WithValue(rctx, middleware.ContextKeyJwtID, "PublicSessionID")
+	rctx = context.WithValue(rctx, middleware.ContextKeyJwtData, []byte("EncryptedJWTData"))
 
 	request = request.WithContext(rctx)
 
@@ -230,7 +230,7 @@ func TestAPIGetListActiveSessions(t *testing.T) {
 	handler := authREST.GetListActiveSessions(logger)
 
 	rctx := request.Context()
-	rctx = context.WithValue(rctx, middleware.ContextKeyEncryptedJWTData, []byte("test_data"))
+	rctx = context.WithValue(rctx, middleware.ContextKeyJwtData, []byte("test_data"))
 
 	request = request.WithContext(rctx)
 

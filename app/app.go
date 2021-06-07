@@ -1,4 +1,4 @@
-/* Copyright © 2020. Financelime, https://financelime.com. All rights reserved.
+/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
    Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
    License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
 
@@ -17,10 +17,10 @@ import (
 	informationREST "github.com/dmalix/financelime-authorization/app/information/rest"
 	informationService "github.com/dmalix/financelime-authorization/app/information/service"
 	"github.com/dmalix/financelime-authorization/config"
-	"github.com/dmalix/financelime-authorization/packages/cryptographer"
-	"github.com/dmalix/financelime-authorization/packages/email"
-	"github.com/dmalix/financelime-authorization/packages/jwt"
-	"github.com/dmalix/financelime-authorization/packages/middleware"
+	"github.com/dmalix/jwt"
+	"github.com/dmalix/middleware"
+	"github.com/dmalix/secretdata"
+	"github.com/dmalix/sendmail"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
@@ -34,7 +34,7 @@ import (
 type App struct {
 	httpPort                 int
 	closeDB                  func() error
-	emailMessageSenderDaemon email.Daemon
+	emailMessageSenderDaemon sendmail.Daemon
 	httpServer               *http.Server
 	commonMiddleware         middleware.Middleware
 	authREST                 authorization.REST
@@ -54,11 +54,10 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		appConfig          config.App
 		appLanguageContent config.LanguageContent
 		// TODO Move the number of messages in the queue to configs
-		emailMessageQueue = make(chan email.MessageBox, 300)
+		emailMessageQueue = make(chan sendmail.MessageBox, 300)
 	)
 
 	// Init Config and Language Content
-
 	appConfig, err = config.InitConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to init the config: %s", err)
@@ -67,11 +66,9 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to init the language content: %s", err)
 	}
-
 	logger.Info("Configuration initialized successfully")
 
 	// Databases
-
 	dbAuthMain, err = authorizationRepository.NewPostgresDB(logger, authorizationModel.ConfigPostgresDB{
 		Host:     appConfig.Db.AuthMain.Connect.Host,
 		Port:     appConfig.Db.AuthMain.Connect.Port,
@@ -83,7 +80,6 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to init the AuthMain DB: %s", err)
 	}
-
 	dbAuthRead, err = authorizationRepository.NewPostgresDB(logger, authorizationModel.ConfigPostgresDB{
 		Host:     appConfig.Db.AuthRead.Connect.Host,
 		Port:     appConfig.Db.AuthRead.Connect.Port,
@@ -95,7 +91,6 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to init the AuthRead DB: %s", err)
 	}
-
 	dbBlade, err = authorizationRepository.NewPostgresDB(logger, authorizationModel.ConfigPostgresDB{
 		Host:     appConfig.Db.Blade.Connect.Host,
 		Port:     appConfig.Db.Blade.Connect.Port,
@@ -107,7 +102,6 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to init the Blade DB: %s", err)
 	}
-
 	err = config.Migrate(dbAuthMain,
 		appConfig.Db.AuthMain.Migration.DropFile,
 		appConfig.Db.AuthMain.Migration.CreateFile,
@@ -115,7 +109,6 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate the AuthMain DB: %s", err)
 	}
-
 	err = config.Migrate(dbBlade,
 		appConfig.Db.Blade.Migration.DropFile,
 		appConfig.Db.Blade.Migration.CreateFile,
@@ -123,7 +116,6 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate the Blade DB: %s", err)
 	}
-
 	closeDB := func() error {
 		if err := dbAuthMain.Close(); err != nil {
 			return fmt.Errorf("failed to close AuthMain DB: %s", err)
@@ -136,100 +128,117 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		}
 		return nil
 	}
-
 	logger.Info("Databases initialized successfully")
 
-	// Cryptographer
-
-	cryptoManager := cryptographer.NewCryptographer(appConfig.Jwt.SecretKey)
+	// Secret Data
+	dataAccess := secretdata.NewSecretData(appConfig.Jwt.AccessSecretKey)
+	dataRefresh := secretdata.NewSecretData(appConfig.Jwt.RefreshSecretKey)
 
 	// JWT
-
-	jwtManager := jwt.NewToken(
-		appConfig.Jwt.SecretKey,
-		appConfig.Jwt.SigningAlgorithm,
-		appConfig.Jwt.Issuer,
-		appConfig.Jwt.Subject,
-		appConfig.Jwt.AccessTokenLifetime,
-		appConfig.Jwt.RefreshTokenLifetime)
+	jwtAccess, err := jwt.NewToken(jwt.Config{
+		Headers: jwt.Headers{
+			Type:               jwt.TokenType,
+			SignatureAlgorithm: appConfig.Jwt.AccessSignatureAlgorithm,
+		},
+		Claims: jwt.Claims{
+			Issuer:  appConfig.Jwt.Issuer,
+			Subject: jwt.TokenUseAccess,
+		},
+		ParseOptions: jwt.ParseOptions{
+			RequiredClaimIssuer:  true,
+			RequiredClaimSubject: true,
+			RequiredClaimJwtID:   true,
+			RequiredClaimData:    true,
+		},
+		TokenLifetimeSec: appConfig.Jwt.AccessTokenLifetime,
+		Key:              appConfig.Jwt.AccessSecretKey,
+	})
+	jwtRefresh, err := jwt.NewToken(jwt.Config{
+		Headers: jwt.Headers{
+			Type:               jwt.TokenType,
+			SignatureAlgorithm: appConfig.Jwt.RefreshSignatureAlgorithm,
+		},
+		Claims: jwt.Claims{
+			Issuer:  appConfig.Jwt.Issuer,
+			Subject: jwt.TokenUseRefresh,
+		},
+		ParseOptions: jwt.ParseOptions{
+			RequiredClaimIssuer:  true,
+			RequiredClaimSubject: true,
+			RequiredClaimJwtID:   true,
+			RequiredClaimData:    true,
+		},
+		TokenLifetimeSec: appConfig.Jwt.RefreshTokenLifetime,
+		Key:              appConfig.Jwt.RefreshSecretKey,
+	})
 
 	// Email Message
-
-	emailMessageSenderDaemon := email.NewSenderDaemon(
+	sendMailDaemon := sendmail.NewDaemon(
 		appConfig.Smtp.User,
 		appConfig.Smtp.Password,
 		appConfig.Smtp.Host,
 		appConfig.Smtp.Port,
 		emailMessageQueue)
-
-	emailMessageManager := email.NewManager(appConfig.MailMessage.From)
+	sendMailManager := sendmail.NewManager(appConfig.MailMessage.From)
 
 	// middleware
-
 	middlewareConfig := middleware.ConfigMiddleware{
 		RequestIDRequired: true,
 		RequestIDCheck:    true,
 	}
-
 	commonMiddleware := middleware.NewMiddleware(
 		middlewareConfig,
-		jwtManager)
-
+		jwtAccess,
+		dataAccess)
 	contextGetter := middleware.NewContextGetter()
 
 	// Authorization
-
 	authRepoConfig := authorizationModel.ConfigRepository{
 		CryptoSalt:              appConfig.Crypto.Salt,
 		JwtRefreshTokenLifetime: appConfig.Jwt.RefreshTokenLifetime,
 	}
-
 	authRepo := authorizationRepository.NewRepository(
 		authRepoConfig,
 		contextGetter,
 		dbAuthMain,
 		dbAuthRead,
 		dbBlade)
-
 	authServiceConfig := authorizationModel.ConfigService{
 		DomainAPP:              appConfig.Domain.App,
 		DomainAPI:              appConfig.Domain.Api,
 		AuthInviteCodeRequired: appConfig.Auth.InviteCodeRequired,
 		CryptoSalt:             appConfig.Crypto.Salt,
 	}
-
 	authService := authorizationService.NewService(
 		authServiceConfig,
 		contextGetter,
 		appLanguageContent,
 		emailMessageQueue,
-		emailMessageManager,
+		sendMailManager,
 		authRepo,
-		cryptoManager,
-		jwtManager)
-
+		dataAccess,
+		dataRefresh,
+		jwtAccess,
+		jwtRefresh)
 	authREST := authorizationREST.NewREST(
 		contextGetter,
 		authService)
 
 	// Information
-
 	infoService := informationService.NewService(
 		version.Number,
 		version.BuildTime,
 		version.Commit,
 		version.Compiler)
-
 	infoREST := informationREST.NewREST(
 		contextGetter,
 		infoService)
 
 	// Implementation of prepared objects into the application
-
 	app = &App{
 		httpPort:                 appConfig.Http.Port,
 		closeDB:                  closeDB,
-		emailMessageSenderDaemon: emailMessageSenderDaemon,
+		emailMessageSenderDaemon: sendMailDaemon,
 		commonMiddleware:         commonMiddleware,
 		authREST:                 authREST,
 		authService:              authService,

@@ -44,11 +44,12 @@ type App struct {
 		Salt string
 	}
 	Jwt struct {
-		SecretKey            string
-		SigningAlgorithm     string
-		Issuer               string
-		Subject              string
-		AccessTokenLifetime  int
-		RefreshTokenLifetime int
+		Issuer                    string
+		AccessSecretKey           string
+		AccessSignatureAlgorithm  string
+		AccessTokenLifetime       int
+		RefreshSecretKey          string
+		RefreshSignatureAlgorithm string
+		RefreshTokenLifetime      int
 	}
 }
