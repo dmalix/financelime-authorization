@@ -326,6 +326,7 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 
 	var (
+		accessTokenData              = []byte{123, 34, 73, 68, 34, 58, 50, 44, 34, 69, 109, 97, 105, 108, 34, 58, 34, 116, 101, 115, 116, 46, 117, 115, 101, 114, 64, 102, 105, 110, 97, 110, 99, 101, 108, 105, 109, 101, 46, 99, 111, 109, 34, 44, 34, 80, 97, 115, 115, 119, 111, 114, 100, 34, 58, 34, 34, 44, 34, 76, 97, 110, 103, 117, 97, 103, 101, 34, 58, 34, 101, 110, 34, 125}
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
@@ -366,8 +367,8 @@ func TestServiceRevokeRefreshToken(t *testing.T) {
 		token)
 
 	err = newService.RevokeRefreshToken(ctx, logger, model.ServiceRevokeRefreshTokenParam{
-		EncryptedUserData: []byte("encryptedUserData"),
-		PublicSessionID:   "publicSessionID"})
+		AccessTokenData: accessTokenData,
+		PublicSessionID: "publicSessionID"})
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",
@@ -438,7 +439,7 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 	logger, _ := zap.NewProduction()
 
 	var (
-		encryptedUserData            []byte
+		accessTokenData              = []byte{123, 34, 73, 68, 34, 58, 50, 44, 34, 69, 109, 97, 105, 108, 34, 58, 34, 116, 101, 115, 116, 46, 117, 115, 101, 114, 64, 102, 105, 110, 97, 110, 99, 101, 108, 105, 109, 101, 46, 99, 111, 109, 34, 44, 34, 80, 97, 115, 115, 119, 111, 114, 100, 34, 58, 34, 34, 44, 34, 76, 97, 110, 103, 117, 97, 103, 101, 34, 58, 34, 101, 110, 34, 125}
 		configDomainAPI              = "domain.com"
 		configAuthInviteCodeRequired = true
 		languageContent              config.LanguageContent
@@ -457,7 +458,7 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 	languageContent.Data.User.Login.Email.Subject = append(languageContent.Data.User.Login.Email.Subject, "subject")
 	languageContent.Data.User.Login.Email.Body = append(languageContent.Data.User.Login.Email.Body, "%s%s")
 
-	cryptographerManager := new(secretdata.MockDescription)
+	secretData := new(secretdata.MockDescription)
 	token := new(jwt.MockDescription)
 
 	//goland:noinspection GoBoolExpressions
@@ -474,13 +475,12 @@ func TestServiceGetListActiveSessions(t *testing.T) {
 		emailMessageQueue,
 		emailMessage,
 		authRepo,
-		cryptographerManager,
-		cryptographerManager,
+		secretData,
+		secretData,
 		token,
 		token)
 
-	_, err = newService.GetListActiveSessions(ctx, logger, encryptedUserData)
-
+	_, err = newService.GetListActiveSessions(ctx, logger, accessTokenData)
 	if err != nil {
 		t.Errorf("service returned wrong err value: got %v want %v",
 			err, nil)

@@ -28,7 +28,7 @@ type Service interface {
 	CreateAccessToken(ctx context.Context, logger *zap.Logger, param model.ServiceCreateAccessTokenParam) (model.ServiceAccessTokenReturn, error)
 	RefreshAccessToken(ctx context.Context, logger *zap.Logger, refreshToken string) (model.ServiceAccessTokenReturn, error)
 	RevokeRefreshToken(ctx context.Context, logger *zap.Logger, param model.ServiceRevokeRefreshTokenParam) error
-	GetListActiveSessions(ctx context.Context, logger *zap.Logger, encryptedUserData []byte) ([]model.Session, error)
+	GetListActiveSessions(ctx context.Context, logger *zap.Logger, accessTokenData []byte) ([]model.Session, error)
 	ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, email string) error
 	ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error)
 }

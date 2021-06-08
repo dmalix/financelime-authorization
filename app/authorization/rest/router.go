@@ -30,9 +30,9 @@ func Router(logger *zap.Logger, router *mux.Router, routerV1 *mux.Router, handle
 		Methods(http.MethodPut).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 
-	routerSessions := routerV1.PathPrefix("/sessions/").Subrouter()
+	routerSessions := routerV1.PathPrefix("/sessions").Subrouter()
 	routerSessions.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
-	routerSessions.Handle("",
+	routerSessions.Handle("/",
 		handler.GetListActiveSessions(logger)).
 		Methods(http.MethodGet)
 

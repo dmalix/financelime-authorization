@@ -18,7 +18,7 @@ import (
 	"github.com/dmalix/sendmail"
 	"github.com/dmalix/utils/generate"
 	"go.uber.org/zap"
-	"net/http"
+	"log"
 	"net/mail"
 	"time"
 )
@@ -100,7 +100,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 		}
 	}
 
-	newRequestID, err := requestid.Create(http.MethodGet)
+	newRequestID, err := requestid.Create(false)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
@@ -226,7 +226,14 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
 	}
-	encryptedUserData, err := s.dataAccess.Encrypt(userData)
+	encryptedAccessTokenData, err := s.dataAccess.Encrypt(userData)
+	log.Println("TEST1", encryptedAccessTokenData)
+	if err != nil {
+		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
+		return model.ServiceAccessTokenReturn{}, err
+	}
+
+	encryptedRefreshTokenData, err := s.dataRefresh.Encrypt(userData)
 	if err != nil {
 		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
@@ -234,7 +241,7 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 
 	accessToken, err := s.jwtAccess.Create(jwt.Claims{
 		JwtID: publicSessionID,
-		Data:  encryptedUserData,
+		Data:  encryptedAccessTokenData,
 	})
 	if err != nil {
 		logger.DPanic("failed to generate an access token", zap.Error(err), zap.String(requestIDKey, requestID))
@@ -243,7 +250,7 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 
 	refreshToken, err := s.jwtRefresh.Create(jwt.Claims{
 		JwtID: publicSessionID,
-		Data:  encryptedUserData,
+		Data:  encryptedRefreshTokenData,
 	})
 	if err != nil {
 		logger.DPanic("failed to generate an refresh token", zap.Error(err), zap.String(requestIDKey, requestID))
@@ -380,13 +387,7 @@ func (s *service) RevokeRefreshToken(ctx context.Context, logger *zap.Logger, pa
 		return err
 	}
 
-	decryptedJWTData, err := s.dataAccess.Decrypt(param.EncryptedUserData)
-	if err != nil {
-		logger.DPanic("failed to decrypt the user data", zap.Error(err), zap.String(requestIDKey, requestID))
-		return err
-	}
-
-	err = json.Unmarshal(decryptedJWTData, &user)
+	err = json.Unmarshal(param.AccessTokenData, &user)
 	if err != nil {
 		logger.DPanic("failed to unmarshal the decryptedJWTData value", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err
@@ -403,7 +404,7 @@ func (s *service) RevokeRefreshToken(ctx context.Context, logger *zap.Logger, pa
 	return nil
 }
 
-func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger, encryptedUserData []byte) ([]model.Session, error) {
+func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger, accessTokenData []byte) ([]model.Session, error) {
 
 	var user model.User
 
@@ -413,15 +414,9 @@ func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger,
 		return nil, err
 	}
 
-	decryptedJWTData, err := s.dataAccess.Decrypt(encryptedUserData)
+	err = json.Unmarshal(accessTokenData, &user)
 	if err != nil {
-		logger.DPanic("failed to decrypt the user data", zap.Error(err), zap.String(requestIDKey, requestID))
-		return nil, err
-	}
-
-	err = json.Unmarshal(decryptedJWTData, &user)
-	if err != nil {
-		logger.DPanic("failed to unmarshal the decryptedJWTData value to struct", zap.Error(err),
+		logger.DPanic("failed to unmarshal the accessTokenData value to struct", zap.Error(err),
 			zap.String(requestIDKey, requestID))
 		return nil, err
 	}
@@ -466,7 +461,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 		}
 	}
 
-	newRequestID, err := requestid.Create(http.MethodGet)
+	newRequestID, err := requestid.Create(false)
 	if err != nil {
 		logger.DPanic("failed to generate requestID", zap.Error(err), zap.String(requestIDKey, requestID))
 		return err

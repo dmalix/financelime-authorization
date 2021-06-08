@@ -343,14 +343,14 @@ func (a *rest) GetListActiveSessions(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		encryptedUserData, err := a.contextGetter.GetJwtData(r.Context())
+		accessTokenData, err := a.contextGetter.GetJwtData(r.Context())
 		if err != nil {
-			logger.DPanic("failed to get encryptedUserData", zap.Error(err), zap.String(requestIDKey, requestID))
+			logger.DPanic("failed to get accessTokenData", zap.Error(err), zap.String(requestIDKey, requestID))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
-		sessions, err = a.service.GetListActiveSessions(r.Context(), logger, encryptedUserData)
+		sessions, err = a.service.GetListActiveSessions(r.Context(), logger, accessTokenData)
 		if err != nil {
 			logger.DPanic("failed to get the active sessions list", zap.Error(err), zap.String(requestIDKey, requestID))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
@@ -419,9 +419,9 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		encryptedUserData, err := a.contextGetter.GetJwtData(r.Context())
+		accessTokenData, err := a.contextGetter.GetJwtData(r.Context())
 		if err != nil {
-			logger.DPanic("failed to get encryptedUserData", zap.Error(err))
+			logger.DPanic("failed to get accessTokenData", zap.Error(err))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
 			return
 		}
@@ -438,8 +438,8 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 		}
 
 		err = a.service.RevokeRefreshToken(r.Context(), logger, model.ServiceRevokeRefreshTokenParam{
-			EncryptedUserData: encryptedUserData,
-			PublicSessionID:   publicSessionID,
+			AccessTokenData: accessTokenData,
+			PublicSessionID: publicSessionID,
 		})
 		if err != nil {
 			logger.DPanic("failed to revoke the refresh token", zap.Error(err), zap.String(requestIDKey, requestID))

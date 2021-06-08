@@ -21,6 +21,6 @@ type ServiceAccessTokenReturn struct {
 }
 
 type ServiceRevokeRefreshTokenParam struct {
-	EncryptedUserData []byte
-	PublicSessionID   string
+	AccessTokenData []byte
+	PublicSessionID string
 }

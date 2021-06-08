@@ -4,10 +4,10 @@ go 1.16
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-	github.com/dmalix/jwt v0.1.5
-	github.com/dmalix/middleware v0.1.0
-	github.com/dmalix/requestid v0.1.0
-	github.com/dmalix/secretdata v0.1.2
+	github.com/dmalix/jwt v0.1.6
+	github.com/dmalix/middleware v0.1.2
+	github.com/dmalix/requestid v0.1.1
+	github.com/dmalix/secretdata v0.1.3
 	github.com/dmalix/sendmail v0.1.2
 	github.com/dmalix/utils v0.1.2
 	github.com/go-chi/chi v4.0.2+incompatible
