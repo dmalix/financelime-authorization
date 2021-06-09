@@ -1,0 +1,771 @@
+{
+    "schemes": [
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Financelime Authorization RESTful API service",
+        "title": "Financelime Authorization",
+        "contact": {
+            "name": "API Support",
+            "email": "dmalix@financelime.com"
+        },
+        "license": {
+            "name": "GNU General Public License v3.0",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+        },
+        "version": "v0.2.0-alpha"
+    },
+    "host": "api.auth.dev.financelime.com",
+    "basePath": "/",
+    "paths": {
+        "/p/{confirmationKey}": {
+            "get": {
+                "description": "API returns HTML-page with a message (success or error).",
+                "produces": [
+                    "text/plain;charset=utf-8"
+                ],
+                "summary": "Confirm to user password reset",
+                "operationId": "reset_user_password_step2",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "rid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Confirmation Key",
+                        "name": "confirmationKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/u/{confirmationKey}": {
+            "get": {
+                "description": "API returns HTML-page with a message (success or error).",
+                "produces": [
+                    "text/plain;charset=utf-8"
+                ],
+                "summary": "Confirm User Email",
+                "operationId": "signup_step2",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "rid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Confirmation Key",
+                        "name": "confirmationKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/oauth/": {
+            "put": {
+                "description": "Refresh Access Token",
+                "consumes": [
+                    "application/json;charset=utf-8"
+                ],
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Refresh Access Token (Domain Action: Renew authorization)",
+                "operationId": "refresh_access_token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for refreshing the access token",
+                        "name": "model.RefreshAccessTokenRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshAccessTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/model.AccessTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshAccessTokenFailure400"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshAccessTokenFailure404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Access Token",
+                "consumes": [
+                    "application/json;charset=utf-8"
+                ],
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Create Access Token (Domain Action: Log In)",
+                "operationId": "create_access_token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for creating a new token",
+                        "name": "model.CreateAccessTokenRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAccessTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/model.AccessTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAccessTokenFailure400"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAccessTokenFailure404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/session/": {
+            "delete": {
+                "security": [
+                    {
+                        "authorization": []
+                    }
+                ],
+                "description": "This request revoke the Refresh Token associated with the specified session. Thus, when the Access Token expires, then it cannot be renewed. And only after that, the user will be log out. Be aware that this query is idempotent.",
+                "consumes": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Revoke Refresh Token (Domain Action: Log Out)",
+                "operationId": "revoke_refresh_token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for revoking the Refresh Token",
+                        "name": "model.RevokeRefreshTokenRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RevokeRefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.RevokeRefreshTokenFailure400"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/sessions/": {
+            "get": {
+                "security": [
+                    {
+                        "authorization": []
+                    }
+                ],
+                "description": "Get a list of active sessions",
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Get a list of active sessions",
+                "operationId": "get_list_active_sessions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Session"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/": {
+            "put": {
+                "description": "The service sends a confirmation link to the specified email. After confirmation, the service will send a new password for authorization.",
+                "consumes": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Request to user password reset",
+                "operationId": "reset_user_password_step1",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for resetting your password",
+                        "name": "model.ResetUserPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ResetUserPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.RequestUserPasswordResetFailure400"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.RequestUserPasswordResetFailure404"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "The service sends a confirmation link to the specified email. After confirmation, the service will send a password for authorization.",
+                "consumes": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Create new user",
+                "operationId": "signup_step1",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Data for creating a new user",
+                        "name": "model.SignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.SignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.SignUpFailure400"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/model.SignUpFailure409"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/version": {
+            "get": {
+                "description": "Get Version",
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "summary": "Get the Service version",
+                "operationId": "get_version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "request-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/model.VersionResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.AccessTokenResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "type": "string"
+                },
+                "sessionID": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CommonFailure": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 404
+                },
+                "message": {
+                    "type": "string",
+                    "example": "404 Not Found"
+                }
+            }
+        },
+        "model.CreateAccessTokenFailure400": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "BAD_PARAMETERS"
+                    ],
+                    "example": "BAD_PARAMETERS"
+                }
+            }
+        },
+        "model.CreateAccessTokenFailure404": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 404
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "USER_NOT_FOUND"
+                    ],
+                    "example": "USER_NOT_FOUND"
+                }
+            }
+        },
+        "model.CreateAccessTokenRequest": {
+            "type": "object",
+            "required": [
+                "clientID",
+                "device",
+                "email",
+                "password"
+            ],
+            "properties": {
+                "clientID": {
+                    "description": "User Client ID",
+                    "type": "string",
+                    "example": "PWA_v0.0.1"
+                },
+                "device": {
+                    "$ref": "#/definitions/model.Device"
+                },
+                "email": {
+                    "description": "User Email",
+                    "type": "string",
+                    "example": "test.user@financelime.com"
+                },
+                "password": {
+                    "description": "User Password",
+                    "type": "string",
+                    "example": "qmhVXVC1%hVNa0Hcq"
+                }
+            }
+        },
+        "model.Device": {
+            "type": "object",
+            "properties": {
+                "height": {
+                    "type": "integer",
+                    "example": 1920
+                },
+                "language": {
+                    "type": "string",
+                    "example": "en-US"
+                },
+                "platform": {
+                    "type": "string",
+                    "example": "Linux x86_64"
+                },
+                "timezone": {
+                    "type": "string",
+                    "example": "2"
+                },
+                "width": {
+                    "type": "integer",
+                    "example": 1060
+                }
+            }
+        },
+        "model.RefreshAccessTokenFailure400": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "BAD_PARAMETERS",
+                        " BAD_REFRESH_TOKEN"
+                    ],
+                    "example": "BAD_PARAMETERS"
+                }
+            }
+        },
+        "model.RefreshAccessTokenFailure404": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 404
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "USER_NOT_FOUND"
+                    ],
+                    "example": "USER_NOT_FOUND"
+                }
+            }
+        },
+        "model.RefreshAccessTokenRequest": {
+            "type": "object",
+            "required": [
+                "refreshToken"
+            ],
+            "properties": {
+                "refreshToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmaW5hbmNlbGltZS5jb20iLCJzdWIiOiJBdXRob3JpemF0aW9uIiwicHVycG9zZSI6InJlZnJlc2giLCJzZXNzaW9uSUQiOiI2M2IyZjUyM2ZiZGQzMzFlZjQzM2U2NmU5NDZjYWQ2OTNkOTQ5MzdjMWUxNWNjMDI5YjFiNjE1YmExN2VjZWM3IiwidXNlckRhdGEiOiJpNHhTbDBmNXcrMGJSTE1KOURMVlp3NGJDZkpSSUFqQlhoN2VFZFlpNTV2L1QvVk1EK3RmNFNyK0NSV0ZnZEpoUkh2S1AyNnZGQ1AxZ05iOU4yejljMFRoYkRZNkFSdGt2WHkzMHJ3bTlDeXh0Vk1QdUUvRXh4UDdzaCs3MGVrbE5ObjdGS2xIIiwiaWF0IjoxNjIwNTIwNTg2fQ.4fd650daddded3a74c6fcfa28559d02c3ca6f32d55805b58ac88ccd302c5445e"
+                }
+            }
+        },
+        "model.RequestUserPasswordResetFailure400": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "BAD_PARAMETERS",
+                        " BAD_REFRESH_TOKEN"
+                    ],
+                    "example": "BAD_PARAMETERS"
+                }
+            }
+        },
+        "model.RequestUserPasswordResetFailure404": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 404
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "USER_NOT_FOUND"
+                    ],
+                    "example": "USER_NOT_FOUND"
+                }
+            }
+        },
+        "model.ResetUserPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "test.user@financelime.com"
+                }
+            }
+        },
+        "model.RevokeRefreshTokenFailure400": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "BAD_PARAMETERS"
+                    ],
+                    "example": "BAD_PARAMETERS"
+                }
+            }
+        },
+        "model.RevokeRefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "sessionID"
+            ],
+            "properties": {
+                "sessionID": {
+                    "type": "string",
+                    "example": "f58f06a96b69083b7c4fb068faa6c8314af0636e44ecc710261abe1759b07755"
+                }
+            }
+        },
+        "model.Session": {
+            "type": "object",
+            "properties": {
+                "platform": {
+                    "type": "string"
+                },
+                "sessionID": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.SignUpFailure400": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "BAD_PARAMETERS"
+                    ],
+                    "example": "BAD_PARAMETERS"
+                }
+            }
+        },
+        "model.SignUpFailure409": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 409
+                },
+                "message": {
+                    "type": "string",
+                    "enum": [
+                        "USER_ALREADY_EXIST",
+                        "INVITE_NOT_FOUND",
+                        "INVITE_HAS_ENDED"
+                    ],
+                    "example": "USER_ALREADY_EXIST"
+                }
+            }
+        },
+        "model.SignUpRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "inviteCode",
+                "language"
+            ],
+            "properties": {
+                "email": {
+                    "description": "User email",
+                    "type": "string",
+                    "example": "test.user@financelime.com"
+                },
+                "inviteCode": {
+                    "description": "Invite code. Required depending on the setting of environment variable `AUTH_INVITE_CODE_REQUIRED`. The default is required.",
+                    "type": "string",
+                    "example": "testInviteCode"
+                },
+                "language": {
+                    "description": "User language",
+                    "type": "string",
+                    "example": "en"
+                }
+            }
+        },
+        "model.VersionResponse": {
+            "type": "object",
+            "properties": {
+                "build": {
+                    "type": "string",
+                    "example": "fc56bb1 [2021-05-07_11:12:09]"
+                },
+                "number": {
+                    "type": "string",
+                    "example": "v0.2.0-alpha"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "authorization": {
+            "type": "apiKey",
+            "name": "authorization",
+            "in": "header"
+        }
+    }
+}
