@@ -1,16 +1,12 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package service
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/app/authorization"
-	"github.com/dmalix/financelime-authorization/app/authorization/model"
-	"github.com/dmalix/financelime-authorization/config"
+	"github.com/dmalix/authorization-service/app/authorization"
+	"github.com/dmalix/authorization-service/app/authorization/model"
+	"github.com/dmalix/authorization-service/config"
 	"github.com/dmalix/jwt"
 	"github.com/dmalix/middleware"
 	"github.com/dmalix/requestid"
@@ -18,7 +14,6 @@ import (
 	"github.com/dmalix/sendmail"
 	"github.com/dmalix/utils/generate"
 	"go.uber.org/zap"
-	"log"
 	"net/mail"
 	"time"
 )
@@ -227,7 +222,6 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 		return model.ServiceAccessTokenReturn{}, err
 	}
 	encryptedAccessTokenData, err := s.dataAccess.Encrypt(userData)
-	log.Println("TEST1", encryptedAccessTokenData)
 	if err != nil {
 		logger.DPanic("failed to marshal the user struct", zap.Error(err), zap.String(requestIDKey, requestID))
 		return model.ServiceAccessTokenReturn{}, err
@@ -304,13 +298,16 @@ func (s *service) CreateAccessToken(ctx context.Context, logger *zap.Logger,
 func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 	refreshToken string) (model.ServiceAccessTokenReturn, error) {
 
+	var JwtAccessData []byte
+	var JwtRefreshData []byte
+
 	requestID, requestIDKey, err := s.contextGetter.GetRequestID(ctx)
 	if err != nil {
 		logger.DPanic("failed to get requestID", zap.Error(err))
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	jwtData, parseCodeError, err := s.jwtAccess.Parse(refreshToken)
+	jwtSource, parseCodeError, err := s.jwtRefresh.Parse(refreshToken)
 	if err != nil {
 		logger.Error("failed to verify the refresh token", zap.Error(err),
 			zap.String("refreshToken", refreshToken),
@@ -330,7 +327,7 @@ func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 		}
 	}
 
-	publicSessionID := jwtData.Claims.JwtID
+	publicSessionID := jwtSource.Claims.JwtID
 
 	sourceUserData, err := json.Marshal(user)
 	if err != nil {
@@ -338,15 +335,29 @@ func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 		return model.ServiceAccessTokenReturn{}, err
 	}
 
-	encryptedUserData, err := s.dataAccess.Encrypt(sourceUserData)
-	if err != nil {
-		logger.DPanic("failed to encrypt the user data", zap.Error(err), zap.String(requestIDKey, requestID))
-		return model.ServiceAccessTokenReturn{}, err
+	if s.config.JwtAccessEncryptData {
+		JwtAccessData, err = s.dataAccess.Encrypt(sourceUserData)
+		if err != nil {
+			logger.DPanic("failed to encrypt the access data", zap.Error(err), zap.String(requestIDKey, requestID))
+			return model.ServiceAccessTokenReturn{}, err
+		}
+	} else {
+		JwtAccessData = sourceUserData
+	}
+
+	if s.config.JwtRefreshEncryptData {
+		JwtRefreshData, err = s.dataRefresh.Encrypt(sourceUserData)
+		if err != nil {
+			logger.DPanic("failed to encrypt the refresh data", zap.Error(err), zap.String(requestIDKey, requestID))
+			return model.ServiceAccessTokenReturn{}, err
+		}
+	} else {
+		JwtRefreshData = sourceUserData
 	}
 
 	jwtAccess, err := s.jwtAccess.Create(jwt.Claims{
 		JwtID: publicSessionID,
-		Data:  encryptedUserData,
+		Data:  JwtAccessData,
 	})
 	if err != nil {
 		logger.DPanic("failed to create an access token (JWT)", zap.Error(err), zap.String(requestIDKey, requestID))
@@ -355,7 +366,7 @@ func (s *service) RefreshAccessToken(ctx context.Context, logger *zap.Logger,
 
 	jwtRefresh, err := s.jwtRefresh.Create(jwt.Claims{
 		JwtID: publicSessionID,
-		Data:  encryptedUserData,
+		Data:  JwtRefreshData,
 	})
 	if err != nil {
 		logger.DPanic("failed to create an refresh token (JWT)", zap.Error(err), zap.String(requestIDKey, requestID))

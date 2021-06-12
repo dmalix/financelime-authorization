@@ -1,14 +1,11 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package rest
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/dmalix/financelime-authorization/app/authorization/service"
+	"github.com/dmalix/authorization-service/app/authorization/service"
+	"github.com/dmalix/jwt"
 	"github.com/dmalix/middleware"
 	"go.uber.org/zap"
 	"log"
@@ -198,8 +195,7 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 	handler := authREST.RevokeRefreshToken(logger)
 
 	rctx := request.Context()
-	rctx = context.WithValue(rctx, middleware.ContextKeyJwtID, "PublicSessionID")
-	rctx = context.WithValue(rctx, middleware.ContextKeyJwtData, []byte("EncryptedJWTData"))
+	rctx = context.WithValue(rctx, middleware.ContextKeyJwt, jwt.Token{})
 
 	request = request.WithContext(rctx)
 
@@ -230,7 +226,7 @@ func TestAPIGetListActiveSessions(t *testing.T) {
 	handler := authREST.GetListActiveSessions(logger)
 
 	rctx := request.Context()
-	rctx = context.WithValue(rctx, middleware.ContextKeyJwtData, []byte("test_data"))
+	rctx = context.WithValue(rctx, middleware.ContextKeyJwt, jwt.Token{})
 
 	request = request.WithContext(rctx)
 

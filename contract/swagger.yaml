@@ -227,12 +227,11 @@ info:
   contact:
     email: dmalix@financelime.com
     name: API Support
-  description: Financelime Authorization RESTful API service
+  description: Authorization Service RESTful API service
   license:
-    name: GNU General Public License v3.0
-    url: https://www.gnu.org/licenses/gpl-3.0.html
-  title: Financelime Authorization
-  version: v0.2.0-alpha
+    name: MIT
+  title: Authorization Service
+  version: v0.3.0-beta
 paths:
   /p/{confirmationKey}:
     get:

@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/dmalix/financelime-authorization/app/authorization/model"
-	repository2 "github.com/dmalix/financelime-authorization/app/authorization/repository"
+	"github.com/dmalix/authorization-service/app/authorization/model"
+	repository2 "github.com/dmalix/authorization-service/app/authorization/repository"
 	"go.uber.org/zap"
 )
 

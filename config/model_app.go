@@ -13,9 +13,6 @@ type Version struct {
 }
 
 type App struct {
-	LanguageContent struct {
-		File string
-	}
 	Domain struct {
 		App string
 		Api string
@@ -40,16 +37,23 @@ type App struct {
 	MailMessage struct {
 		From mail.Address
 	}
+	LanguageContent struct {
+		File string
+	}
 	Crypto struct {
 		Salt string
 	}
 	Jwt struct {
 		Issuer                    string
+		AccessAudience            string
 		AccessSecretKey           string
 		AccessSignatureAlgorithm  string
+		AccessEncryptData         bool
 		AccessTokenLifetime       int
+		RefreshAudience           string
 		RefreshSecretKey          string
 		RefreshSignatureAlgorithm string
+		RefreshEncryptData        bool
 		RefreshTokenLifetime      int
 	}
 }

@@ -1,22 +1,18 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package app
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/app/authorization"
-	authorizationModel "github.com/dmalix/financelime-authorization/app/authorization/model"
-	authorizationRepository "github.com/dmalix/financelime-authorization/app/authorization/repository"
-	authorizationREST "github.com/dmalix/financelime-authorization/app/authorization/rest"
-	authorizationService "github.com/dmalix/financelime-authorization/app/authorization/service"
-	"github.com/dmalix/financelime-authorization/app/information"
-	informationREST "github.com/dmalix/financelime-authorization/app/information/rest"
-	informationService "github.com/dmalix/financelime-authorization/app/information/service"
-	"github.com/dmalix/financelime-authorization/config"
+	"github.com/dmalix/authorization-service/app/authorization"
+	authorizationModel "github.com/dmalix/authorization-service/app/authorization/model"
+	authorizationRepository "github.com/dmalix/authorization-service/app/authorization/repository"
+	authorizationREST "github.com/dmalix/authorization-service/app/authorization/rest"
+	authorizationService "github.com/dmalix/authorization-service/app/authorization/service"
+	"github.com/dmalix/authorization-service/app/information"
+	informationREST "github.com/dmalix/authorization-service/app/information/rest"
+	informationService "github.com/dmalix/authorization-service/app/information/service"
+	"github.com/dmalix/authorization-service/config"
 	"github.com/dmalix/jwt"
 	"github.com/dmalix/middleware"
 	"github.com/dmalix/secretdata"
@@ -141,14 +137,16 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 			SignatureAlgorithm: appConfig.Jwt.AccessSignatureAlgorithm,
 		},
 		Claims: jwt.Claims{
-			Issuer:  appConfig.Jwt.Issuer,
-			Subject: jwt.TokenUseAccess,
+			Issuer:   appConfig.Jwt.Issuer,
+			Audience: appConfig.Jwt.AccessAudience,
+			Subject:  jwt.TokenUseAccess,
 		},
 		ParseOptions: jwt.ParseOptions{
-			RequiredClaimIssuer:  true,
-			RequiredClaimSubject: true,
-			RequiredClaimJwtID:   true,
-			RequiredClaimData:    true,
+			RequiredClaimIssuer:   true,
+			RequiredClaimSubject:  true,
+			RequiredClaimJwtID:    true,
+			RequiredClaimAudience: true,
+			RequiredClaimData:     true,
 		},
 		TokenLifetimeSec: appConfig.Jwt.AccessTokenLifetime,
 		Key:              appConfig.Jwt.AccessSecretKey,
@@ -159,14 +157,16 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 			SignatureAlgorithm: appConfig.Jwt.RefreshSignatureAlgorithm,
 		},
 		Claims: jwt.Claims{
-			Issuer:  appConfig.Jwt.Issuer,
-			Subject: jwt.TokenUseRefresh,
+			Issuer:   appConfig.Jwt.Issuer,
+			Audience: appConfig.Jwt.RefreshAudience,
+			Subject:  jwt.TokenUseRefresh,
 		},
 		ParseOptions: jwt.ParseOptions{
-			RequiredClaimIssuer:  true,
-			RequiredClaimSubject: true,
-			RequiredClaimJwtID:   true,
-			RequiredClaimData:    true,
+			RequiredClaimIssuer:   true,
+			RequiredClaimSubject:  true,
+			RequiredClaimJwtID:    true,
+			RequiredClaimAudience: true,
+			RequiredClaimData:     true,
 		},
 		TokenLifetimeSec: appConfig.Jwt.RefreshTokenLifetime,
 		Key:              appConfig.Jwt.RefreshSecretKey,
@@ -183,8 +183,10 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 
 	// middleware
 	middlewareConfig := middleware.ConfigMiddleware{
-		RequestIDRequired: true,
-		RequestIDCheck:    true,
+		RequestIDRequired:   true,
+		RequestIDCheck:      true,
+		ContainsJWTAudience: "Authorization",
+		DecryptJWTData:      appConfig.Jwt.AccessEncryptData,
 	}
 	commonMiddleware := middleware.NewMiddleware(
 		middlewareConfig,
@@ -208,6 +210,8 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		DomainAPI:              appConfig.Domain.Api,
 		AuthInviteCodeRequired: appConfig.Auth.InviteCodeRequired,
 		CryptoSalt:             appConfig.Crypto.Salt,
+		JwtAccessEncryptData:   appConfig.Jwt.AccessEncryptData,
+		JwtRefreshEncryptData:  appConfig.Jwt.RefreshEncryptData,
 	}
 	authService := authorizationService.NewService(
 		authServiceConfig,

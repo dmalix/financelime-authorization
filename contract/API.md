@@ -1,19 +1,19 @@
 
 
 
-# Financelime Authorization
-Financelime Authorization RESTful API service
+# Authorization Service
+Authorization Service RESTful API service
   
 
 ## Informations
 
 ### Version
 
-v0.2.0-alpha
+v0.3.0-beta
 
 ### License
 
-[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html)
+[MIT]()
 
 ### Contact
 

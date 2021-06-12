@@ -13,6 +13,9 @@ readonly localSystemdHomePath=${STAGING_NODE_UPDATE_LOCAL_SYSTEMD_HOME_PATH}
 readonly remoteSystemdHomePath=${STAGING_NODE_UPDATE_REMOTE_SYSTEMD_HOME_PATH}
 readonly remoteSystemdFileName=${STAGING_NODE_UPDATE_REMOTE_SYSTEMD_FILENAME}
 
+# BIN FILE
+########################################################################################################################
+
 # Confirm run
 read -n 1 -p "Run staging-node update (y/[a])? " userInput
 if [ "${userInput}" != "y" ] ; then echo ""; echo -e "\e[1;31mRun canceled\e[0m"; exit; fi
@@ -43,6 +46,7 @@ ssh -p ${port} ${user}@${host} "cd ${remoteServiceHomePath}/bin; gzip --decompre
 if [ $? -ne 0 ] ; then echo -e "\e[1;31mFailed to extract the new build file on staging-node [vQpM6nld]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
+# ASSETS FILES
 ########################################################################################################################
 
 echo -ne "- Compress the new assets files:\t\t\t\t"
@@ -71,6 +75,7 @@ rm assets.tar.gz
 if [ $? -ne 0 ] ; then echo -e "\e[1;31mRemove the archive with with assets files to staging-node [E622yCat]\e[0m"; exit; fi
 echo -e "\e[32mOK\e[0m"
 
+# SYSTEMD FILE
 ########################################################################################################################
 
 echo -ne "- Backup the prev systemd file on staging-node:\t\t\t"

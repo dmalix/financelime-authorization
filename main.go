@@ -1,13 +1,9 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package main
 
 import (
 	"context"
-	authorizationApp "github.com/dmalix/financelime-authorization/app"
-	"github.com/dmalix/financelime-authorization/config"
+	authorizationApp "github.com/dmalix/authorization-service/app"
+	"github.com/dmalix/authorization-service/config"
 	"go.uber.org/zap"
 	"log"
 	"math/rand"
@@ -18,13 +14,12 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-// @title Financelime Authorization
-// @version v0.2.0-alpha
-// @description Financelime Authorization RESTful API service
+// @title Authorization Service
+// @version v0.3.0-beta
+// @description Authorization Service RESTful API service
 // @contact.name API Support
 // @contact.email dmalix@financelime.com
-// @license.name GNU General Public License v3.0
-// @license.url https://www.gnu.org/licenses/gpl-3.0.html
+// @license.name MIT
 // @host api.auth.dev.financelime.com
 // @securityDefinitions.apikey authorization
 // @in header
@@ -57,7 +52,7 @@ func main() {
 
 	logger = logger.Named("main")
 
-	logger.Info("Welcome to the Financelime authorization service", zap.Any("version", version))
+	logger.Info("Welcome to the Authorization Service", zap.Any("version", version))
 
 	loggerApp := logger.Named("app")
 

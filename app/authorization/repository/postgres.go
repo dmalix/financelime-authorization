@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/dmalix/financelime-authorization/app/authorization/model"
+	"github.com/dmalix/authorization-service/app/authorization/model"
 	"go.uber.org/zap"
 )
 

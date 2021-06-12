@@ -6,6 +6,8 @@ type ConfigService struct {
 	AuthInviteCodeRequired bool
 	SecretKey              string
 	CryptoSalt             string
+	JwtAccessEncryptData   bool
+	JwtRefreshEncryptData  bool
 }
 
 type ConfigRepository struct {

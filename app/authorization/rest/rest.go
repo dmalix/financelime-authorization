@@ -1,13 +1,9 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package rest
 
 import (
 	"encoding/json"
-	"github.com/dmalix/financelime-authorization/app/authorization"
-	"github.com/dmalix/financelime-authorization/app/authorization/model"
+	"github.com/dmalix/authorization-service/app/authorization"
+	"github.com/dmalix/authorization-service/app/authorization/model"
 	"github.com/dmalix/middleware"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -343,14 +339,14 @@ func (a *rest) GetListActiveSessions(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		accessTokenData, err := a.contextGetter.GetJwtData(r.Context())
+		accessToken, err := a.contextGetter.GetJwt(r.Context())
 		if err != nil {
-			logger.DPanic("failed to get accessTokenData", zap.Error(err), zap.String(requestIDKey, requestID))
+			logger.DPanic("failed to get JWT", zap.Error(err), zap.String(requestIDKey, requestID))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
-		sessions, err = a.service.GetListActiveSessions(r.Context(), logger, accessTokenData)
+		sessions, err = a.service.GetListActiveSessions(r.Context(), logger, accessToken.Claims.Data)
 		if err != nil {
 			logger.DPanic("failed to get the active sessions list", zap.Error(err), zap.String(requestIDKey, requestID))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
@@ -419,26 +415,21 @@ func (a *rest) RevokeRefreshToken(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		accessTokenData, err := a.contextGetter.GetJwtData(r.Context())
+		accessToken, err := a.contextGetter.GetJwt(r.Context())
 		if err != nil {
-			logger.DPanic("failed to get accessTokenData", zap.Error(err))
+			logger.DPanic("failed to get JWT", zap.Error(err), zap.String(requestIDKey, requestID))
 			http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
 		if requestInput.PublicSessionID == "" {
-			publicSessionID, err = a.contextGetter.GetJwtID(r.Context())
-			if err != nil {
-				logger.DPanic("failed to get publicSessionID", zap.Error(err))
-				http.Error(w, statusMessageInternalServerError, http.StatusInternalServerError)
-				return
-			}
+			publicSessionID = accessToken.Claims.JwtID
 		} else {
 			publicSessionID = requestInput.PublicSessionID
 		}
 
 		err = a.service.RevokeRefreshToken(r.Context(), logger, model.ServiceRevokeRefreshTokenParam{
-			AccessTokenData: accessTokenData,
+			AccessTokenData: accessToken.Claims.Data,
 			PublicSessionID: publicSessionID,
 		})
 		if err != nil {

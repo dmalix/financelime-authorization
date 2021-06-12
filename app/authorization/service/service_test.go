@@ -1,15 +1,11 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package service
 
 import (
 	"context"
 	"errors"
-	"github.com/dmalix/financelime-authorization/app/authorization/model"
-	"github.com/dmalix/financelime-authorization/app/authorization/repository"
-	"github.com/dmalix/financelime-authorization/config"
+	"github.com/dmalix/authorization-service/app/authorization/model"
+	"github.com/dmalix/authorization-service/app/authorization/repository"
+	"github.com/dmalix/authorization-service/config"
 	"github.com/dmalix/jwt"
 	"github.com/dmalix/middleware"
 	"github.com/dmalix/secretdata"

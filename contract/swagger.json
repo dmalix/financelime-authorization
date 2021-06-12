@@ -4,17 +4,16 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Financelime Authorization RESTful API service",
-        "title": "Financelime Authorization",
+        "description": "Authorization Service RESTful API service",
+        "title": "Authorization Service",
         "contact": {
             "name": "API Support",
             "email": "dmalix@financelime.com"
         },
         "license": {
-            "name": "GNU General Public License v3.0",
-            "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+            "name": "MIT"
         },
-        "version": "v0.2.0-alpha"
+        "version": "v0.3.0-beta"
     },
     "host": "api.auth.dev.financelime.com",
     "basePath": "/",

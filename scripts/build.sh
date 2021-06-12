@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PROJECT=github.com/dmalix/financelime-authorization
+PROJECT=github.com/dmalix/authorization-service
 
 DEVELOPMENT_MODE=true
 

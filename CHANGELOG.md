@@ -1,4 +1,13 @@
-## Pre-Release v0.2.0-alpha
+## Release v0.3.0-beta
+
+- Added new environment variables: JWT_ACCESS_ENCRYPT_DATA and JWT_REFRESH_ENCRYPT_DATA.
+- Now the content of the JWT token in the Claim Data field is encrypted using the JWT_ACCESS_ENCRYPT_DATA and JWT_REFRESH_ENCRYPT_DATA keys.
+- Added new environment variables: JWT_ACCESS_AUDIENCE and JWT_REFRESH_AUDIENCE.
+- Updated package github.com/dmalix/middleware to v0.1.7
+- Updated package github.com/dmalix/jwt to v0.1.8
+- Updated package github.com/dmalix/secretdata to v0.1.4
+
+## Release v0.2.0-alpha
 
 - Implemented the generation of the OpenAPI spec. 
 - Added context to some functions.

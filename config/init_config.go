@@ -1,7 +1,3 @@
-/* Copyright © 2021. Financelime, https://financelime.com. All rights reserved.
-   Author: DmAlix. Contacts: <dmalix@financelime.com>, <dmalix@yahoo.com>
-   License: GNU General Public License v3.0, https://www.gnu.org/licenses/gpl-3.0.html */
-
 package config
 
 import (
@@ -18,11 +14,6 @@ func InitConfig() (App, error) {
 	const messageEnvironmentVariableIsNotNumber = "the %s environment variable is not a number: %s"
 	const messageEnvironmentVariableIsNull = "the %s environment variable is null"
 	const messageEnvironmentVariableIsNotBoolean = "the %s environment variable is not boolean: %s"
-
-	// Language content
-	if config.LanguageContent.File = os.Getenv(envLanguageContentFile); config.LanguageContent.File == "" {
-		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envLanguageContentFile)
-	}
 
 	// Domain
 	if config.Domain.App = os.Getenv(envDomainApp); config.Domain.App == "" {
@@ -160,6 +151,11 @@ func InitConfig() (App, error) {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envMailMessageFromAddr)
 	}
 
+	// Language content
+	if config.LanguageContent.File = os.Getenv(envLanguageContentFile); config.LanguageContent.File == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envLanguageContentFile)
+	}
+
 	// Crypro
 	if config.Crypto.Salt = os.Getenv(envCryptoSalt); config.Crypto.Salt == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envCryptoSalt)
@@ -169,20 +165,32 @@ func InitConfig() (App, error) {
 	if config.Jwt.Issuer = os.Getenv(envJwtIssuer); config.Jwt.Issuer == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtIssuer)
 	}
+	if config.Jwt.AccessAudience = os.Getenv(envJwtAccessAudience); config.Jwt.AccessAudience == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtAccessAudience)
+	}
 	if config.Jwt.AccessSecretKey = os.Getenv(envJwtAccessSecretKey); config.Jwt.AccessSecretKey == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtAccessSecretKey)
 	}
 	if config.Jwt.AccessSignatureAlgorithm = os.Getenv(envJwtAccessSignatureAlgorithm); config.Jwt.AccessSignatureAlgorithm == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtAccessSignatureAlgorithm)
 	}
+	if config.Jwt.AccessEncryptData, err = strconv.ParseBool(os.Getenv(envJwtAccessEncryptData)); err != nil {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsNotBoolean, envJwtAccessEncryptData, err)
+	}
 	if config.Jwt.AccessTokenLifetime, err = strconv.Atoi(os.Getenv(envJwtAccessTokenLifeTime)); err != nil {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsNotNumber, envJwtAccessTokenLifeTime, err)
+	}
+	if config.Jwt.RefreshAudience = os.Getenv(envJwtRefreshAudience); config.Jwt.RefreshAudience == "" {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtRefreshAudience)
 	}
 	if config.Jwt.RefreshSecretKey = os.Getenv(envJwtRefreshSecretKey); config.Jwt.RefreshSecretKey == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtRefreshSecretKey)
 	}
 	if config.Jwt.RefreshSignatureAlgorithm = os.Getenv(envJwtRefreshSignatureAlgorithm); config.Jwt.RefreshSignatureAlgorithm == "" {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsEmpty, envJwtRefreshSignatureAlgorithm)
+	}
+	if config.Jwt.RefreshEncryptData, err = strconv.ParseBool(os.Getenv(envJwtRefreshEncryptData)); err != nil {
+		return App{}, fmt.Errorf(messageEnvironmentVariableIsNotBoolean, envJwtRefreshEncryptData, err)
 	}
 	if config.Jwt.RefreshTokenLifetime, err = strconv.Atoi(os.Getenv(envJwtRefreshTokenLifeTime)); err != nil {
 		return App{}, fmt.Errorf(messageEnvironmentVariableIsNotNumber, envJwtRefreshTokenLifeTime, err)
