@@ -1,5 +1,10 @@
 package model
 
+type ConfigRest struct {
+	API       string
+	DomainAPI string
+}
+
 type ConfigService struct {
 	DomainAPP              string
 	DomainAPI              string

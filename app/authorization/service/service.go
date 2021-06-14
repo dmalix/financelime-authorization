@@ -113,7 +113,7 @@ func (s *service) SignUpStep1(ctx context.Context, logger *zap.Logger, param mod
 			Subject: s.languageContent.Data.User.Signup.Email.Request.Subject[s.languageContent.Language[param.Language]],
 			Body: fmt.Sprintf(
 				s.languageContent.Data.User.Signup.Email.Request.Body[s.languageContent.Language[param.Language]],
-				s.config.DomainAPI, confirmationKey, newRequestID),
+				param.API, confirmationKey, newRequestID),
 			MessageID: fmt.Sprintf(
 				"<%s@%s>",
 				confirmationKey,
@@ -441,7 +441,7 @@ func (s *service) GetListActiveSessions(ctx context.Context, logger *zap.Logger,
 	return sessions, nil
 }
 
-func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, email string) error {
+func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, param model.ServiceResetUserPasswordParam) error {
 
 	remoteAddr, remoteAddrKey, err := s.contextGetter.GetRemoteAddr(ctx)
 	if err != nil {
@@ -458,7 +458,7 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 	confirmationKey := generate.StringRand(16, 16, true)
 
 	user, err := s.repository.ResetUserPasswordStep1(ctx, logger, model.RepoResetUserPasswordParam{
-		Email:           email,
+		Email:           param.Email,
 		ConfirmationKey: confirmationKey})
 	if err != nil {
 		logger.Error("failed to request a reset of the user's password", zap.Error(err), zap.String(requestIDKey, requestID))
@@ -486,11 +486,11 @@ func (s *service) ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger
 			RequestID:     requestID,
 			RequestIDKey:  requestIDKey},
 		sendmail.Email{
-			To:      mail.Address{Address: email},
+			To:      mail.Address{Address: param.Email},
 			Subject: s.languageContent.Data.User.ResetPassword.Email.Request.Subject[s.languageContent.Language[user.Language]],
 			Body: fmt.Sprintf(
 				s.languageContent.Data.User.ResetPassword.Email.Request.Body[s.languageContent.Language[user.Language]],
-				remoteAddr, s.config.DomainAPI, confirmationKey, newRequestID),
+				remoteAddr, param.API, confirmationKey, newRequestID),
 			MessageID: fmt.Sprintf(
 				"<%s@%s>",
 				confirmationKey,

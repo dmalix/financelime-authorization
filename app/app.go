@@ -7,10 +7,10 @@ import (
 	"github.com/dmalix/authorization-service/app/authorization"
 	authorizationModel "github.com/dmalix/authorization-service/app/authorization/model"
 	authorizationRepository "github.com/dmalix/authorization-service/app/authorization/repository"
-	authorizationREST "github.com/dmalix/authorization-service/app/authorization/rest"
+	authorizationRestV1 "github.com/dmalix/authorization-service/app/authorization/restv1"
 	authorizationService "github.com/dmalix/authorization-service/app/authorization/service"
 	"github.com/dmalix/authorization-service/app/information"
-	informationREST "github.com/dmalix/authorization-service/app/information/rest"
+	informationRest "github.com/dmalix/authorization-service/app/information/rest"
 	informationService "github.com/dmalix/authorization-service/app/information/service"
 	"github.com/dmalix/authorization-service/config"
 	"github.com/dmalix/jwt"
@@ -33,9 +33,9 @@ type App struct {
 	emailMessageSenderDaemon sendmail.Daemon
 	httpServer               *http.Server
 	commonMiddleware         middleware.Middleware
-	authREST                 authorization.REST
+	authRestV1               authorization.RestV1
 	authService              authorization.Service
-	infoREST                 information.REST
+	infoRest                 information.Rest
 	infoService              information.Service
 }
 
@@ -181,7 +181,7 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		emailMessageQueue)
 	sendMailManager := sendmail.NewManager(appConfig.MailMessage.From)
 
-	// middleware
+	// Middleware
 	middlewareConfig := middleware.ConfigMiddleware{
 		RequestIDRequired:   true,
 		RequestIDCheck:      true,
@@ -224,7 +224,12 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		dataRefresh,
 		jwtAccess,
 		jwtRefresh)
-	authREST := authorizationREST.NewREST(
+	authRestV1Config := authorizationModel.ConfigRest{
+		API:       "v1",
+		DomainAPI: appConfig.Domain.Api,
+	}
+	authRestV1 := authorizationRestV1.NewRest(
+		authRestV1Config,
 		contextGetter,
 		authService)
 
@@ -234,7 +239,7 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		version.BuildTime,
 		version.Commit,
 		version.Compiler)
-	infoREST := informationREST.NewREST(
+	infoRest := informationRest.NewRest(
 		contextGetter,
 		infoService)
 
@@ -244,9 +249,9 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		closeDB:                  closeDB,
 		emailMessageSenderDaemon: sendMailDaemon,
 		commonMiddleware:         commonMiddleware,
-		authREST:                 authREST,
+		authRestV1:               authRestV1,
 		authService:              authService,
-		infoREST:                 infoREST,
+		infoRest:                 infoRest,
 		infoService:              infoService,
 	}
 
@@ -265,10 +270,12 @@ func (app *App) Run(ctx context.Context, logger *zap.Logger) error {
 	router.Use(app.commonMiddleware.RemoteAddr(logger.Named("middlewareRemoteAddr")))
 	router.Use(app.commonMiddleware.RequestID(logger.Named("middlewareRequestID")))
 	router.Use(app.commonMiddleware.Logging(logger.Named("middlewareLogging")))
-	routerV1 := router.PathPrefix("/v1").Subrouter()
 
-	authorizationREST.Router(logger.Named("authorization"), router, routerV1, app.authREST, app.commonMiddleware)
-	informationREST.Router(logger.Named("information"), routerV1, app.infoREST, app.commonMiddleware)
+	routerInfo := router.PathPrefix("/info").Subrouter()
+	informationRest.Router(logger.Named("RouterInformation"), routerInfo, app.infoRest)
+
+	routerV1 := router.PathPrefix("/v1").Subrouter()
+	authorizationRestV1.RouterV1(logger.Named("RouterV1Authorization"), routerV1, app.authRestV1, app.commonMiddleware)
 
 	app.httpServer = &http.Server{
 		Addr:           ":" + strconv.Itoa(app.httpPort),

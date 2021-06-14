@@ -70,7 +70,7 @@ func (s *Mock) RevokeRefreshToken(_ context.Context, _ *zap.Logger, _ model.Serv
 	return s.Expected.Error
 }
 
-func (s *Mock) ResetUserPasswordStep1(_ context.Context, _ *zap.Logger, _ string) error {
+func (s *Mock) ResetUserPasswordStep1(_ context.Context, _ *zap.Logger, _ model.ServiceResetUserPasswordParam) error {
 	return s.Expected.Error
 }
 

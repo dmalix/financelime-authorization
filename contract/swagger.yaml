@@ -233,64 +233,24 @@ info:
   title: Authorization Service
   version: v0.3.0-beta
 paths:
-  /p/{confirmationKey}:
+  /info/version:
     get:
-      description: API returns HTML-page with a message (success or error).
-      operationId: reset_user_password_step2
+      description: Get Version
+      operationId: get_version
       parameters:
       - description: RequestID
-        in: query
-        name: rid
-        required: true
-        type: string
-      - description: Confirmation Key
-        in: path
-        name: confirmationKey
+        in: header
+        name: request-id
         required: true
         type: string
       produces:
-      - text/plain;charset=utf-8
+      - application/json;charset=utf-8
       responses:
         "200":
           description: Successful operation
-        "404":
-          description: Not Found
           schema:
-            $ref: '#/definitions/model.CommonFailure'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.CommonFailure'
-      summary: Confirm to user password reset
-  /u/{confirmationKey}:
-    get:
-      description: API returns HTML-page with a message (success or error).
-      operationId: signup_step2
-      parameters:
-      - description: RequestID
-        in: query
-        name: rid
-        required: true
-        type: string
-      - description: Confirmation Key
-        in: path
-        name: confirmationKey
-        required: true
-        type: string
-      produces:
-      - text/plain;charset=utf-8
-      responses:
-        "200":
-          description: Successful operation
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/model.CommonFailure'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.CommonFailure'
-      summary: Confirm User Email
+            $ref: '#/definitions/model.VersionResponse'
+      summary: Get the Service version
   /v1/oauth/:
     post:
       consumes:
@@ -366,6 +326,35 @@ paths:
           schema:
             $ref: '#/definitions/model.CommonFailure'
       summary: 'Refresh Access Token (Domain Action: Renew authorization)'
+  /v1/p/{confirmationKey}:
+    get:
+      description: API returns HTML-page with a message (success or error).
+      operationId: reset_user_password_step2
+      parameters:
+      - description: RequestID
+        in: query
+        name: rid
+        required: true
+        type: string
+      - description: Confirmation Key
+        in: path
+        name: confirmationKey
+        required: true
+        type: string
+      produces:
+      - text/plain;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Confirm to user password reset
   /v1/session/:
     delete:
       consumes:
@@ -397,7 +386,7 @@ paths:
             $ref: '#/definitions/model.CommonFailure'
       security:
       - authorization: []
-      summary: 'Revoke Refresh Token (Domain Action: Log Out)'
+      summary: 'Remove the session and revoke the Refresh Token (Domain Action: Log Out)'
   /v1/sessions/:
     get:
       description: Get a list of active sessions
@@ -424,6 +413,35 @@ paths:
       security:
       - authorization: []
       summary: Get a list of active sessions
+  /v1/u/{confirmationKey}:
+    get:
+      description: API returns HTML-page with a message (success or error).
+      operationId: signup_step2
+      parameters:
+      - description: RequestID
+        in: query
+        name: rid
+        required: true
+        type: string
+      - description: Confirmation Key
+        in: path
+        name: confirmationKey
+        required: true
+        type: string
+      produces:
+      - text/plain;charset=utf-8
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.CommonFailure'
+      summary: Confirm User Email
   /v1/user/:
     post:
       consumes:
@@ -495,24 +513,6 @@ paths:
           schema:
             $ref: '#/definitions/model.CommonFailure'
       summary: Request to user password reset
-  /v1/version:
-    get:
-      description: Get Version
-      operationId: get_version
-      parameters:
-      - description: RequestID
-        in: header
-        name: request-id
-        required: true
-        type: string
-      produces:
-      - application/json;charset=utf-8
-      responses:
-        "200":
-          description: Successful operation
-          schema:
-            $ref: '#/definitions/model.VersionResponse'
-      summary: Get the Service version
 schemes:
 - https
 securityDefinitions:

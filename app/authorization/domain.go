@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type REST interface {
+type RestV1 interface {
 	SignUpStep1(logger *zap.Logger) http.Handler
 	SignUpStep2(logger *zap.Logger) http.Handler
 	CreateAccessToken(logger *zap.Logger) http.Handler
@@ -25,7 +25,7 @@ type Service interface {
 	RefreshAccessToken(ctx context.Context, logger *zap.Logger, refreshToken string) (model.ServiceAccessTokenReturn, error)
 	RevokeRefreshToken(ctx context.Context, logger *zap.Logger, param model.ServiceRevokeRefreshTokenParam) error
 	GetListActiveSessions(ctx context.Context, logger *zap.Logger, accessTokenData []byte) ([]model.Session, error)
-	ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, email string) error
+	ResetUserPasswordStep1(ctx context.Context, logger *zap.Logger, param model.ServiceResetUserPasswordParam) error
 	ResetUserPasswordStep2(ctx context.Context, logger *zap.Logger, confirmationKey string) (string, error)
 }
 

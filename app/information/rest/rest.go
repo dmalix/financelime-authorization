@@ -14,7 +14,7 @@ type rest struct {
 	Service       information.Service
 }
 
-func NewREST(
+func NewRest(
 	contextGetter middleware.ContextGetter,
 	service information.Service) *rest {
 	return &rest{
@@ -30,7 +30,7 @@ func NewREST(
 // @Param request-id header string true "RequestID"
 // @Produce application/json;charset=utf-8
 // @Success 200 {object} model.VersionResponse "Successful operation"
-// @Router /v1/version [get]
+// @Router /info/version [get]
 func (rest *rest) Version(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

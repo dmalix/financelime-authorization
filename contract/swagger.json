@@ -18,87 +18,28 @@
     "host": "api.auth.dev.financelime.com",
     "basePath": "/",
     "paths": {
-        "/p/{confirmationKey}": {
+        "/info/version": {
             "get": {
-                "description": "API returns HTML-page with a message (success or error).",
+                "description": "Get Version",
                 "produces": [
-                    "text/plain;charset=utf-8"
+                    "application/json;charset=utf-8"
                 ],
-                "summary": "Confirm to user password reset",
-                "operationId": "reset_user_password_step2",
+                "summary": "Get the Service version",
+                "operationId": "get_version",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "RequestID",
-                        "name": "rid",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Confirmation Key",
-                        "name": "confirmationKey",
-                        "in": "path",
+                        "name": "request-id",
+                        "in": "header",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful operation"
-                    },
-                    "404": {
-                        "description": "Not Found",
+                        "description": "Successful operation",
                         "schema": {
-                            "$ref": "#/definitions/model.CommonFailure"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.CommonFailure"
-                        }
-                    }
-                }
-            }
-        },
-        "/u/{confirmationKey}": {
-            "get": {
-                "description": "API returns HTML-page with a message (success or error).",
-                "produces": [
-                    "text/plain;charset=utf-8"
-                ],
-                "summary": "Confirm User Email",
-                "operationId": "signup_step2",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "RequestID",
-                        "name": "rid",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Confirmation Key",
-                        "name": "confirmationKey",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/model.CommonFailure"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.CommonFailure"
+                            "$ref": "#/definitions/model.VersionResponse"
                         }
                     }
                 }
@@ -216,6 +157,49 @@
                 }
             }
         },
+        "/v1/p/{confirmationKey}": {
+            "get": {
+                "description": "API returns HTML-page with a message (success or error).",
+                "produces": [
+                    "text/plain;charset=utf-8"
+                ],
+                "summary": "Confirm to user password reset",
+                "operationId": "reset_user_password_step2",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "rid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Confirmation Key",
+                        "name": "confirmationKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/session/": {
             "delete": {
                 "security": [
@@ -227,7 +211,7 @@
                 "consumes": [
                     "application/json;charset=utf-8"
                 ],
-                "summary": "Revoke Refresh Token (Domain Action: Log Out)",
+                "summary": "Remove the session and revoke the Refresh Token (Domain Action: Log Out)",
                 "operationId": "revoke_refresh_token",
                 "parameters": [
                     {
@@ -296,6 +280,49 @@
                             "items": {
                                 "$ref": "#/definitions/model.Session"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/u/{confirmationKey}": {
+            "get": {
+                "description": "API returns HTML-page with a message (success or error).",
+                "produces": [
+                    "text/plain;charset=utf-8"
+                ],
+                "summary": "Confirm User Email",
+                "operationId": "signup_step2",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RequestID",
+                        "name": "rid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Confirmation Key",
+                        "name": "confirmationKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/model.CommonFailure"
                         }
                     },
                     "500": {
@@ -408,33 +435,6 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/model.CommonFailure"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/version": {
-            "get": {
-                "description": "Get Version",
-                "produces": [
-                    "application/json;charset=utf-8"
-                ],
-                "summary": "Get the Service version",
-                "operationId": "get_version",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "RequestID",
-                        "name": "request-id",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "schema": {
-                            "$ref": "#/definitions/model.VersionResponse"
                         }
                     }
                 }

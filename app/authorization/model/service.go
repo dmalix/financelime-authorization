@@ -1,6 +1,7 @@
 package model
 
 type ServiceSignUpParam struct {
+	API        string
 	Email      string
 	Language   string
 	InviteCode string
@@ -23,4 +24,9 @@ type ServiceAccessTokenReturn struct {
 type ServiceRevokeRefreshTokenParam struct {
 	AccessTokenData []byte
 	PublicSessionID string
+}
+
+type ServiceResetUserPasswordParam struct {
+	API   string
+	Email string
 }

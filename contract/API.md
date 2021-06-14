@@ -49,13 +49,13 @@ API Support dmalix@financelime.com
 |---------|---------|--------|---------|
 | POST | /v1/oauth | [create access token](#create-access-token) | Create Access Token (Domain Action: Log In) |
 | GET | /v1/sessions | [get list active sessions](#get-list-active-sessions) | Get a list of active sessions |
-| GET | /v1/version | [get version](#get-version) | Get the Service version |
+| GET | /info/version | [get version](#get-version) | Get the Service version |
 | PUT | /v1/oauth | [refresh access token](#refresh-access-token) | Refresh Access Token (Domain Action: Renew authorization) |
 | PUT | /v1/user | [reset user password step1](#reset-user-password-step1) | Request to user password reset |
-| GET | /p/{confirmationKey} | [reset user password step2](#reset-user-password-step2) | Confirm to user password reset |
-| DELETE | /v1/session | [revoke refresh token](#revoke-refresh-token) | Revoke Refresh Token (Domain Action: Log Out) |
+| GET | /v1/p/{confirmationKey} | [reset user password step2](#reset-user-password-step2) | Confirm to user password reset |
+| DELETE | /v1/session | [revoke refresh token](#revoke-refresh-token) | Remove the session and revoke the Refresh Token (Domain Action: Log Out) |
 | POST | /v1/user | [signup step1](#signup-step1) | Create new user |
-| GET | /u/{confirmationKey} | [signup step2](#signup-step2) | Confirm User Email |
+| GET | /v1/u/{confirmationKey} | [signup step2](#signup-step2) | Confirm User Email |
   
 
 
@@ -179,7 +179,7 @@ Status: Internal Server Error
 ### <span id="get-version"></span> Get the Service version (*get_version*)
 
 ```
-GET /v1/version
+GET /info/version
 ```
 
 Get Version
@@ -342,7 +342,7 @@ Status: Internal Server Error
 ### <span id="reset-user-password-step2"></span> Confirm to user password reset (*reset_user_password_step2*)
 
 ```
-GET /p/{confirmationKey}
+GET /v1/p/{confirmationKey}
 ```
 
 API returns HTML-page with a message (success or error).
@@ -390,7 +390,7 @@ Status: Internal Server Error
 
 [ModelCommonFailure](#model-common-failure)
 
-### <span id="revoke-refresh-token"></span> Revoke Refresh Token (Domain Action: Log Out) (*revoke_refresh_token*)
+### <span id="revoke-refresh-token"></span> Remove the session and revoke the Refresh Token (Domain Action: Log Out) (*revoke_refresh_token*)
 
 ```
 DELETE /v1/session
@@ -518,7 +518,7 @@ Status: Internal Server Error
 ### <span id="signup-step2"></span> Confirm User Email (*signup_step2*)
 
 ```
-GET /u/{confirmationKey}
+GET /v1/u/{confirmationKey}
 ```
 
 API returns HTML-page with a message (success or error).

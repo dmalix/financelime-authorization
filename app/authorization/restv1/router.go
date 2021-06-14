@@ -1,4 +1,4 @@
-package rest
+package restv1
 
 import (
 	"github.com/dmalix/authorization-service/app/authorization"
@@ -8,41 +8,43 @@ import (
 	"net/http"
 )
 
-func Router(logger *zap.Logger, router *mux.Router, routerV1 *mux.Router, handler authorization.REST, middleware middleware.Middleware) {
+func RouterV1(logger *zap.Logger, router *mux.Router, handler authorization.RestV1, middleware middleware.Middleware) {
 
-	routerV1.Handle("/user/",
+	router.Handle("/user/",
 		handler.SignUpStep1(logger)).
 		Methods(http.MethodPost).
 		Headers(headerKeyContentType, headerValueApplicationJson)
-	router.Handle("/u/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
-		handler.SignUpStep2(logger)).
-		Methods(http.MethodGet)
 
-	routerV1.Handle("/oauth/",
+	router.Handle("/oauth/",
 		handler.CreateAccessToken(logger)).
 		Methods(http.MethodPost).
 		Headers(headerKeyContentType, headerValueApplicationJson)
-	routerV1.Handle("/oauth/", handler.RefreshAccessToken(logger)).
+	router.Handle("/oauth/", handler.RefreshAccessToken(logger)).
 		Methods(http.MethodPut).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 
-	routerSessions := routerV1.PathPrefix("/sessions").Subrouter()
+	routerSessions := router.PathPrefix("/sessions").Subrouter()
 	routerSessions.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
 	routerSessions.Handle("/",
 		handler.GetListActiveSessions(logger)).
 		Methods(http.MethodGet)
 
-	routerSession := routerV1.PathPrefix("/session").Subrouter()
+	routerSession := router.PathPrefix("/session").Subrouter()
 	routerSession.Use(middleware.Authorization(logger.Named("middlewareAuthorization")))
 	routerSession.Handle("/",
 		handler.RevokeRefreshToken(logger)).
 		Methods(http.MethodDelete).
 		Headers(headerKeyContentType, headerValueApplicationJson)
 
-	routerV1.Handle("/user/",
+	router.Handle("/user/",
 		handler.ResetUserPasswordStep1(logger)).
 		Methods(http.MethodPut).
 		Headers(headerKeyContentType, headerValueApplicationJson)
+
+	router.Handle("/u/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
+		handler.SignUpStep2(logger)).
+		Methods(http.MethodGet)
+
 	router.Handle("/p/{confirmationKey:[abcefghijkmnopqrtuvwxyz23479]{16}}",
 		handler.ResetUserPasswordStep2(logger)).
 		Methods(http.MethodGet)

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type REST interface {
+type Rest interface {
 	Version(logger *zap.Logger) http.Handler
 }
 

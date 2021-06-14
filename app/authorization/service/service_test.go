@@ -419,7 +419,9 @@ func TestServiceRequestUserPasswordReset(t *testing.T) {
 		token,
 		token)
 
-	err = newService.ResetUserPasswordStep1(ctx, logger, "email")
+	err = newService.ResetUserPasswordStep1(ctx, logger, model.ServiceResetUserPasswordParam{
+		API:   "api",
+		Email: "email"})
 
 	if err != nil {
 		t.Errorf("service returned wrong the err value: got %v want %v",

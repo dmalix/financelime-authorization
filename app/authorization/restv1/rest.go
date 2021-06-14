@@ -1,4 +1,4 @@
-package rest
+package restv1
 
 import (
 	"encoding/json"
@@ -12,14 +12,17 @@ import (
 )
 
 type rest struct {
+	config        model.ConfigRest
 	contextGetter middleware.ContextGetter
 	service       authorization.Service
 }
 
-func NewREST(
+func NewRest(
+	config model.ConfigRest,
 	contextGetter middleware.ContextGetter,
 	service authorization.Service) *rest {
 	return &rest{
+		config:        config,
 		contextGetter: contextGetter,
 		service:       service,
 	}
@@ -70,6 +73,7 @@ func (a *rest) SignUpStep1(logger *zap.Logger) http.Handler {
 		}
 
 		err = a.service.SignUpStep1(r.Context(), logger, model.ServiceSignUpParam{
+			API:        "https://" + a.config.DomainAPI + "/" + a.config.API + "/u",
 			Email:      requestInput.Email,
 			Language:   requestInput.Language,
 			InviteCode: requestInput.InviteCode})
@@ -103,7 +107,7 @@ func (a *rest) SignUpStep1(logger *zap.Logger) http.Handler {
 // @Success 200 "Successful operation"
 // @Failure 404 {object} model.CommonFailure
 // @Failure 500 {object} model.CommonFailure
-// @Router /u/{confirmationKey} [get]
+// @Router /v1/u/{confirmationKey} [get]
 func (a *rest) SignUpStep2(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -372,7 +376,7 @@ func (a *rest) GetListActiveSessions(logger *zap.Logger) http.Handler {
 }
 
 // RevokeRefreshToken
-// @Summary Revoke Refresh Token (Domain Action: Log Out)
+// @Summary Remove the session and revoke the Refresh Token (Domain Action: Log Out)
 // @Description This request revoke the Refresh Token associated with the specified session. Thus, when the Access Token expires, then it cannot be renewed. And only after that, the user will be log out. Be aware that this query is idempotent.
 // @ID revoke_refresh_token
 // @Security authorization
@@ -488,7 +492,9 @@ func (a *rest) ResetUserPasswordStep1(logger *zap.Logger) http.Handler {
 			return
 		}
 
-		err = a.service.ResetUserPasswordStep1(r.Context(), logger, requestInput.Email)
+		err = a.service.ResetUserPasswordStep1(r.Context(), logger, model.ServiceResetUserPasswordParam{
+			API:   "https://" + a.config.DomainAPI + "/" + a.config.API + "/p",
+			Email: requestInput.Email})
 		if err != nil {
 			logger.Error("failed to request a reset of the user's password", zap.Error(err), zap.String(requestIDKey, requestID))
 			switch err {
@@ -519,7 +525,7 @@ func (a *rest) ResetUserPasswordStep1(logger *zap.Logger) http.Handler {
 // @Success 200 "Successful operation"
 // @Failure 404 {object} model.CommonFailure
 // @Failure 500 {object} model.CommonFailure
-// @Router /p/{confirmationKey} [get]
+// @Router /v1/p/{confirmationKey} [get]
 func (a *rest) ResetUserPasswordStep2(logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

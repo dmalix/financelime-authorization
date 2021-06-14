@@ -1,4 +1,4 @@
-package rest
+package restv1
 
 const (
 	headerKeyContentType       = "content-type"

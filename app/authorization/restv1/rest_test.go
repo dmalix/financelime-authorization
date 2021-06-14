@@ -1,9 +1,10 @@
-package rest
+package restv1
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/dmalix/authorization-service/app/authorization/model"
 	"github.com/dmalix/authorization-service/app/authorization/service"
 	"github.com/dmalix/jwt"
 	"github.com/dmalix/middleware"
@@ -49,7 +50,7 @@ func TestAPISignUp1(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.SignUpStep1(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
@@ -83,7 +84,7 @@ func TestAPISignUp2(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.SignUpStep2(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
@@ -118,7 +119,7 @@ func TestAPICreateAccessToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.CreateAccessToken(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
@@ -153,7 +154,7 @@ func TestAPIRefreshAccessToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.RefreshAccessToken(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
@@ -191,7 +192,7 @@ func TestAPIRevokeRefreshToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.RevokeRefreshToken(logger)
 
 	rctx := request.Context()
@@ -222,7 +223,7 @@ func TestAPIGetListActiveSessions(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.GetListActiveSessions(logger)
 
 	rctx := request.Context()
@@ -263,7 +264,7 @@ func TestAPIResetUserPassword1(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	contextGetter := new(middleware.MockDescription)
 
-	authREST := NewREST(contextGetter, authService)
+	authREST := NewRest(model.ConfigRest{}, contextGetter, authService)
 	handler := authREST.ResetUserPasswordStep1(logger)
 
 	handler.ServeHTTP(responseRecorder, request)

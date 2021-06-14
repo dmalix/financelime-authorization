@@ -25,7 +25,7 @@ func TestVersion(t *testing.T) {
 	logger := new(zap.Logger)
 	newContextGetter := new(middleware.MockDescription)
 	newService := new(service.MockDescription)
-	newAPI := NewREST(newContextGetter, newService)
+	newAPI := NewRest(newContextGetter, newService)
 	handler := newAPI.Version(logger)
 
 	handler.ServeHTTP(responseRecorder, request)
