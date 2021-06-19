@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/dmalix/jwt v0.1.8
-	github.com/dmalix/middleware v0.1.8
+	github.com/dmalix/middleware v0.1.9
 	github.com/dmalix/requestid v0.1.1
 	github.com/dmalix/secretdata v0.1.4
 	github.com/dmalix/sendmail v0.1.2
