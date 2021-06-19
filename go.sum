@@ -14,8 +14,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dmalix/jwt v0.1.8 h1:TjNc3vQhHLjPKP5+egqs3kimLIKsF3KIp8I+6ualtd0=
 github.com/dmalix/jwt v0.1.8/go.mod h1:0rva17o9oU+6Y1GuUVmDj19t3adwiZY1vVXc6usYx1c=
-github.com/dmalix/middleware v0.1.9 h1:nylgtQK6atnnTl61CreiQG855uXVneaBRUG1Ajmhceo=
-github.com/dmalix/middleware v0.1.9/go.mod h1:9ESKsWG7h237HdhoJZ3hPHhfDI9t5GYT4TSb+SMkbNo=
+github.com/dmalix/middleware v0.1.10 h1:ShEiArdtePQfudOi30q5tSF0W5ZKtORnBYqTz5rBnzo=
+github.com/dmalix/middleware v0.1.10/go.mod h1:9ESKsWG7h237HdhoJZ3hPHhfDI9t5GYT4TSb+SMkbNo=
 github.com/dmalix/requestid v0.1.1 h1:5PNtSq290Z2TZJY4M2pvtuHm2snnvCS/COHvjWwVWUQ=
 github.com/dmalix/requestid v0.1.1/go.mod h1:zpxw9cmWx4vVicqiLvlUWZI8DiqkEvgX2S99nuLI2yY=
 github.com/dmalix/secretdata v0.1.4 h1:gjuHZHGHXbmaYYFe4bhD7IClt4XCDvKS+//sofywZ1o=
