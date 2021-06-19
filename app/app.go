@@ -187,6 +187,7 @@ func NewApp(logger *zap.Logger, version config.Version) (*App, error) {
 		RequestIDCheck:      true,
 		ContainsJWTAudience: "Authorization",
 		DecryptJWTData:      appConfig.Jwt.AccessEncryptData,
+		DevelopmentMode:     version.DevelopmentMode,
 	}
 	commonMiddleware := middleware.NewMiddleware(
 		middlewareConfig,

@@ -1,5 +1,3 @@
-
-
 DROP TABLE IF EXISTS "public"."user";
 DROP SEQUENCE IF EXISTS "public"."user_id_seq";
 
