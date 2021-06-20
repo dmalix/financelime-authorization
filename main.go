@@ -38,7 +38,13 @@ func main() {
 	}
 
 	loggerConfig := zap.NewProductionConfig()
-	loggerConfig.Development = version.DevelopmentMode
+
+	if version.DevelopmentMode {
+		loggerConfig.Development = true
+		loggerConfig.Level.SetLevel(zap.DebugLevel)
+	} else {
+		loggerConfig.Level.SetLevel(zap.InfoLevel)
+	}
 
 	logger, err := loggerConfig.Build()
 	if err != nil {
